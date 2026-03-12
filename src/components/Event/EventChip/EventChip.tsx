@@ -119,7 +119,7 @@ export function EventChip({
         variant="outlined"
         style={
           !isMoreThan15 || isMonthView
-            ? { ...cardStyle, height: "auto" }
+            ? { ...cardStyle, height: "auto", transform: "translateY(2px)" }
             : { ...cardStyle }
         }
         ref={cardRef}
