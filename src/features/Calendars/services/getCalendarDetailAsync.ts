@@ -46,7 +46,10 @@ export const getCalendarDetailAsync = createAsyncThunk<
       const items = calendar._embedded?.["dav:item"];
       const events: CalendarEvent[] = Array.isArray(items)
         ? items.flatMap((item: CalendarItem) =>
-            extractCalendarEvents(item, { cal: calendarStored })
+            extractCalendarEvents(item, {
+              cal: calendarStored,
+              color: calendarStored.color,
+            })
           )
         : [];
 

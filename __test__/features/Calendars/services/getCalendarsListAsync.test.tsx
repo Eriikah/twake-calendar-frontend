@@ -10,6 +10,13 @@ jest.mock("@/features/Calendars/services/helpers");
 jest.mock("@/features/Calendars/CalendarApi");
 jest.mock("@/utils/errorUtils");
 jest.mock("@/features/Calendars/utils/normalizeCalendar");
+jest.mock("@/components/Calendar/utils/calendarColorsUtils", () => ({
+  getAccessiblePair: jest.fn().mockReturnValue("#FFF"),
+}));
+
+jest.mock("@mui/material/styles", () => ({
+  createTheme: jest.fn().mockReturnValue({}),
+}));
 
 const mockedGetOpenPaasUser = getOpenPaasUser as jest.Mock;
 const mockedFetchOwnerData = fetchOwnerData as jest.Mock;
@@ -93,7 +100,7 @@ describe("getCalendarsListAsync", () => {
 
     const thunk = getCalendarsListAsync();
     const result = await thunk(dispatch, getState, undefined);
-
+    console.log(result);
     expect(result.type).toBe("calendars/getCalendars/fulfilled");
     const payload = result.payload as {
       importedCalendars: any;
