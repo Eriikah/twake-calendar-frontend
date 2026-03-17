@@ -60,7 +60,7 @@ export function EventPreviewDetails({
           borderRadius: "8px",
           gap: "16px",
           paddingTop: "16px",
-          paddingBottom: " 16px",
+          paddingBottom: "16px",
         }}
       >
         <Typography
