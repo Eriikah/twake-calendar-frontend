@@ -4,6 +4,7 @@ import { DateTimeFields } from "@/components/Event/components/DateTimeFields";
 import { FieldWithLabel } from "@/components/Event/components/FieldWithLabel";
 import { splitDateTime } from "@/components/Event/utils/dateTimeHelpers";
 import { Box, Button, TextField, Typography } from "@linagora/twake-mui";
+import moment from "moment-timezone";
 import { useState } from "react";
 import { useI18n } from "twake-i18n";
 import { postCounterProposal } from "../api/sendCounterProposal";
@@ -23,9 +24,20 @@ export function EventCounterModal({
 
   const allday = contextualizedEvent.event.allday ?? false;
 
-  const startSplit = splitDateTime(contextualizedEvent.event.start);
+  const timezone = contextualizedEvent.event.timezone;
+
+  const startSplit = splitDateTime(
+    moment
+      .tz(contextualizedEvent.event.start, timezone)
+      .format("YYYY-MM-DDTHH:mm")
+  );
   const endSplit = splitDateTime(
-    contextualizedEvent.event.end ?? contextualizedEvent.event.start
+    moment
+      .tz(
+        contextualizedEvent.event.end ?? contextualizedEvent.event.start,
+        timezone
+      )
+      .format("YYYY-MM-DDTHH:mm")
   );
 
   const [startDate, setStartDate] = useState(startSplit.date);
@@ -88,14 +100,20 @@ export function EventCounterModal({
 
   const handleSubmit = async () => {
     if (!validate()) return;
-    await postCounterProposal(
-      contextualizedEvent.event,
-      contextualizedEvent.currentUserAttendee?.cal_address,
-      contextualizedEvent.event.organizer?.cal_address,
-      startTime,
-      endTime,
-      message
-    );
+    if (
+      !contextualizedEvent.currentUserAttendee?.cal_address ||
+      !contextualizedEvent.event.organizer?.cal_address
+    ) {
+      throw new Error("Something went wrong with the emails");
+    }
+    await postCounterProposal({
+      event: contextualizedEvent.event,
+      senderEmail: contextualizedEvent.currentUserAttendee.cal_address,
+      recipientEmail: contextualizedEvent.event.organizer.cal_address,
+      proposedStart: `${startDate}T${startTime}`,
+      proposedEnd: `${endDate}T${endTime}`,
+      message,
+    });
     setOpen(false);
   };
 

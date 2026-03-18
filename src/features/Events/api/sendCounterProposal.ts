@@ -4,14 +4,21 @@ import ICAL from "ical.js";
 import { CalendarEvent } from "../EventsTypes";
 import { makeTimezone, makeVevent } from "../utils";
 
-export async function postCounterProposal(
-  event: CalendarEvent,
-  senderEmail: string,
-  recipientEmail: string,
-  proposedStart: string,
-  proposedEnd: string,
-  message?: string
-): Promise<Response> {
+export async function postCounterProposal({
+  event,
+  senderEmail,
+  recipientEmail,
+  proposedStart,
+  proposedEnd,
+  message,
+}: {
+  event: CalendarEvent;
+  senderEmail: string;
+  recipientEmail: string;
+  proposedStart: string;
+  proposedEnd: string;
+  message?: string;
+}): Promise<Response> {
   // Build the counter event with proposed dates
   const counterEvent: CalendarEvent = {
     ...event,
@@ -28,7 +35,7 @@ export async function postCounterProposal(
     !event.recurrenceId
   );
   if (message) {
-    vevent[1].push(["comment", {}, "text", message]);
+    vevent?.[1]?.push(["comment", {}, "text", message]);
   }
   // Build vtimezone
   const timezoneData = TIMEZONES.zones[counterEvent.timezone];
