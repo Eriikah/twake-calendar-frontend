@@ -281,6 +281,11 @@
       "tooltip": "Les autres vous voient comme disponible pendant la plage horaire de cet événement."
     },
     "attendingQuestion": "Participer ?",
+    "proposeNewTime": "Proposer un nouvel horaire",
+    "currentEventTime": "Heure actuelle de l'événement",
+    "yourProposal": "Votre proposition",
+    "optionalMessage": "Ajouter un message optionnel à l'organisateur",
+    "sendProposal": "Envoyer la proposition",
     "ACCEPTED": "Accepter",
     "TENTATIVE": "Peut-être",
     "DECLINED": "Décliner",

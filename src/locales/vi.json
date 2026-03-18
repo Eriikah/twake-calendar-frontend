@@ -279,6 +279,11 @@
       "tooltip": "Người khác sẽ thấy bạn rảnh trong khoảng thời gian này."
     },
     "attendingQuestion": "Tham gia?",
+    "proposeNewTime": "Đề xuất thời gian mới",
+    "currentEventTime": "Thời gian sự kiện hiện tại",
+    "yourProposal": "Đề xuất của bạn",
+    "optionalMessage": "Thêm tin nhắn tùy chọn cho người tổ chức",
+    "sendProposal": "Gửi đề xuất",
     "ACCEPTED": "Chấp nhận",
     "TENTATIVE": "Có thể",
     "DECLINED": "Từ chối",
