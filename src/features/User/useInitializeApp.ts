@@ -34,8 +34,12 @@ export function useInitializeApp() {
         dispatch(setAppLoading(true));
         dispatch(setTokens(savedToken));
         dispatch(setUserData(savedUser));
-        await dispatch(getOpenPaasUserDataAsync());
-        await dispatch(getCalendarsListAsync());
+        try {
+          await dispatch(getOpenPaasUserDataAsync());
+          await dispatch(getCalendarsListAsync());
+        } finally {
+          dispatch(setAppLoading(false));
+        }
 
         return;
       }
