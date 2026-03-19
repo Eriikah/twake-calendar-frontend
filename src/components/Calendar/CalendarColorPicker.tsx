@@ -16,7 +16,7 @@ import { defaultColors } from "@/utils/defaultColors";
 
 export function ColorPicker({
   selectedColor,
-  colors = defaultColors,
+  colors = defaultColors.slice(undefined, 4),
   onChange,
 }: {
   selectedColor: Record<string, string>;
