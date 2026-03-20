@@ -24,7 +24,7 @@ export async function postCounterProposal({
     ...event,
     start: proposedStart,
     end: proposedEnd,
-    sequence: (event.sequence ?? 0) + 1,
+    sequence: event.sequence ?? 0,
   };
 
   // Build vevent jCal
@@ -68,6 +68,8 @@ export async function postCounterProposal({
     headers: {
       accept: "application/json,text/plain,*/*",
       "content-type": "application/calendar+json",
+      Prefer: "return=representation",
+      "X-Http-Method-Override": "ITIP",
     },
   });
 
