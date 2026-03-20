@@ -128,6 +128,7 @@ export function EventCounterModal({
       });
       setOpen(false);
     } catch (error) {
+      console.error(error);
       setValidation({ errors: { dateTime: t("error.unknown") } });
     } finally {
       setIsSubmitting(false);
