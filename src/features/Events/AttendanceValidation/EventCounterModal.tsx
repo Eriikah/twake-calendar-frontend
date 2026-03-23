@@ -156,16 +156,12 @@ export function EventCounterModal({
       </Box>
 
       {/* Current event time */}
-      <FieldWithLabel
-        label={t("eventPreview.currentEventTime")}
-        isExpanded={false}
-      >
-        <EventTimeSubtitle
-          event={contextualizedEvent.event}
-          t={t}
-          timezone={contextualizedEvent.event.timezone}
-        />
-      </FieldWithLabel>
+
+      <EventTimeSubtitle
+        event={contextualizedEvent.event}
+        t={t}
+        timezone={contextualizedEvent.event.timezone}
+      />
 
       {/* Your proposal label */}
       <FieldWithLabel label={t("eventPreview.yourProposal")} isExpanded={false}>
@@ -196,6 +192,7 @@ export function EventCounterModal({
         <TextField
           margin="dense"
           multiline
+          size="small"
           minRows={2}
           maxRows={10}
           fullWidth
