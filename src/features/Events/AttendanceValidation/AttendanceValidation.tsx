@@ -46,6 +46,13 @@ export function AttendanceValidation({
       (admin) => admin.id === user?.openpaasId
     );
 
+  const calendarOwnerIsOrganizer =
+    contextualizedEvent.calendar.owner?.preferredEmail ===
+    contextualizedEvent.event.organizer?.cal_address;
+
+  const canEditDirectly =
+    contextualizedEvent.calendar.delegated && calendarOwnerIsOrganizer;
+
   if (
     !(editRightInSelfCalendar || isDelegatedPublicEvent || isAdminOfResource)
   ) {
@@ -79,7 +86,7 @@ export function AttendanceValidation({
         <RSVPButton rsvpValue="DECLINED" {...commonButtonProps} />
         <RSVPButton rsvpValue="TENTATIVE" {...commonButtonProps} />
       </Box>
-      {(!contextualizedEvent.isOrganizer || !isOwn) && (
+      {!canEditDirectly && (
         <Typography
           variant="body2"
           onClick={() => setOpenCounterModal(!openCounterModal)}
