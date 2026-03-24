@@ -32,6 +32,8 @@ import UserSearch from "../Attendees/AttendeeSearch";
 import { PeopleSearch, User } from "../Attendees/PeopleSearch";
 import { CalendarItemList } from "../Calendar/CalendarItemList";
 
+const SEARCH_OBJECT_TYPES = ["user", "contact"];
+
 export default function SearchBar() {
   const { t } = useI18n();
   const dispatch = useAppDispatch();
@@ -226,7 +228,7 @@ export default function SearchBar() {
             onChange={(_event, users) => {
               handleContactSelect(users);
             }}
-            objectTypes={["user", "contact"]}
+            objectTypes={SEARCH_OBJECT_TYPES}
             onToggleEventPreview={() => {}}
             customSlotProps={{
               popper: {
