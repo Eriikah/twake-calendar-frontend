@@ -34,9 +34,8 @@ import { CalendarItemList } from "../Calendar/CalendarItemList";
 export default function SearchBar() {
   const { t } = useI18n();
   const dispatch = useAppDispatch();
-  const calendars = Object.values(
-    useAppSelector((state) => state.calendars.list)
-  );
+  const calendarList = useAppSelector((state) => state.calendars.list);
+  const calendars = Object.values(calendarList);
   const userId = useAppSelector((state) => state.user.userData?.openpaasId);
   const personnalCalendars = userId
     ? calendars.filter((c) => extractEventBaseUuid(c.id) === userId)
