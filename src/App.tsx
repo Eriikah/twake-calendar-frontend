@@ -1,20 +1,21 @@
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { push } from 'redux-first-history'
 import { HistoryRouter as Router } from 'redux-first-history/rr6'
 import './App.styl'
 import { useAppDispatch, useAppSelector } from './app/hooks'
 import { history } from './app/store'
-import CalendarLayout from './components/Calendar/CalendarLayout'
+import { default as CalendarLayout } from './components/Calendar/CalendarLayout'
 import { Error as ErrorPage } from './components/Error/Error'
 import { ErrorSnackbar } from './components/Error/ErrorSnackbar'
 import { Loading } from './components/Loading/Loading'
 import { AVAILABLE_LANGUAGES } from './features/Settings/constants'
-import HandleLogin from './features/User/HandleLogin'
+import { default as HandleLogin } from './features/User/HandleLogin'
 import { CallbackResume } from './features/User/LoginCallback'
 import { useInitializeApp } from './features/User/useInitializeApp'
 import { ScreenTooSmall } from './ScreenTooSmall'
+import { useScreenSizeDetection } from './useScreenSizeDetection'
 import { WebSocketGate } from './websocket/WebSocketGate'
 
 import {
@@ -62,23 +63,9 @@ function App() {
     }
   }, [error, dispatch])
 
-  const SMALL_SCREEN_QUERY = '(max-width: 925px)'
-  const [isTooSmall, setIsTooSmall] = useState(
-    () => window.matchMedia(SMALL_SCREEN_QUERY).matches
-  )
-
   useInitializeApp()
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia(SMALL_SCREEN_QUERY)
-    const onChange = (event: MediaQueryListEvent) =>
-      setIsTooSmall(event.matches)
-    const onChangeInitial = () => setIsTooSmall(mediaQuery.matches)
-
-    onChangeInitial()
-    mediaQuery.addEventListener('change', onChange)
-    return () => mediaQuery.removeEventListener('change', onChange)
-  }, [])
+  const { isTooSmall } = useScreenSizeDetection()
 
   return (
     <TwakeMuiThemeProvider>
