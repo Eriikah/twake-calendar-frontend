@@ -9,8 +9,8 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import TodayIcon from '@mui/icons-material/Today'
 import { useI18n } from 'twake-i18n'
 import SearchBar from './EventSearchBar'
-import { SharedMenubarProps } from './Menubar'
 import { MainTitle } from './MainTitle'
+import { SharedMenubarProps } from './Menubar'
 import { UserMenu } from './UserMenu'
 
 export function TabletMenubar({
@@ -57,7 +57,11 @@ export function TabletMenubar({
         <div className="menu-items" style={{ marginLeft: 0 }}>
           <div className="navigation-controls">
             <Stack direction="row">
-              <IconButton onClick={() => onNavigate('prev')}>
+              <IconButton
+                onClick={() => onNavigate('prev')}
+                aria-label={t('menubar.previous')}
+                title={t('menubar.previous')}
+              >
                 <ChevronLeftIcon sx={{ height: 20 }} />
               </IconButton>
               <IconButton
@@ -67,10 +71,16 @@ export function TabletMenubar({
                   borderRadius: '12px'
                 }}
                 onClick={() => onNavigate('today')}
+                aria-label={t('menubar.today')}
+                title={t('menubar.today')}
               >
                 <TodayIcon />
               </IconButton>
-              <IconButton onClick={() => onNavigate('next')}>
+              <IconButton
+                onClick={() => onNavigate('next')}
+                aria-label={t('menubar.next')}
+                title={t('menubar.next')}
+              >
                 <ChevronRightIcon sx={{ height: 20 }} />
               </IconButton>
             </Stack>
