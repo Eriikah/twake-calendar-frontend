@@ -1,45 +1,16 @@
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { setView } from '@/features/Settings/SettingsSlice'
 import { Logout } from '@/features/User/oidcAuth'
-import logo from '@/static/header-logo.svg'
-import { getInitials, stringToGradient } from '@/utils/avatarUtils'
+import { useScreenSizeDetection } from '@/useScreenSizeDetection'
 import { redirectTo } from '@/utils/navigation'
-import { getUserDisplayName } from '@/utils/userUtils'
 import { CalendarApi } from '@fullcalendar/core'
-import {
-  Avatar,
-  Box,
-  Button,
-  ButtonGroup,
-  Divider,
-  FormControl,
-  IconButton,
-  Menu,
-  MenuItem,
-  Popover,
-  Select,
-  Typography
-} from '@linagora/twake-mui'
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
-import LogoutIcon from '@mui/icons-material/Logout'
-import MenuIcon from '@mui/icons-material/Menu'
-import RefreshIcon from '@mui/icons-material/Refresh'
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
-import TodayIcon from '@mui/icons-material/Today'
-import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined'
 import React, { useEffect, useState } from 'react'
 import { push } from 'redux-first-history'
 import { useI18n } from 'twake-i18n'
-import SearchBar from './EventSearchBar'
+import { AppIconProps } from './AppIcon'
+import { DesktopMenubar } from './DesktopMenubar'
 import './Menubar.styl'
-
-export type AppIconProps = {
-  name: string
-  link: string
-  icon: string
-}
+import { TabletMenubar } from './TabletMenubar'
 
 export type MenubarProps = {
   calendarRef: React.RefObject<CalendarApi | null>
@@ -49,8 +20,24 @@ export type MenubarProps = {
   currentView: string
   onViewChange?: (view: string) => void
   isIframe?: boolean
-  isTablet: boolean
   onToggleSidebar: () => void
+}
+
+export type SharedMenubarProps = Omit<MenubarProps, 'isTablet'> & {
+  dateLabel: string
+  applist: AppIconProps[]
+  supportLink: string | undefined
+  anchorEl: HTMLElement | null
+  onAppMenuOpen: (event: React.MouseEvent<HTMLElement>) => void
+  onAppMenuClose: () => void
+  userMenuAnchorEl: HTMLElement | null
+  onUserMenuOpen: (event: React.MouseEvent<HTMLElement>) => void
+  onUserMenuClose: () => void
+  onSettingsClick: () => void
+  onLogoutClick: () => void
+  onNavigate: (action: 'prev' | 'next' | 'today') => void
+  onViewChange: (view: string) => void
+  user: ReturnType<typeof useAppSelector<any>>
 }
 
 export function Menubar({
@@ -61,7 +48,6 @@ export function Menubar({
   currentView,
   onViewChange,
   isIframe,
-  isTablet,
   onToggleSidebar
 }: MenubarProps) {
   const { t } = useI18n() // deliberately NOT using f()
@@ -74,6 +60,7 @@ export function Menubar({
     null
   )
   const dispatch = useAppDispatch()
+  const { isTablet } = useScreenSizeDetection()
 
   useEffect(() => {
     if (!user) {
@@ -83,13 +70,6 @@ export function Menubar({
 
   if (!user) {
     return null
-  }
-  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
-
-  const handleClose = () => {
-    setAnchorEl(null)
   }
 
   const handleNavigation = async (action: 'prev' | 'next' | 'today') => {
@@ -132,12 +112,13 @@ export function Menubar({
     }
   }
 
-  const open = Boolean(anchorEl)
-  const userMenuOpen = Boolean(userMenuAnchorEl)
+  const handleAppMenuOpen = (event: React.MouseEvent<HTMLElement>) =>
+    setAnchorEl(event.currentTarget)
 
-  const handleUserMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+  const handleAppMenuClose = () => setAnchorEl(null)
+
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) =>
     setUserMenuAnchorEl(event.currentTarget)
-  }
 
   const handleUserMenuClose = () => {
     setUserMenuAnchorEl(null)
@@ -161,388 +142,33 @@ export function Menubar({
   const monthName = t(`months.standalone.${monthIndex}`)
   const dateLabel = `${monthName} ${year}`
 
-  return (
-    <>
-      <header className="menubar">
-        <div className="left-menu">
-          {isTablet && (
-            <IconButton
-              onClick={onToggleSidebar}
-              aria-label={t('menubar.toggleSidebar')}
-              title={t('menubar.toggleSidebar')}
-            >
-              <MenuIcon />
-            </IconButton>
-          )}
-          {!isIframe && (
-            <div className="menu-items">
-              <MainTitle
-                calendarRef={calendarRef}
-                currentView={currentView}
-                onViewChange={onViewChange}
-                onDateChange={onDateChange}
-              />
-            </div>
-          )}
-          <div
-            className="menu-items"
-            style={{ marginLeft: isTablet ? '0' : '65px' }}
-          >
-            <div className="navigation-controls">
-              {isTablet ? (
-                <ButtonGroup
-                  size="medium"
-                  sx={{
-                    '& button:first-of-type': {
-                      borderRadius: '12px 0 0 12px'
-                    },
-                    '& button:last-of-type': {
-                      borderRadius: '0 12px 12px 0'
-                    }
-                  }}
-                >
-                  <Button
-                    sx={{ width: 20 }}
-                    onClick={() => handleNavigation('prev')}
-                  >
-                    <ChevronLeftIcon sx={{ height: 20 }} />
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    onClick={() => handleNavigation('today')}
-                  >
-                    <TodayIcon />
-                  </Button>
-                  <Button
-                    sx={{ width: 20 }}
-                    onClick={() => handleNavigation('next')}
-                  >
-                    <ChevronRightIcon sx={{ height: 20 }} />
-                  </Button>
-                </ButtonGroup>
-              ) : (
-                <ButtonGroup
-                  variant="outlined"
-                  size="medium"
-                  sx={{
-                    '& button:first-of-type': {
-                      borderRadius: '12px 0 0 12px'
-                    },
-                    '& button:last-of-type': {
-                      borderRadius: '0 12px 12px 0'
-                    }
-                  }}
-                >
-                  <Button
-                    sx={{ width: 20 }}
-                    onClick={() => handleNavigation('prev')}
-                  >
-                    <ChevronLeftIcon sx={{ height: 20 }} />
-                  </Button>
-                  <Button onClick={() => handleNavigation('today')}>
-                    {t('menubar.today')}
-                  </Button>
-                  <Button
-                    sx={{ width: 20 }}
-                    onClick={() => handleNavigation('next')}
-                  >
-                    <ChevronRightIcon sx={{ height: 20 }} />
-                  </Button>
-                </ButtonGroup>
-              )}
-            </div>
-          </div>
-          <div className="menu-items">
-            <div className="current-date-time">
-              <p>{dateLabel}</p>
-            </div>
-          </div>
-        </div>
-        <div className="right-menu">
-          <div className="search-container">
-            <SearchBar />
-          </div>
-          <div className="menu-items">
-            <IconButton
-              className="refresh-button"
-              onClick={onRefresh}
-              aria-label={t('menubar.refresh')}
-              title={t('menubar.refresh')}
-              sx={{ mr: 1 }}
-            >
-              <RefreshIcon />
-            </IconButton>
-          </div>
-          {!isTablet && (
-            <div className="menu-items">
-              <FormControl
-                size="small"
-                style={{ minWidth: 120, marginRight: 16 }}
-                className="select-display"
-              >
-                <Select
-                  value={currentView}
-                  onChange={e => handleViewChange(e.target.value)}
-                  variant="outlined"
-                  aria-label={t('menubar.viewSelector')}
-                  sx={{
-                    borderRadius: '12px',
-                    marginLeft: 1,
-                    '& fieldset': { borderRadius: '12px' }
-                  }}
-                >
-                  <MenuItem value="dayGridMonth">
-                    {t('menubar.views.month')}
-                  </MenuItem>
-                  <MenuItem value="timeGridWeek">
-                    {t('menubar.views.week')}
-                  </MenuItem>
-                  <MenuItem value="timeGridDay">
-                    {t('menubar.views.day')}
-                  </MenuItem>
-                </Select>
-              </FormControl>
-            </div>
-          )}
-          {!isIframe && (
-            <>
-              {supportLink && (
-                <div className="menu-items">
-                  <IconButton
-                    component="a"
-                    href={supportLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ marginRight: 8 }}
-                    aria-label={t('menubar.help')}
-                    title={t('menubar.help')}
-                  >
-                    <HelpOutlineIcon />
-                  </IconButton>
-                </div>
-              )}
-
-              <div className="menu-items">
-                {applist.length > 0 && (
-                  <IconButton
-                    onClick={handleOpen}
-                    style={{ marginRight: 8 }}
-                    aria-label={t('menubar.apps')}
-                    title={t('menubar.apps')}
-                  >
-                    <WidgetsOutlinedIcon />
-                  </IconButton>
-                )}
-              </div>
-            </>
-          )}
-
-          <div className="menu-items">
-            <IconButton
-              onClick={!isIframe ? handleUserMenuClick : handleSettingsClick}
-              aria-label={isIframe ? t('menubar.settings') : undefined}
-            >
-              {!isIframe ? (
-                <Avatar
-                  color={stringToGradient(getUserDisplayName(user))}
-                  size="m"
-                  aria-label={t('menubar.userProfile')}
-                >
-                  {getInitials(getUserDisplayName(user))}
-                </Avatar>
-              ) : (
-                <SettingsOutlinedIcon />
-              )}
-            </IconButton>
-          </div>
-        </div>
-      </header>
-      <Popover
-        open={open}
-        anchorEl={anchorEl}
-        onClose={handleClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right'
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right'
-        }}
-        PaperProps={{
-          sx: {
-            minWidth: 230,
-            mt: 2,
-            p: '14px 8px',
-            borderRadius: '14px'
-          }
-        }}
-      >
-        <div className="app-grid">
-          {applist.map((prop: AppIconProps) => (
-            <AppIcon key={prop.name} prop={prop} />
-          ))}
-        </div>
-      </Popover>
-
-      <Menu
-        open={userMenuOpen}
-        anchorEl={userMenuAnchorEl}
-        onClose={handleUserMenuClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right'
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right'
-        }}
-        PaperProps={{
-          sx: {
-            minWidth: 280,
-            mt: 1,
-            padding: '0 !important',
-            borderRadius: '14px'
-          }
-        }}
-      >
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            padding: '24px'
-          }}
-        >
-          <Avatar
-            color={stringToGradient(getUserDisplayName(user))}
-            size="l"
-            sx={{ marginBottom: '8px' }}
-          >
-            {getInitials(getUserDisplayName(user))}
-          </Avatar>
-          <Typography
-            sx={{
-              color: '#424244',
-              fontFamily: 'Inter',
-              fontSize: 22,
-              fontWeight: 600
-            }}
-          >
-            {getUserDisplayName(user)}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: 14,
-              fontWeight: 500
-            }}
-          >
-            {user?.email}
-          </Typography>
-        </Box>
-        <MenuItem onClick={handleSettingsClick} sx={{ py: 1.5 }}>
-          <SettingsOutlinedIcon
-            sx={{
-              mr: 2,
-              color: 'rgba(28, 27, 31, 0.48)',
-              fontSize: 20
-            }}
-          />
-          {t('menubar.settings') || 'Settings'}
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={handleLogoutClick} sx={{ py: 1.5 }}>
-          <LogoutIcon
-            sx={{
-              mr: 2,
-              color: 'rgba(28, 27, 31, 0.48)',
-              fontSize: 20
-            }}
-          />
-          {t('menubar.logout') || 'Logout'}
-        </MenuItem>
-      </Menu>
-    </>
-  )
-}
-
-export type MainTitleProps = {
-  calendarRef: React.RefObject<CalendarApi | null>
-  currentView: string
-  onViewChange?: (view: string) => void
-  onDateChange?: (date: Date) => void
-}
-
-export function MainTitle({
-  calendarRef,
-  currentView,
-  onViewChange,
-  onDateChange
-}: MainTitleProps) {
-  const { t } = useI18n()
-  const dispatch = useAppDispatch()
-
-  const handleLogoClick = async () => {
-    if (!calendarRef.current) return
-
-    await dispatch(setView('calendar'))
-
-    if (currentView !== 'timeGridWeek') {
-      calendarRef.current.changeView('timeGridWeek')
-      if (onViewChange) {
-        onViewChange('timeGridWeek')
-      }
-    }
-
-    calendarRef.current.today()
-
-    if (onDateChange) {
-      const newDate = calendarRef.current.getDate()
-      onDateChange(newDate)
-    }
+  const sharedProps: SharedMenubarProps = {
+    calendarRef,
+    onRefresh,
+    currentDate,
+    onDateChange,
+    currentView,
+    onViewChange: handleViewChange,
+    isIframe,
+    onToggleSidebar,
+    dateLabel,
+    applist,
+    supportLink,
+    anchorEl,
+    onAppMenuOpen: handleAppMenuOpen,
+    onAppMenuClose: handleAppMenuClose,
+    userMenuAnchorEl,
+    onUserMenuOpen: handleUserMenuOpen,
+    onUserMenuClose: handleUserMenuClose,
+    onSettingsClick: handleSettingsClick,
+    onLogoutClick: handleLogoutClick,
+    onNavigate: handleNavigation,
+    user
   }
 
-  return (
-    <div className="menubar-item tc-home">
-      <img
-        className="logo"
-        src={logo}
-        alt={t('menubar.logoAlt')}
-        onClick={handleLogoClick}
-      />
-    </div>
-  )
-}
-
-function AppIcon({ prop }: { prop: AppIconProps }) {
-  return (
-    <Box
-      component="a"
-      href={prop.link}
-      target="_blank"
-      rel="noreferrer"
-      sx={{
-        textDecoration: 'none',
-        color: 'inherit',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        p: '8px 12px 5px',
-        borderRadius: '14px',
-        '&:hover': {
-          backgroundColor: 'action.hover'
-        }
-      }}
-    >
-      <Box
-        component="img"
-        src={prop.icon}
-        alt={prop.name}
-        sx={{ maxWidth: 42, height: 42 }}
-      />
-      <Typography sx={{ mt: 0.75, textAlign: 'center', fontSize: 12 }}>
-        {prop.name}
-      </Typography>
-    </Box>
+  return isTablet ? (
+    <TabletMenubar {...sharedProps} />
+  ) : (
+    <DesktopMenubar {...sharedProps} />
   )
 }
