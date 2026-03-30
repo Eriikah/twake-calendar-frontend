@@ -5,6 +5,7 @@ import { CalendarEvent } from '@/features/Events/EventsTypes'
 import ImportAlert from '@/features/Events/ImportAlert'
 import SearchResultsPage from '@/features/Search/SearchResultsPage'
 import { setTimeZone } from '@/features/Settings/SettingsSlice'
+import { useScreenSizeDetection } from '@/useScreenSizeDetection'
 import { setDisplayedDateAndRange } from '@/utils/CalendarRangeManager'
 import { extractEventBaseUuid } from '@/utils/extractEventBaseUuid'
 import { setSelectedCalendars as setSelectedCalendarsToStorage } from '@/utils/storage/setSelectedCalendars'
@@ -35,7 +36,7 @@ import './Calendar.styl'
 import './CustomCalendar.styl'
 import { useCalendarEventHandlers } from './hooks/useCalendarEventHandlers'
 import { useCalendarViewHandlers } from './hooks/useCalendarViewHandlers'
-import Sidebar from './SideBar'
+import Sidebar from './Sidebar/SideBar'
 import { TimezoneSelector } from './TimezoneSelector'
 import {
   eventToFullCalendarFormat,
@@ -65,7 +66,6 @@ export default function CalendarApp({
   onDateChange,
   onViewChange,
   menubarProps,
-  isTablet,
   openSidebar,
   onCloseSidebar
 }: CalendarAppProps) {
@@ -88,6 +88,9 @@ export default function CalendarApp({
   const hideDeclinedEvents = useAppSelector(
     state => state.settings.hideDeclinedEvents
   )
+
+  const { isTablet } = useScreenSizeDetection()
+
   const hiddenDays = useMemo(() => {
     if (!hideWorkingDays || !workingDays || workingDays.length === 0) return []
     const validWorkingDays = workingDays.filter(d => d >= 0 && d <= 6)
@@ -307,8 +310,7 @@ export default function CalendarApp({
       calendarRef.current?.changeView(view)
     })
     return () => cancelAnimationFrame(id)
-  }, [isTablet])
-
+  }, [isTablet, calendarRef])
   // Event handlers
   const eventHandlers = useCalendarEventHandlers({
     setSelectedRange,
@@ -354,7 +356,6 @@ export default function CalendarApp({
       className={`main-layout calendar-layout ${menubarProps?.isIframe ? ' isInIframe' : ''}`}
     >
       <Sidebar
-        isTablet={isTablet} // prop, not hook
         open={openSidebar}
         onClose={onCloseSidebar}
         calendarRef={calendarRef}

@@ -19,7 +19,6 @@ export default function CalendarLayout() {
   const view = useAppSelector(state => state.settings.view)
 
   const { isTablet } = useScreenSizeDetection()
-
   const [openSidebar, setOpenSideBar] = useState(false)
 
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
@@ -87,8 +86,7 @@ export default function CalendarLayout() {
     currentView,
     onViewChange: handleViewChange,
     isIframe: isInIframe,
-    isTablet,
-    onToggleSidebar: () => setOpenSideBar(prev => !prev)
+    onToggleSidebar: () => setOpenSideBar(true)
   }
 
   return (
