@@ -27,6 +27,7 @@ import {
 import { useI18n } from "twake-i18n";
 import { ResourceIcon } from "./ResourceIcon";
 import { isValidEmail } from "../../utils/isValidEmail";
+import { usePasteHandler } from "./usePasteHandler";
 
 export interface User {
   email: string;
@@ -124,6 +125,15 @@ export function PeopleSearch({
     [query, selectedUsers, onChange, t, setInputError, setQuery]
   );
 
+  const handlePaste = usePasteHandler({
+    freeSolo,
+    selectedUsers,
+    onChange,
+    setQuery,
+    setInputError,
+    t,
+  });
+
   const defaultRenderInput = useCallback(
     (params: AutocompleteRenderInputParams) => {
       const inputProps = {
@@ -150,6 +160,7 @@ export function PeopleSearch({
         inputProps: {
           ...params.inputProps,
           autoComplete: "off",
+          onPaste: handlePaste,
         },
       };
 
@@ -206,7 +217,14 @@ export function PeopleSearch({
       );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [inputError, t, onToggleEventPreview, loading, searchPlaceholder]
+    [
+      inputError,
+      t,
+      onToggleEventPreview,
+      loading,
+      searchPlaceholder,
+      handlePaste,
+    ]
   );
 
   return (
