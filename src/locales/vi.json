@@ -243,7 +243,8 @@
     "logoAlt": "Lịch",
     "settings": "Cài đặt",
     "help": "Giúp đỡ",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "toggleSidebar": "Ẩn/hiện thanh bên"
   },
   "settings": {
     "title": "Cài đặt",
@@ -377,5 +378,8 @@
     "searchError": "Không thể lấy tài nguyên. Vui lòng thử lại.",
     "noResults": "Không có kết quả",
     "loading": "Đang tải..."
+  },
+  "sidebar": {
+    "displayMode": "Chế độ hiển thị"
   }
 }

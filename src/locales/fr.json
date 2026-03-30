@@ -245,7 +245,8 @@
     "logoAlt": "Calendrier",
     "settings": "Paramètres",
     "help": "Aide",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "toggleSidebar": "Afficher/masquer la barre latérale"
   },
   "settings": {
     "title": "Paramètres",
@@ -379,5 +380,8 @@
     "searchError": "Impossible de récupérer les ressources pour le moment. Veuillez réessayer.",
     "noResults": "Aucun résultat",
     "loading": "Chargement..."
+  },
+  "sidebar": {
+    "displayMode": "Mode d'affichage"
   }
 }
