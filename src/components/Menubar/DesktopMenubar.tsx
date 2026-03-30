@@ -70,13 +70,23 @@ export function DesktopMenubar({
                 '& button:last-of-type': { borderRadius: '0 12px 12px 0' }
               }}
             >
-              <Button sx={{ width: 20 }} onClick={() => onNavigate('prev')}>
+              <Button
+                sx={{ width: 20 }}
+                onClick={() => onNavigate('prev')}
+                aria-label={t('menubar.previous')}
+                title={t('menubar.previous')}
+              >
                 <ChevronLeftIcon sx={{ height: 20 }} />
               </Button>
               <Button onClick={() => onNavigate('today')}>
                 {t('menubar.today')}
               </Button>
-              <Button sx={{ width: 20 }} onClick={() => onNavigate('next')}>
+              <Button
+                sx={{ width: 20 }}
+                onClick={() => onNavigate('next')}
+                aria-label={t('menubar.next')}
+                title={t('menubar.next')}
+              >
                 <ChevronRightIcon sx={{ height: 20 }} />
               </Button>
             </ButtonGroup>
@@ -171,13 +181,15 @@ export function DesktopMenubar({
         <div className="menu-items">
           <IconButton
             onClick={!isIframe ? onUserMenuOpen : onSettingsClick}
-            aria-label={isIframe ? t('menubar.settings') : undefined}
+            aria-label={
+              isIframe ? t('menubar.settings') : t('menubar.userProfile')
+            }
+            title={isIframe ? t('menubar.settings') : t('menubar.userProfile')}
           >
             {!isIframe ? (
               <Avatar
                 color={stringToGradient(getUserDisplayName(user))}
                 size="m"
-                aria-label={t('menubar.userProfile')}
               >
                 {getInitials(getUserDisplayName(user))}
               </Avatar>

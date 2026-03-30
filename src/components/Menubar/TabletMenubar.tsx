@@ -103,13 +103,15 @@ export function TabletMenubar({
         <div className="menu-items">
           <IconButton
             onClick={!isIframe ? onUserMenuOpen : onSettingsClick}
-            aria-label={isIframe ? t('menubar.settings') : undefined}
+            aria-label={
+              isIframe ? t('menubar.settings') : t('menubar.userProfile')
+            }
+            title={isIframe ? t('menubar.settings') : t('menubar.userProfile')}
           >
             {!isIframe ? (
               <Avatar
                 color={stringToGradient(getUserDisplayName(user))}
                 size="m"
-                aria-label={t('menubar.userProfile')}
               >
                 {getInitials(getUserDisplayName(user))}
               </Avatar>

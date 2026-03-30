@@ -2,6 +2,7 @@ import { useAppDispatch } from '@/app/hooks'
 import { setView } from '@/features/Settings/SettingsSlice'
 import logo from '@/static/header-logo.svg'
 import { CalendarApi } from '@fullcalendar/core'
+import { Button } from '@linagora/twake-mui'
 import React from 'react'
 import { useI18n } from 'twake-i18n'
 
@@ -43,12 +44,18 @@ export function MainTitle({
 
   return (
     <div className="menubar-item tc-home">
-      <img
-        className="logo"
-        src={logo}
-        alt={t('menubar.logoAlt')}
+      <Button
         onClick={handleLogoClick}
-      />
+        aria-label={t('menubar.logoAlt')}
+        style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer' }}
+      >
+        <img
+          className="logo"
+          src={logo}
+          alt={t('menubar.logoAlt')}
+          onClick={handleLogoClick}
+        />
+      </Button>
     </div>
   )
 }

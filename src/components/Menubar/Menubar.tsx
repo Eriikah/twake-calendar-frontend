@@ -1,6 +1,7 @@
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { setView } from '@/features/Settings/SettingsSlice'
 import { Logout } from '@/features/User/oidcAuth'
+import { userData } from '@/features/User/userDataTypes'
 import { useScreenSizeDetection } from '@/useScreenSizeDetection'
 import { redirectTo } from '@/utils/navigation'
 import { CalendarApi } from '@fullcalendar/core'
@@ -23,7 +24,7 @@ export type MenubarProps = {
   onToggleSidebar: () => void
 }
 
-export type SharedMenubarProps = Omit<MenubarProps, 'isTablet'> & {
+export type SharedMenubarProps = MenubarProps & {
   dateLabel: string
   applist: AppIconProps[]
   supportLink: string | undefined
@@ -37,7 +38,7 @@ export type SharedMenubarProps = Omit<MenubarProps, 'isTablet'> & {
   onLogoutClick: () => void
   onNavigate: (action: 'prev' | 'next' | 'today') => void
   onViewChange: (view: string) => void
-  user: ReturnType<typeof useAppSelector<any>>
+  user: userData | null
 }
 
 export function Menubar({

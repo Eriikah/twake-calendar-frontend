@@ -35,6 +35,7 @@ describe('Calendar App Component Display Tests', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -53,6 +54,7 @@ describe('Calendar App Component Display Tests', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -71,6 +73,7 @@ describe('Calendar App Component Display Tests', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -100,6 +103,7 @@ describe('Calendar App Component Display Tests', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -131,6 +135,7 @@ describe('Calendar App Component Display Tests', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -161,6 +166,7 @@ describe('Calendar App Component Display Tests', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -191,6 +197,7 @@ describe('Calendar App Component Display Tests', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -221,6 +228,7 @@ describe('Calendar App Component Display Tests', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -251,6 +259,7 @@ describe('Calendar App Component Display Tests', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -283,6 +292,7 @@ describe('Calendar App Component Display Tests', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -315,6 +325,7 @@ describe('Calendar App Component Display Tests', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -335,6 +346,7 @@ describe('Calendar App Component Display Tests', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -356,6 +368,7 @@ describe('Calendar App Component Display Tests', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -377,6 +390,7 @@ describe('Calendar App Component Display Tests', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -427,6 +441,7 @@ describe('Menubar interaction with expanded Dialog', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -447,6 +462,7 @@ describe('Menubar interaction with expanded Dialog', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -467,6 +483,7 @@ describe('Menubar interaction with expanded Dialog', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -487,6 +504,7 @@ describe('Menubar interaction with expanded Dialog', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -509,6 +527,7 @@ describe('Menubar interaction with expanded Dialog', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -531,6 +550,7 @@ describe('Menubar interaction with expanded Dialog', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -553,6 +573,7 @@ describe('Menubar interaction with expanded Dialog', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -579,6 +600,7 @@ describe('Menubar interaction with expanded Dialog', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -618,6 +640,7 @@ describe('Menubar interaction with expanded Dialog', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -650,6 +673,7 @@ describe('Menubar interaction with expanded Dialog', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -681,6 +705,7 @@ describe('Menubar interaction with expanded Dialog', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -707,6 +732,7 @@ describe('Menubar interaction with expanded Dialog', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,
@@ -745,6 +771,7 @@ describe('Menubar logout flow', () => {
       <Menubar
         calendarRef={{ current: null }}
         onRefresh={() => {}}
+        onToggleSidebar={() => {}}
         currentDate={new Date()}
         currentView="dayGridMonth"
       />,
@@ -815,6 +842,7 @@ describe('Logo click navigation to current week', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
         onViewChange={mockOnViewChange}
@@ -857,6 +885,7 @@ describe('Logo click navigation to current week', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="timeGridDay"
         onViewChange={mockOnViewChange}
@@ -899,6 +928,7 @@ describe('Logo click navigation to current week', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="timeGridWeek"
         onViewChange={mockOnViewChange}
@@ -932,6 +962,7 @@ describe('Logo click navigation to current week', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
         onViewChange={mockOnViewChange}
@@ -970,6 +1001,7 @@ describe('Logo click navigation to current week', () => {
       <Menubar
         calendarRef={mockCalendarRef}
         onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
         currentDate={mockCurrentDate}
         currentView="dayGridMonth"
       />,

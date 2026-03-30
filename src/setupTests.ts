@@ -62,7 +62,7 @@ if (typeof window !== 'undefined') {
   window.WS_PING_PERIOD_MS = 5000
   window.WS_PING_TIMEOUT_PERIOD_MS = 5000
 }
-jest.mock('./useScreenSizeDetection.ts', () => ({
+jest.mock('@/useScreenSizeDetection', () => ({
   useScreenSizeDetection: jest.fn(() => ({ isMobile: false, isTablet: false }))
 }))
 // Suppress jsdom CSS selector parsing errors for Emotion/MUI

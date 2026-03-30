@@ -1,3 +1,4 @@
+import { userData } from '@/features/User/userDataTypes'
 import { getInitials, stringToGradient } from '@/utils/avatarUtils'
 import { getUserDisplayName } from '@/utils/userUtils'
 import {
@@ -18,7 +19,7 @@ export type UserMenuProps = {
   onClose: () => void
   onSettingsClick: () => void
   onLogoutClick: () => void
-  user: any
+  user: userData | null
 }
 
 export function UserMenu({

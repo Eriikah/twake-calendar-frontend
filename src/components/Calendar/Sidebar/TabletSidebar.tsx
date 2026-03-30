@@ -18,6 +18,10 @@ export function TabletSidebar({
   setSelectedCalendars
 }: CalendarSidebarProps) {
   const { t } = useI18n()
+  const changeViewAndClose = (view: string) => {
+    onViewChange(view)
+    onClose()
+  }
 
   return (
     <Drawer
@@ -41,21 +45,21 @@ export function TabletSidebar({
       <FieldWithLabel label={t('sidebar.displayMode')} isExpanded={false}>
         <Button
           variant="text"
-          onClick={() => onViewChange('timeGridDay')}
+          onClick={() => changeViewAndClose('timeGridDay')}
           startIcon={<CalendarViewDayOutlinedIcon />}
         >
           {t('menubar.views.day')}
         </Button>
         <Button
           variant="text"
-          onClick={() => onViewChange('timeGridWeek')}
+          onClick={() => changeViewAndClose('timeGridWeek')}
           startIcon={<CalendarViewWeekOutlinedIcon />}
         >
           {t('menubar.views.week')}
         </Button>
         <Button
           variant="text"
-          onClick={() => onViewChange('dayGridMonth')}
+          onClick={() => changeViewAndClose('dayGridMonth')}
           startIcon={<CalendarViewMonthOutlinedIcon />}
         >
           {t('menubar.views.month')}
