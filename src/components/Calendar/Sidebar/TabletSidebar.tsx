@@ -3,7 +3,8 @@ import {
   ListItemIcon,
   ListItemText,
   MenuItem,
-  MenuList
+  MenuList,
+  useTheme
 } from '@linagora/twake-mui'
 import CalendarViewDayOutlinedIcon from '@mui/icons-material/CalendarViewDayOutlined'
 import CalendarViewMonthOutlinedIcon from '@mui/icons-material/CalendarViewMonthOutlined'
@@ -45,6 +46,7 @@ export function TabletSidebar({
   calendarRef
 }: CalendarSidebarProps) {
   const { t } = useI18n()
+  const theme = useTheme()
 
   const changeViewAndClose = (view: string) => {
     if (!calendarRef.current) return
@@ -75,16 +77,39 @@ export function TabletSidebar({
     >
       <FieldWithLabel label={t('sidebar.displayMode')} isExpanded={false}>
         <MenuList>
-          {VIEW_OPTIONS.map(option => (
-            <MenuItem
-              key={option.value}
-              selected={option.value === currentView}
-              onClick={() => changeViewAndClose(option.value)}
-            >
-              <ListItemIcon>{option.icon}</ListItemIcon>
-              <ListItemText primary={t(option.label)} />
-            </MenuItem>
-          ))}
+          {VIEW_OPTIONS.map(option => {
+            const isSelected = option.value === currentView
+            return (
+              <MenuItem
+                key={option.value}
+                selected={isSelected}
+                onClick={() => changeViewAndClose(option.value)}
+              >
+                <ListItemIcon
+                  sx={{
+                    color: isSelected
+                      ? theme.palette.primary.main
+                      : theme.palette.text.primary
+                  }}
+                >
+                  {option.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={t(option.label)}
+                  primaryTypographyProps={{
+                    sx: {
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      lineHeight: '20px',
+                      color: isSelected
+                        ? theme.palette.primary.main
+                        : theme.palette.text.primary
+                    }
+                  }}
+                />
+              </MenuItem>
+            )
+          })}
         </MenuList>
       </FieldWithLabel>
 
