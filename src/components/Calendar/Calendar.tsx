@@ -43,6 +43,7 @@ import {
   extractEvents,
   updateSlotLabelVisibility
 } from './utils/calendarUtils'
+import { CALENDAR_VIEWS } from './utils/constants'
 
 const localeMap: Record<string, LocaleInput | undefined> = {
   fr: frLocale,
@@ -120,7 +121,7 @@ export default function CalendarApp({
     [calendarIdsString]
   )
 
-  const [currentView, setCurrentView] = useState('timeGridWeek')
+  const [currentView, setCurrentView] = useState(CALENDAR_VIEWS.timeGridWeek)
   const timezone =
     useAppSelector(state => state.settings.timeZone) ?? browserDefaultTimeZone
 
@@ -305,7 +306,9 @@ export default function CalendarApp({
   const [tempEvent, setTempEvent] = useState<CalendarEvent>({} as CalendarEvent)
 
   useEffect(() => {
-    const view = isTablet ? 'timeGridDay' : 'timeGridWeek'
+    const view = isTablet
+      ? CALENDAR_VIEWS.timeGridDay
+      : CALENDAR_VIEWS.timeGridWeek
     const id = requestAnimationFrame(() => {
       calendarRef.current?.changeView(view)
     })
@@ -360,9 +363,7 @@ export default function CalendarApp({
         onClose={onCloseSidebar}
         calendarRef={calendarRef}
         isIframe={menubarProps?.isIframe}
-        onCreateEvent={() =>
-          eventHandlers.handleDateSelect(null as unknown as DateSelectArg)
-        }
+        onCreateEvent={() => eventHandlers.handleDateSelect(null)}
         onViewChange={(view: string) => setCurrentView(view)}
         selectedMiniDate={selectedMiniDate}
         setSelectedMiniDate={setSelectedMiniDate}
@@ -370,6 +371,7 @@ export default function CalendarApp({
         setSelectedCalendars={setSelectedCalendars}
         tempUsers={tempUsers}
         setTempUsers={setTempUsers}
+        currentView={currentView}
       />
       <div className="calendar">
         <ImportAlert />
@@ -378,9 +380,7 @@ export default function CalendarApp({
           <Fab
             color="primary"
             aria-label={t('event.createEvent')}
-            onClick={() =>
-              eventHandlers.handleDateSelect(null as unknown as DateSelectArg)
-            }
+            onClick={() => eventHandlers.handleDateSelect(null)}
             sx={{
               position: 'fixed',
               bottom: 24,
@@ -406,7 +406,7 @@ export default function CalendarApp({
               interactionPlugin,
               momentTimezonePlugin
             ]}
-            initialView="timeGridWeek"
+            initialView={CALENDAR_VIEWS.timeGridWeek}
             firstDay={1}
             editable={true}
             locale={localeMap[lang]}
@@ -437,7 +437,8 @@ export default function CalendarApp({
               a.extendedProps.priority - b.extendedProps.priority
             }
             weekNumbers={
-              currentView === 'timeGridWeek' || currentView === 'timeGridDay'
+              currentView === CALENDAR_VIEWS.timeGridWeek ||
+              currentView === CALENDAR_VIEWS.timeGridDay
             }
             weekNumberFormat={{ week: 'long' }}
             weekNumberContent={arg => {
@@ -463,7 +464,7 @@ export default function CalendarApp({
                 month: 'short',
                 timeZone: timezone
               })
-              if (arg.view.type === 'dayGridMonth') {
+              if (arg.view.type === CALENDAR_VIEWS.dayGridMonth) {
                 return (
                   <span
                     className={`fc-daygrid-day-number ${
@@ -491,7 +492,7 @@ export default function CalendarApp({
                 calendarRef.current?.getDate() || new Date(arg.start)
               setDisplayedDateAndRange(calendarCurrentDate)
 
-              if (arg.view.type === 'dayGridMonth') {
+              if (arg.view.type === CALENDAR_VIEWS.dayGridMonth) {
                 const start = new Date(arg.start).getTime()
                 const end = new Date(arg.end).getTime()
                 const middle = start + (end - start) / 2
@@ -532,7 +533,7 @@ export default function CalendarApp({
               return (
                 <div className="fc-daygrid-day-top">
                   <small>{weekDay}</small>
-                  {arg.view.type !== 'dayGridMonth' && (
+                  {arg.view.type !== CALENDAR_VIEWS.dayGridMonth && (
                     <span
                       className={`fc-daygrid-day-number ${arg.isToday ? 'current-date' : ''}`}
                     >

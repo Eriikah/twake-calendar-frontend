@@ -17,10 +17,11 @@ import RefreshIcon from '@mui/icons-material/Refresh'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined'
 import { useI18n } from 'twake-i18n'
+import { CALENDAR_VIEWS } from '../Calendar/utils/constants'
+import { AppIcon, AppIconProps } from './AppIcon'
 import SearchBar from './EventSearchBar'
 import { MainTitle } from './MainTitle'
 import { SharedMenubarProps } from './Menubar'
-import { AppIcon, AppIconProps } from './AppIcon'
 import { UserMenu } from './UserMenu'
 
 export function DesktopMenubar({
@@ -134,13 +135,15 @@ export function DesktopMenubar({
                 '& fieldset': { borderRadius: '12px' }
               }}
             >
-              <MenuItem value="dayGridMonth">
+              <MenuItem value={CALENDAR_VIEWS.dayGridMonth}>
                 {t('menubar.views.month')}
               </MenuItem>
-              <MenuItem value="timeGridWeek">
+              <MenuItem value={CALENDAR_VIEWS.timeGridWeek}>
                 {t('menubar.views.week')}
               </MenuItem>
-              <MenuItem value="timeGridDay">{t('menubar.views.day')}</MenuItem>
+              <MenuItem value={CALENDAR_VIEWS.timeGridDay}>
+                {t('menubar.views.day')}
+              </MenuItem>
             </Select>
           </FormControl>
         </div>

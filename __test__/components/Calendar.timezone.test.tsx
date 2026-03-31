@@ -1,4 +1,5 @@
 import CalendarLayout from '@/components/Calendar/CalendarLayout'
+import { CALENDAR_VIEWS } from '@/components/Calendar/utils/constants'
 import { act, waitFor } from '@testing-library/react'
 import { renderWithProviders } from '../utils/Renderwithproviders'
 
@@ -51,7 +52,7 @@ describe('Calendar – dayHeaderContent respects selected timezone', () => {
     await waitFor(() => expect(calendarRef?.current).not.toBeNull())
 
     await act(async () => {
-      calendarRef.current?.changeView('timeGridWeek')
+      calendarRef.current?.changeView(CALENDAR_VIEWS.timeGridWeek)
     })
 
     await waitFor(() => {

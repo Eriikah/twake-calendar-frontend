@@ -2,12 +2,14 @@ import { userData } from '@/features/User/userDataTypes'
 import { getInitials, stringToGradient } from '@/utils/avatarUtils'
 import { getUserDisplayName } from '@/utils/userUtils'
 import {
+  alpha,
   Avatar,
   Box,
   Divider,
   Menu,
   MenuItem,
-  Typography
+  Typography,
+  useTheme
 } from '@linagora/twake-mui'
 import LogoutIcon from '@mui/icons-material/Logout'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
@@ -31,6 +33,7 @@ export function UserMenu({
   user
 }: UserMenuProps) {
   const { t } = useI18n()
+  const theme = useTheme()
 
   return (
     <Menu
@@ -65,7 +68,7 @@ export function UserMenu({
         </Avatar>
         <Typography
           sx={{
-            color: '#424244',
+            color: theme.palette.grey[900],
             fontFamily: 'Inter',
             fontSize: 22,
             fontWeight: 600
@@ -79,14 +82,22 @@ export function UserMenu({
       </Box>
       <MenuItem onClick={onSettingsClick} sx={{ py: 1.5 }}>
         <SettingsOutlinedIcon
-          sx={{ mr: 2, color: 'rgba(28, 27, 31, 0.48)', fontSize: 20 }}
+          sx={{
+            mr: 2,
+            color: alpha(theme.palette.grey.A900, 0.48),
+            fontSize: 20
+          }}
         />
         {t('menubar.settings') || 'Settings'}
       </MenuItem>
       <Divider />
       <MenuItem onClick={onLogoutClick} sx={{ py: 1.5 }}>
         <LogoutIcon
-          sx={{ mr: 2, color: 'rgba(28, 27, 31, 0.48)', fontSize: 20 }}
+          sx={{
+            mr: 2,
+            color: alpha(theme.palette.grey.A900, 0.48),
+            fontSize: 20
+          }}
         />
         {t('menubar.logout') || 'Logout'}
       </MenuItem>

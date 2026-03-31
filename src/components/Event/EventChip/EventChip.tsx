@@ -1,3 +1,4 @@
+import { CALENDAR_VIEWS } from '@/components/Calendar/utils/constants'
 import {
   Avatar,
   Box,
@@ -76,7 +77,7 @@ export function EventChip({
     }
 
     // View and time calculations
-    const isMonthView = arg.view.type === 'dayGridMonth'
+    const isMonthView = arg.view.type === CALENDAR_VIEWS.dayGridMonth
     const timeZone = arg.view.calendar?.getOption('timeZone') || 'UTC'
     const { startTime, endTime } = getEventTimes(event, timeZone)
     const eventLength = getEventDuration(event)

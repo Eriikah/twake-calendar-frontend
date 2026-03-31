@@ -1,11 +1,36 @@
-import { Button, Drawer } from '@linagora/twake-mui'
+import {
+  Drawer,
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  MenuList
+} from '@linagora/twake-mui'
 import CalendarViewDayOutlinedIcon from '@mui/icons-material/CalendarViewDayOutlined'
 import CalendarViewMonthOutlinedIcon from '@mui/icons-material/CalendarViewMonthOutlined'
 import CalendarViewWeekOutlinedIcon from '@mui/icons-material/CalendarViewWeekOutlined'
 import { useI18n } from 'twake-i18n'
 import { FieldWithLabel } from '../../Event/components/FieldWithLabel'
+import { CALENDAR_VIEWS } from '../utils/constants'
 import { CalendarSidebarProps } from './SideBar'
 import { SidebarCommonContent } from './SidebarCommonContent'
+
+const VIEW_OPTIONS = [
+  {
+    label: 'menubar.views.day',
+    value: CALENDAR_VIEWS.timeGridDay,
+    icon: <CalendarViewDayOutlinedIcon />
+  },
+  {
+    label: 'menubar.views.week',
+    value: CALENDAR_VIEWS.timeGridWeek,
+    icon: <CalendarViewWeekOutlinedIcon />
+  },
+  {
+    label: 'menubar.views.month',
+    value: CALENDAR_VIEWS.dayGridMonth,
+    icon: <CalendarViewMonthOutlinedIcon />
+  }
+]
 
 export function TabletSidebar({
   open,
@@ -15,10 +40,16 @@ export function TabletSidebar({
   tempUsers,
   setTempUsers,
   selectedCalendars,
-  setSelectedCalendars
+  setSelectedCalendars,
+  currentView,
+  calendarRef
 }: CalendarSidebarProps) {
   const { t } = useI18n()
+
   const changeViewAndClose = (view: string) => {
+    if (!calendarRef.current) return
+
+    calendarRef.current.changeView(view)
     onViewChange(view)
     onClose()
   }
@@ -43,27 +74,18 @@ export function TabletSidebar({
       slotProps={{ paper: { className: 'sidebar' } }}
     >
       <FieldWithLabel label={t('sidebar.displayMode')} isExpanded={false}>
-        <Button
-          variant="text"
-          onClick={() => changeViewAndClose('timeGridDay')}
-          startIcon={<CalendarViewDayOutlinedIcon />}
-        >
-          {t('menubar.views.day')}
-        </Button>
-        <Button
-          variant="text"
-          onClick={() => changeViewAndClose('timeGridWeek')}
-          startIcon={<CalendarViewWeekOutlinedIcon />}
-        >
-          {t('menubar.views.week')}
-        </Button>
-        <Button
-          variant="text"
-          onClick={() => changeViewAndClose('dayGridMonth')}
-          startIcon={<CalendarViewMonthOutlinedIcon />}
-        >
-          {t('menubar.views.month')}
-        </Button>
+        <MenuList>
+          {VIEW_OPTIONS.map(option => (
+            <MenuItem
+              key={option.value}
+              selected={option.value === currentView}
+              onClick={() => changeViewAndClose(option.value)}
+            >
+              <ListItemIcon>{option.icon}</ListItemIcon>
+              <ListItemText primary={t(option.label)} />
+            </MenuItem>
+          ))}
+        </MenuList>
       </FieldWithLabel>
 
       <SidebarCommonContent

@@ -63,7 +63,7 @@ export const createEventHandlers = (props: EventHandlersProps) => {
     timezone
   } = props
 
-  const handleDateSelect = (selectInfo: DateSelectArg) => {
+  const handleDateSelect = (selectInfo: DateSelectArg | null) => {
     setSelectedRange(selectInfo)
     if (tempUsers) {
       const newEvent: CalendarEvent = {

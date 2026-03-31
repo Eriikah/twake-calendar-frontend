@@ -1,4 +1,5 @@
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
+import { CALENDAR_VIEWS } from '@/components/Calendar/utils/constants'
 import { getCalendarDetailAsync } from '@/features/Calendars/services'
 import {
   formatDateToYYYYMMDDTHHMMSS,
@@ -78,7 +79,7 @@ export function useCalendarDataLoader({
   const { visibleStart, visibleEnd, prefetchEnd } = useMemo(() => {
     const { start, end } = getViewRange(selectedDate, currentView)
     const prefetchEnd =
-      currentView === 'dayGridMonth'
+      currentView === CALENDAR_VIEWS.dayGridMonth
         ? end.getTime()
         : getAdjacentWeekRange(selectedDate).end.getTime()
     return {

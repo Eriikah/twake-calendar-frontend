@@ -9,6 +9,7 @@ import { ErrorSnackbar } from '../Error/ErrorSnackbar'
 import { refreshCalendars } from '../Event/utils/eventUtils'
 import { Menubar, MenubarProps } from '../Menubar/Menubar'
 import CalendarApp from './Calendar'
+import { CALENDAR_VIEWS } from './utils/constants'
 
 export default function CalendarLayout() {
   const calendarRef = useRef<CalendarApi | null>(null)
@@ -23,13 +24,13 @@ export default function CalendarLayout() {
 
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
   const [currentView, setCurrentView] = useState<string>(
-    isTablet ? 'timeGridDay' : 'timeGridWeek'
+    isTablet ? CALENDAR_VIEWS.timeGridDay : CALENDAR_VIEWS.timeGridWeek
   )
 
   useEffect(() => {
-    const setView = () =>
-      setCurrentView(isTablet ? 'timeGridDay' : 'timeGridWeek')
-    setView()
+    setCurrentView(
+      isTablet ? CALENDAR_VIEWS.timeGridDay : CALENDAR_VIEWS.timeGridWeek
+    )
   }, [isTablet])
   const isInIframe = useMemo(() => new CozyBridge().isInIframe(), [])
 

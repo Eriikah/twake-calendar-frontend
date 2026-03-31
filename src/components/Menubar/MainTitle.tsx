@@ -5,6 +5,7 @@ import { CalendarApi } from '@fullcalendar/core'
 import { Button } from '@linagora/twake-mui'
 import React from 'react'
 import { useI18n } from 'twake-i18n'
+import { CALENDAR_VIEWS } from '../Calendar/utils/constants'
 
 export type MainTitleProps = {
   calendarRef: React.RefObject<CalendarApi | null>
@@ -27,10 +28,10 @@ export function MainTitle({
 
     await dispatch(setView('calendar'))
 
-    if (currentView !== 'timeGridWeek') {
-      calendarRef.current.changeView('timeGridWeek')
+    if (currentView !== CALENDAR_VIEWS.timeGridWeek) {
+      calendarRef.current.changeView(CALENDAR_VIEWS.timeGridWeek)
       if (onViewChange) {
-        onViewChange('timeGridWeek')
+        onViewChange(CALENDAR_VIEWS.timeGridWeek)
       }
     }
 

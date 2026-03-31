@@ -1,5 +1,6 @@
 import CalendarApp from '@/components/Calendar/Calendar'
 import CalendarLayout from '@/components/Calendar/CalendarLayout'
+import { CALENDAR_VIEWS } from '@/components/Calendar/utils/constants'
 import * as calendarDetailThunks from '@/features/Calendars/services'
 import * as servicesModule from '@/features/Calendars/services'
 import { searchUsers } from '@/features/User/userAPI'
@@ -424,7 +425,7 @@ describe('calendar Availability search', () => {
 
     const calendarApi = calendarRef.current
     await act(async () => {
-      calendarApi.changeView('dayGridMonth')
+      calendarApi?.changeView(CALENDAR_VIEWS.dayGridMonth)
     })
     await waitFor(() => {
       expect(screen.queryAllByRole('columnheader').length).toBe(14)
@@ -474,7 +475,7 @@ describe('calendar Availability search', () => {
     const calendarApi = calendarRef.current
 
     await act(async () => {
-      calendarApi.changeView('dayGridMonth')
+      calendarApi?.changeView(CALENDAR_VIEWS.dayGridMonth)
       fireEvent.click(screen.getByTestId('ChevronRightIcon'))
     })
 

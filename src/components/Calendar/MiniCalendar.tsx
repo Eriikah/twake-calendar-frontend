@@ -9,6 +9,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
 import { useI18n } from 'twake-i18n'
+import { CALENDAR_VIEWS } from './utils/constants'
 
 export function MiniCalendar({
   calendarRef,
@@ -70,11 +71,11 @@ export function MiniCalendar({
 
             const isToday = date.getTime() === today.getTime()
             const isSelectedDay =
-              calendarRef.current?.view.type === 'timeGridDay' &&
+              calendarRef.current?.view.type === CALENDAR_VIEWS.timeGridDay &&
               date.getTime() === selected.getTime()
 
             const isInSelectedWeek =
-              calendarRef.current?.view.type === 'timeGridWeek' ||
+              calendarRef.current?.view.type === CALENDAR_VIEWS.timeGridWeek ||
               calendarRef.current?.view.type === undefined
                 ? (() => {
                     const startOfWeek = computeStartOfTheWeek(selected)

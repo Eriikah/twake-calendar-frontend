@@ -11,6 +11,7 @@ import {
   ViewMountArg
 } from '@fullcalendar/core'
 import React from 'react'
+import { CALENDAR_VIEWS } from '../utils/constants'
 import { createMouseHandlers } from './mouseHandlers'
 
 export interface ViewHandlersProps {
@@ -54,16 +55,16 @@ export const createViewHandlers = (props: ViewHandlersProps) => {
   }
 
   const handleDayHeaderDidMount = (arg: DayHeaderMountArg) => {
-    if (arg.view.type === 'timeGridWeek') {
+    if (arg.view.type === CALENDAR_VIEWS.timeGridWeek) {
       const headerEl = arg.el
 
       const handleDayHeaderClick = () => {
-        calendarRef.current?.changeView('timeGridDay', arg.date)
+        calendarRef.current?.changeView(CALENDAR_VIEWS.timeGridDay, arg.date)
         setSelectedDate(new Date(arg.date))
         setSelectedMiniDate(new Date(arg.date))
 
         if (onViewChange) {
-          onViewChange('timeGridDay')
+          onViewChange(CALENDAR_VIEWS.timeGridDay)
         }
       }
 
@@ -81,7 +82,10 @@ export const createViewHandlers = (props: ViewHandlersProps) => {
   }
 
   const handleViewDidMount = (arg: ViewMountArg) => {
-    if (arg.view.type === 'timeGridWeek' || arg.view.type === 'timeGridDay') {
+    if (
+      arg.view.type === CALENDAR_VIEWS.timeGridWeek ||
+      arg.view.type === CALENDAR_VIEWS.timeGridDay
+    ) {
       const calendarEl = document.querySelector('.fc') as HTMLElement
       if (calendarEl) {
         const mouseHandlers = createMouseHandlers({ calendarEl })

@@ -1,3 +1,4 @@
+import { CALENDAR_VIEWS } from '@/components/Calendar/utils/constants'
 import moment from 'moment'
 
 export function formatDateToYYYYMMDDTHHMMSS(date: Date) {
@@ -69,7 +70,7 @@ export function getViewRange(
   date = new Date(),
   view: string
 ): { start: Date; end: Date } {
-  if (view === 'dayGridMonth') {
+  if (view === CALENDAR_VIEWS.dayGridMonth) {
     return getCalendarRange(date)
   }
   return computeWeekRange(date)

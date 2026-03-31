@@ -18,6 +18,7 @@ export interface CalendarSidebarProps {
   setSelectedCalendars: Dispatch<SetStateAction<string[]>>
   tempUsers: User[]
   setTempUsers: Dispatch<SetStateAction<User[]>>
+  currentView: string
 }
 
 export default function Sidebar(sharedProps: CalendarSidebarProps) {
