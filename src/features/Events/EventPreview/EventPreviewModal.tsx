@@ -92,6 +92,7 @@ export default function EventPreviewModal({
         }
         actionsJustifyContent="center"
         style={{ overflow: 'auto' }}
+        titleSx={{ backgroundColor: '#FCFCFC' }}
         title={
           <EventPreviewHeader
             event={event}

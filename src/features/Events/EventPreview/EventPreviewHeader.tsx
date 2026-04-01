@@ -37,7 +37,7 @@ export function EventPreviewHeader({
       display="flex"
       justifyContent="flex-end"
       alignItems="center"
-      gap={0.5}
+      gap={2}
       width="100%"
     >
       {window.DEBUG && (

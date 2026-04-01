@@ -33,7 +33,14 @@ export function EventPreviewDetails({
   const { t } = useI18n()
   const theme = useTheme()
   const infoIconColor = alpha(theme.palette.grey[900], 0.9)
-  const infoIconSx = { minWidth: '25px', marginRight: 2, color: infoIconColor }
+  const infoIconSx = {
+    minWidth: '25px',
+    marginRight: 2,
+    color: infoIconColor,
+    display: 'flex',
+    alignItems: 'center',
+    alignSelf: 'center'
+  }
 
   const resources = useMemo(
     () =>
@@ -87,13 +94,18 @@ export function EventPreviewDetails({
   }
 
   return (
-    <>
+    <Box
+      sx={{
+        display: 'flex',
+        gap: '16px',
+        flexDirection: 'column'
+      }}
+    >
       {/* Video */}
       {event.x_openpass_videoconference && (
         <InfoRow
-          alignItems="flex-start"
           icon={
-            <Box sx={{ ...infoIconSx, mt: 1 }}>
+            <Box sx={infoIconSx}>
               <VideocamOutlinedIcon />
             </Box>
           }
@@ -136,7 +148,6 @@ export function EventPreviewDetails({
       {/* Location */}
       {event.location && (
         <InfoRow
-          alignItems="flex-start"
           icon={
             <Box sx={infoIconSx}>
               <LocationOnOutlinedIcon />
@@ -149,7 +160,6 @@ export function EventPreviewDetails({
       {/* Resource */}
       {resources?.length > 0 && (
         <InfoRow
-          alignItems="flex-start"
           flexWrap="wrap"
           icon={
             <Box sx={infoIconSx}>
@@ -203,7 +213,13 @@ export function EventPreviewDetails({
         <InfoRow
           alignItems="flex-start"
           icon={
-            <Box sx={infoIconSx}>
+            <Box
+              sx={{
+                ...infoIconSx,
+                alignItems: 'flex-start',
+                alignSelf: 'flex-start'
+              }}
+            >
               <SubjectIcon />
             </Box>
           }
@@ -214,7 +230,6 @@ export function EventPreviewDetails({
       {/* Alarm */}
       {event.alarm && (
         <InfoRow
-          alignItems="flex-start"
           icon={
             <Box sx={infoIconSx}>
               <NotificationsNoneIcon />
@@ -237,7 +252,6 @@ export function EventPreviewDetails({
       {/* Repetition */}
       {event.repetition && (
         <InfoRow
-          alignItems="flex-start"
           icon={
             <Box sx={infoIconSx}>
               <RepeatIcon />
@@ -267,6 +281,6 @@ export function EventPreviewDetails({
           error
         />
       )}
-    </>
+    </Box>
   )
 }

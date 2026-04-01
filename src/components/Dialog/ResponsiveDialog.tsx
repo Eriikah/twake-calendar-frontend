@@ -10,7 +10,9 @@ import {
   IconButton,
   Stack,
   SxProps,
-  Theme
+  Theme,
+  useMediaQuery,
+  useTheme
 } from '@linagora/twake-mui'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CloseIcon from '@mui/icons-material/Close'
@@ -110,35 +112,42 @@ function ResponsiveDialog({
   actionsJustifyContent = 'flex-end',
   sx,
   ...otherDialogProps
-}: ResponsiveDialogProps) {
+}: ResponsiveDialogProps): JSX.Element {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+
   const isInIframe = useMemo(() => new CozyBridge().isInIframe(), [])
-  const baseSx: SxProps<Theme> = {
-    '& .MuiBackdrop-root': {
-      backgroundColor: 'rgba(0, 0, 0, 0.1)',
-      opacity: isExpanded ? '0 !important' : undefined,
-      transition: isExpanded ? 'none !important' : undefined,
-      pointerEvents: isExpanded ? 'none' : undefined
-    },
-    '& .MuiDialog-paper': {
-      maxWidth: isExpanded ? '100%' : normalMaxWidth,
-      width: '100%',
-      height: isExpanded
-        ? `calc(100vh - ${isInIframe ? '0px' : headerHeight})`
-        : undefined,
-      maxHeight: isExpanded && isInIframe ? '100%' : undefined,
-      margin: isExpanded ? `${isInIframe ? 0 : headerHeight} 0 0 0` : '32px',
-      boxShadow: isExpanded ? 'none !important' : undefined,
-      transition: isExpanded ? 'none !important' : undefined,
-      zIndex: isExpanded ? 1200 : 1300
-    },
-    '& .MuiDialogActions-root .MuiBox-root': {
-      maxWidth: isExpanded ? expandedContentMaxWidth : undefined,
-      margin: isExpanded ? '0 auto' : undefined,
-      padding: '0',
-      width: isExpanded ? '100%' : undefined,
-      justifyContent: isExpanded ? 'flex-end' : undefined
-    }
-  }
+
+  const baseSx: SxProps<Theme> = isMobile
+    ? undefined
+    : {
+        '& .MuiBackdrop-root': {
+          opacity: isExpanded ? '0 !important' : undefined,
+          transition: isExpanded ? 'none !important' : undefined,
+          pointerEvents: isExpanded ? 'none' : undefined
+        },
+        '& .MuiDialog-paper': {
+          maxWidth: isExpanded ? '100%' : normalMaxWidth,
+          width: '100%',
+          height: isExpanded
+            ? `calc(100vh - ${isInIframe ? '0px' : headerHeight})`
+            : undefined,
+          maxHeight: isExpanded && isInIframe ? '100%' : undefined,
+          margin: isExpanded
+            ? `${isInIframe ? 0 : headerHeight} 0 0 0`
+            : '32px',
+          boxShadow: isExpanded ? 'none !important' : undefined,
+          transition: isExpanded ? 'none !important' : undefined,
+          zIndex: isExpanded ? 1200 : 1300
+        },
+        '& .MuiDialogActions-root .MuiBox-root': {
+          maxWidth: isExpanded ? expandedContentMaxWidth : undefined,
+          margin: isExpanded ? '0 auto' : undefined,
+          padding: '0',
+          width: isExpanded ? '100%' : undefined,
+          justifyContent: isExpanded ? 'flex-end' : undefined
+        }
+      }
 
   const baseContentSx: SxProps<Theme> = {
     width: '100%'
@@ -161,7 +170,7 @@ function ResponsiveDialog({
   const handleClose = (
     event: unknown,
     reason: 'backdropClick' | 'escapeKeyDown'
-  ) => {
+  ): void => {
     if (isExpanded && reason === 'backdropClick') {
       return
     }
@@ -175,6 +184,7 @@ function ResponsiveDialog({
       open={open}
       onClose={handleClose}
       maxWidth={false}
+      fullScreen={isMobile && open}
       fullWidth
       transitionDuration={isExpanded ? 0 : 300}
       sx={[baseSx, ...(Array.isArray(sx) ? sx : [sx])]}
@@ -238,7 +248,7 @@ function ResponsiveDialog({
         <DialogActions
           sx={{
             borderTop: actionsBorderTop
-              ? theme => `1px solid ${theme.palette.divider}`
+              ? (theme: Theme): string => `1px solid ${theme.palette.divider}`
               : undefined,
             justifyContent: actionsJustifyContent
           }}
