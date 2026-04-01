@@ -230,6 +230,8 @@
   },
   "menubar": {
     "today": "Hôm nay",
+    "next": "Tiếp theo",
+    "prev": "Trước đó",
     "refresh": "Làm mới",
     "viewSelector": "Chọn chế độ xem",
     "languageSelector": "Chọn ngôn ngữ",

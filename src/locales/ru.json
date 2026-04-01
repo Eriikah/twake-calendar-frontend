@@ -232,6 +232,8 @@
   },
   "menubar": {
     "today": "Сегодня",
+    "next": "Следующий",
+    "prev": "Предыдущий",
     "refresh": "Обновить",
     "viewSelector": "Выбор вида",
     "languageSelector": "Язык",

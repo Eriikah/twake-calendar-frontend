@@ -232,6 +232,8 @@
   },
   "menubar": {
     "today": "Aujourd'hui",
+    "next": "Précédent",
+    "prev": "Suivant",
     "refresh": "Actualiser",
     "viewSelector": "Sélectionner la vue",
     "languageSelector": "Sélectionner la langue",

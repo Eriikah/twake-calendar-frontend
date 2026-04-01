@@ -74,8 +74,8 @@ export function DesktopMenubar({
               <Button
                 sx={{ width: 20 }}
                 onClick={() => onNavigate('prev')}
-                aria-label={t('menubar.previous')}
-                title={t('menubar.previous')}
+                aria-label={t('menubar.prev')}
+                title={t('menubar.prev')}
               >
                 <ChevronLeftIcon sx={{ height: 20 }} />
               </Button>
