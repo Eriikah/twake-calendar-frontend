@@ -424,6 +424,7 @@ describe('calendar Availability search', () => {
     })
 
     const calendarApi = calendarRef.current
+    expect(calendarApi).not.toBeNull()
     await act(async () => {
       calendarApi?.changeView(CALENDAR_VIEWS.dayGridMonth)
     })
@@ -473,6 +474,7 @@ describe('calendar Availability search', () => {
 
     const calendarRef = window.__calendarRef
     const calendarApi = calendarRef.current
+    expect(calendarApi).not.toBeNull()
 
     await act(async () => {
       calendarApi?.changeView(CALENDAR_VIEWS.dayGridMonth)

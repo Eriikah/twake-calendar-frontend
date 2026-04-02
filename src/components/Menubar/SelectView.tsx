@@ -23,7 +23,7 @@ export function SelectView({
         aria-label={t('menubar.viewSelector')}
         sx={{
           borderRadius: '12px',
-          marginLeft: '1',
+          marginLeft: 1,
           '& fieldset': { borderRadius: '12px' }
         }}
       >
