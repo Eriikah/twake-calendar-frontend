@@ -42,16 +42,12 @@ export function TabletSidebar({
   setTempUsers,
   selectedCalendars,
   setSelectedCalendars,
-  currentView,
-  calendarRef
+  currentView
 }: CalendarSidebarProps) {
   const { t } = useI18n()
   const theme = useTheme()
 
-  const changeViewAndClose = (view: string) => {
-    if (!calendarRef.current) return
-
-    calendarRef.current.changeView(view)
+  const changeViewAndClose = (view: string): void => {
     onViewChange(view)
     onClose()
   }

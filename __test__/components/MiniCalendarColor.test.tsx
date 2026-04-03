@@ -49,7 +49,14 @@ describe('MiniCalendar', () => {
     }
     const mockCalendarRef = { current: null }
     renderWithProviders(
-      <CalendarApp calendarRef={mockCalendarRef} />,
+      <CalendarApp
+        setCurrentView={jest.fn()}
+        onViewChange={jest.fn()}
+        openSidebar={false}
+        onCloseSidebar={jest.fn()}
+        currentView="timeGridWeek"
+        calendarRef={mockCalendarRef}
+      />,
       preloadedState
     )
   }

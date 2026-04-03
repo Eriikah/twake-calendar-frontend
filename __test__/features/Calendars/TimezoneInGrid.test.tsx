@@ -43,7 +43,14 @@ describe('Calendar - Timezone Integration', () => {
 
   it('renders TimezoneSelector in week view', async () => {
     renderWithProviders(
-      <CalendarApp calendarRef={mockCalendarRef} />,
+      <CalendarApp
+        setCurrentView={jest.fn()}
+        onViewChange={jest.fn()}
+        openSidebar={false}
+        onCloseSidebar={jest.fn()}
+        currentView="timeGridWeek"
+        calendarRef={mockCalendarRef}
+      />,
       baseState
     )
 
@@ -57,7 +64,14 @@ describe('Calendar - Timezone Integration', () => {
     const setTimeZoneSpy = jest.spyOn(SettingsSlice, 'setTimeZone')
 
     renderWithProviders(
-      <CalendarApp calendarRef={mockCalendarRef} />,
+      <CalendarApp
+        setCurrentView={jest.fn()}
+        onViewChange={jest.fn()}
+        openSidebar={false}
+        onCloseSidebar={jest.fn()}
+        currentView="timeGridWeek"
+        calendarRef={mockCalendarRef}
+      />,
       baseState
     )
 

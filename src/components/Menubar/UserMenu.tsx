@@ -14,6 +14,7 @@ import {
 } from '@linagora/twake-mui'
 import LogoutIcon from '@mui/icons-material/Logout'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
+import { MouseEvent } from 'react'
 import { useI18n } from 'twake-i18n'
 
 export type UserMenuProps = {
@@ -21,7 +22,7 @@ export type UserMenuProps = {
   onClose: () => void
   onSettingsClick: () => void
   onLogoutClick: () => void
-  onUserMenuOpen: (event: React.MouseEvent<HTMLElement>) => void
+  onUserMenuOpen: (event: MouseEvent<HTMLElement>) => void
   user: userData | null
   isIframe?: boolean
 }

@@ -75,7 +75,14 @@ describe('CalendarApp integration', () => {
 
     const mockCalendarRef = { current: null }
     renderWithProviders(
-      <CalendarApp calendarRef={mockCalendarRef} />,
+      <CalendarApp
+        setCurrentView={jest.fn()}
+        onViewChange={jest.fn()}
+        openSidebar={false}
+        onCloseSidebar={jest.fn()}
+        currentView="timeGridWeek"
+        calendarRef={mockCalendarRef}
+      />,
       preloadedState
     )
   }
@@ -172,7 +179,14 @@ describe('CalendarApp integration', () => {
     })
     const mockCalendarRef = { current: null }
     renderWithProviders(
-      <CalendarApp calendarRef={mockCalendarRef} />,
+      <CalendarApp
+        setCurrentView={jest.fn()}
+        onViewChange={jest.fn()}
+        openSidebar={false}
+        onCloseSidebar={jest.fn()}
+        currentView="timeGridWeek"
+        calendarRef={mockCalendarRef}
+      />,
       preloadedState
     )
     const card = screen.getByTestId('event-card-event1')
@@ -191,7 +205,14 @@ describe('CalendarApp integration', () => {
     })
     const mockCalendarRef = { current: null }
     renderWithProviders(
-      <CalendarApp calendarRef={mockCalendarRef} />,
+      <CalendarApp
+        setCurrentView={jest.fn()}
+        onViewChange={jest.fn()}
+        openSidebar={false}
+        onCloseSidebar={jest.fn()}
+        currentView="timeGridWeek"
+        calendarRef={mockCalendarRef}
+      />,
       preloadedState
     )
 
@@ -211,7 +232,14 @@ describe('CalendarApp integration', () => {
     })
     const mockCalendarRef = { current: null }
     renderWithProviders(
-      <CalendarApp calendarRef={mockCalendarRef} />,
+      <CalendarApp
+        setCurrentView={jest.fn()}
+        onViewChange={jest.fn()}
+        openSidebar={false}
+        onCloseSidebar={jest.fn()}
+        currentView="timeGridWeek"
+        calendarRef={mockCalendarRef}
+      />,
       preloadedState
     )
 
@@ -222,46 +250,56 @@ describe('CalendarApp integration', () => {
 
   it('does render a title for events without any attendees or user as organizer', async () => {
     const mockCalendarRef = { current: null }
-    renderWithProviders(<CalendarApp calendarRef={mockCalendarRef} />, {
-      user: {
-        userData: {
-          sub: 'test',
-          email: 'test@test.com',
-          sid: 'mockSid',
-          openpaasId: '667037022b752d0026472254'
-        },
-        tokens: {
-          accessToken: 'token'
-        }
-      },
-      calendars: {
-        list: {
-          '667037022b752d0026472254/cal1': {
-            name: 'Calendar 1',
-            id: '667037022b752d0026472254/cal1',
-            color: { light: '#FF0000', dark: '#000' },
-            owner: { emails: ['alice@example.com'] },
-            events: {
-              event1: {
-                id: 'event1',
-                calId: '667037022b752d0026472254/cal1',
-                uid: 'event1',
-                start: new Date().toISOString(),
-                end: new Date(Date.now() + 3600000).toISOString(),
-                partstat: 'ACCEPTED',
-                organizer: {
-                  cn: 'Alice',
-                  cal_address: 'alice@example.com'
-                },
-                class: 'PUBLIC',
-                title: 'Public Event'
-              }
-            }
+    renderWithProviders(
+      <CalendarApp
+        setCurrentView={jest.fn()}
+        onViewChange={jest.fn()}
+        openSidebar={false}
+        onCloseSidebar={jest.fn()}
+        currentView="timeGridWeek"
+        calendarRef={mockCalendarRef}
+      />,
+      {
+        user: {
+          userData: {
+            sub: 'test',
+            email: 'test@test.com',
+            sid: 'mockSid',
+            openpaasId: '667037022b752d0026472254'
+          },
+          tokens: {
+            accessToken: 'token'
           }
         },
-        pending: false
+        calendars: {
+          list: {
+            '667037022b752d0026472254/cal1': {
+              name: 'Calendar 1',
+              id: '667037022b752d0026472254/cal1',
+              color: { light: '#FF0000', dark: '#000' },
+              owner: { emails: ['alice@example.com'] },
+              events: {
+                event1: {
+                  id: 'event1',
+                  calId: '667037022b752d0026472254/cal1',
+                  uid: 'event1',
+                  start: new Date().toISOString(),
+                  end: new Date(Date.now() + 3600000).toISOString(),
+                  partstat: 'ACCEPTED',
+                  organizer: {
+                    cn: 'Alice',
+                    cal_address: 'alice@example.com'
+                  },
+                  class: 'PUBLIC',
+                  title: 'Public Event'
+                }
+              }
+            }
+          },
+          pending: false
+        }
       }
-    })
+    )
 
     expect(screen.getByText('Public Event')).toBeInTheDocument()
   })

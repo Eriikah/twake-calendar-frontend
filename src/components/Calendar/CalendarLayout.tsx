@@ -10,6 +10,7 @@ import { refreshCalendars } from '../Event/utils/eventUtils'
 import { Menubar, MenubarProps } from '../Menubar/Menubar'
 import CalendarApp from './Calendar'
 import { CALENDAR_VIEWS } from './utils/constants'
+import { setView } from '@/features/Settings/SettingsSlice'
 
 export default function CalendarLayout() {
   const calendarRef = useRef<CalendarApi | null>(null)
@@ -29,9 +30,18 @@ export default function CalendarLayout() {
 
   useEffect(() => {
     const setView = () =>
-      setCurrentView(
-        isTablet ? CALENDAR_VIEWS.timeGridDay : CALENDAR_VIEWS.timeGridWeek
-      )
+      setCurrentView(prev => {
+        if (
+          prev !== CALENDAR_VIEWS.timeGridDay &&
+          prev !== CALENDAR_VIEWS.timeGridWeek
+        ) {
+          return prev
+        }
+
+        return isTablet
+          ? CALENDAR_VIEWS.timeGridDay
+          : CALENDAR_VIEWS.timeGridWeek
+      })
     setView()
   }, [isTablet])
   const isInIframe = useMemo(() => new CozyBridge().isInIframe(), [])
@@ -63,8 +73,18 @@ export default function CalendarLayout() {
     setCurrentDate(date)
   }
 
-  const handleViewChange = (view: string) => {
+  const handleViewChange = (view: string): void => {
+    if (!calendarRef.current) return
+    dispatch(setView('calendar'))
+
+    calendarRef.current.changeView(view)
+
+    // Notify parent about view change
     setCurrentView(view)
+
+    // Notify parent about date change after view change
+    const newDate = calendarRef.current.getDate()
+    handleDateChange(newDate)
   }
 
   // Hide topbar navigation elements when in settings view (same as fullscreen dialog mode)
@@ -103,6 +123,8 @@ export default function CalendarLayout() {
           menubarProps={menubarProps}
           openSidebar={openSidebar}
           onCloseSidebar={() => setOpenSideBar(false)}
+          setCurrentView={setCurrentView}
+          currentView={currentView}
         />
       )}
       {view === 'settings' && <SettingsPage isInIframe={isInIframe} />}

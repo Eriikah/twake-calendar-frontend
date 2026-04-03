@@ -55,10 +55,12 @@ const localeMap: Record<string, LocaleInput | undefined> = {
 interface CalendarAppProps {
   calendarRef: MutableRefObject<CalendarApi | null>
   onDateChange?: (date: Date) => void
-  onViewChange?: (view: string) => void
+  onViewChange: (view: string) => void
   menubarProps?: MenubarProps
   openSidebar: boolean
   onCloseSidebar: () => void
+  setCurrentView: (view: string) => void
+  currentView: string
 }
 
 export default function CalendarApp({
@@ -67,7 +69,9 @@ export default function CalendarApp({
   onViewChange,
   menubarProps,
   openSidebar,
-  onCloseSidebar
+  onCloseSidebar,
+  setCurrentView,
+  currentView
 }: CalendarAppProps): JSX.Element {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [debouncedDate, setDebouncedDate] = useState(new Date())
@@ -120,7 +124,6 @@ export default function CalendarApp({
     [calendarIdsString]
   )
 
-  const [currentView, setCurrentView] = useState(CALENDAR_VIEWS.timeGridWeek)
   const timezone =
     useAppSelector(state => state.settings.timeZone) ?? browserDefaultTimeZone
 
@@ -305,14 +308,19 @@ export default function CalendarApp({
   const [tempEvent, setTempEvent] = useState<CalendarEvent>({} as CalendarEvent)
 
   useEffect(() => {
-    const view = isTablet
-      ? CALENDAR_VIEWS.timeGridDay
-      : CALENDAR_VIEWS.timeGridWeek
+    if (view !== 'calendar') return
+    const targetView =
+      currentView ||
+      (isTablet ? CALENDAR_VIEWS.timeGridDay : CALENDAR_VIEWS.timeGridWeek)
+
+    if (calendarRef.current?.view.type === targetView) return
     const id = requestAnimationFrame(() => {
-      calendarRef.current?.changeView(view)
+      if (calendarRef.current?.view.type !== targetView) {
+        calendarRef.current?.changeView(targetView)
+      }
     })
     return () => cancelAnimationFrame(id)
-  }, [isTablet, calendarRef])
+  }, [view, isTablet, currentView, calendarRef])
   // Event handlers
   const eventHandlers = useCalendarEventHandlers({
     setSelectedRange,
@@ -337,7 +345,7 @@ export default function CalendarApp({
     calendarRef,
     setSelectedDate,
     setSelectedMiniDate,
-    onViewChange,
+    onViewChange: setCurrentView,
     calendars,
     tempcalendars,
     // Note: To preserve current logic, this will temporarily disable eslint for react-hooks/refs
@@ -363,7 +371,7 @@ export default function CalendarApp({
         calendarRef={calendarRef}
         isIframe={menubarProps?.isIframe}
         onCreateEvent={() => eventHandlers.handleDateSelect(null)}
-        onViewChange={(view: string) => setCurrentView(view)}
+        onViewChange={onViewChange}
         selectedMiniDate={selectedMiniDate}
         setSelectedMiniDate={setSelectedMiniDate}
         selectedCalendars={selectedCalendars}
@@ -405,7 +413,12 @@ export default function CalendarApp({
               interactionPlugin,
               momentTimezonePlugin
             ]}
-            initialView={CALENDAR_VIEWS.timeGridWeek}
+            initialView={
+              currentView ||
+              (isTablet
+                ? CALENDAR_VIEWS.timeGridDay
+                : CALENDAR_VIEWS.timeGridWeek)
+            }
             firstDay={1}
             editable={true}
             locale={localeMap[lang]}
@@ -508,9 +521,7 @@ export default function CalendarApp({
               }
 
               // Notify parent about view change
-              if (onViewChange) {
-                onViewChange(arg.view.type)
-              }
+              setCurrentView(arg.view.type)
 
               // Update slot label visibility when view changes
               setTimeout(() => {

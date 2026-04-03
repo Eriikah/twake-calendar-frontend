@@ -12,6 +12,12 @@ import { DesktopMenubar } from './DesktopMenubar'
 import './Menubar.styl'
 import { TabletMenubar } from './TabletMenubar'
 
+export type AppIconProps = {
+  name: string
+  link: string
+  icon: string
+}
+
 export type MenubarProps = {
   calendarRef: React.RefObject<CalendarApi | null>
   onRefresh: () => void
@@ -39,7 +45,7 @@ export type SharedMenubarProps = MenubarProps & {
   user: userData | null
 }
 
-export function Menubar({
+export const Menubar: React.FC<MenubarProps> = ({
   calendarRef,
   onRefresh,
   currentDate,
@@ -48,7 +54,7 @@ export function Menubar({
   onViewChange,
   isIframe,
   onToggleSidebar
-}: MenubarProps): JSX.Element {
+}) => {
   const { t } = useI18n() // deliberately NOT using f()
 
   const user = useAppSelector(state => state.user.userData)
@@ -59,6 +65,14 @@ export function Menubar({
   )
   const dispatch = useAppDispatch()
   const { isTablet } = useScreenSizeDetection()
+
+  useEffect(() => {
+    const resetMenuAnchorsOnResize = (): void => {
+      setAnchorEl(null)
+      setUserMenuAnchorEl(null)
+    }
+    resetMenuAnchorsOnResize()
+  }, [isTablet])
 
   useEffect(() => {
     if (!user) {
@@ -93,20 +107,9 @@ export function Menubar({
   }
 
   const handleViewChange = async (view: string) => {
-    if (!calendarRef.current) return
-    await dispatch(setView('calendar'))
-
-    calendarRef.current.changeView(view)
-
     // Notify parent about view change
     if (onViewChange) {
       onViewChange(view)
-    }
-
-    // Notify parent about date change after view change
-    if (onDateChange) {
-      const newDate = calendarRef.current.getDate()
-      onDateChange(newDate)
     }
   }
 
