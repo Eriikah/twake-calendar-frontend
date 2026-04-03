@@ -66,8 +66,7 @@ export function TabletSidebar({
           paddingRight: 2,
           width: '270px',
           marginTop: 0
-        },
-        zIndex: 3000
+        }
       }}
       slotProps={{ paper: { className: 'sidebar' } }}
     >
