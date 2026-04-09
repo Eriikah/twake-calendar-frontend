@@ -506,6 +506,7 @@ export default function EventFormFields({
       >
         <TextField
           fullWidth
+          autoComplete="off"
           label=""
           inputProps={{ 'aria-label': t('event.form.title') }}
           placeholder={t('event.form.titlePlaceholder')}
@@ -832,6 +833,7 @@ export default function EventFormFields({
           </SectionPreviewRow>
         ) : (
           <TextField
+            autoComplete="off"
             fullWidth
             label=""
             inputRef={locationInputRef}
