@@ -39,7 +39,8 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
         py: 1,
         scrollbarWidth: 'none',
         '&::-webkit-scrollbar': { display: 'none' },
-        backgroundColor: '#FFF'
+        backgroundColor: '#FFF',
+        minHeight: '48px'
       }}
     >
       {Array.from({ length: 12 }).map((_, i) => {
