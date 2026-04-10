@@ -54,14 +54,54 @@ export const SmallTimezoneSelector: React.FC<
 
   const selectedRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const paperRef = useRef<HTMLDivElement>(null)
 
-  useEffect((): void => {
-    if (open) {
-      inputRef.current?.focus()
-      selectedRef.current?.scrollIntoView({
-        behavior: 'auto',
-        block: 'center'
-      })
+  useEffect((): (() => void) | void => {
+    if (!open) return
+
+    const viewport = window.visualViewport
+
+    const paper = paperRef.current
+
+    const adjustForKeyboard = (): void => {
+      if (!paper || !viewport) return
+
+      // viewport.offsetTop > 0 means iOS has scrolled the page to reveal the
+      // focused element (triggered by programmatic focus). When the user taps
+      // manually, the keyboard floats over content without scrolling the page,
+      // so offsetTop stays 0 and we should not resize the drawer.
+      if (viewport.offsetTop <= 0) {
+        paper.style.bottom = ''
+        paper.style.height = ''
+        return
+      }
+
+      const bottom = Math.max(
+        0,
+        window.innerHeight - viewport.offsetTop - viewport.height
+      )
+      paper.style.bottom = `${bottom}px`
+      paper.style.height = `${viewport.height}px`
+    }
+
+    if (viewport) {
+      // Register before calling focus so the listener fires as the keyboard opens.
+      viewport.addEventListener('resize', adjustForKeyboard)
+      viewport.addEventListener('scroll', adjustForKeyboard)
+    }
+
+    inputRef.current?.focus()
+    selectedRef.current?.scrollIntoView({ behavior: 'auto', block: 'center' })
+
+    return (): void => {
+      if (viewport) {
+        viewport.removeEventListener('resize', adjustForKeyboard)
+        viewport.removeEventListener('scroll', adjustForKeyboard)
+      }
+      if (paper) {
+        paper.style.bottom = ''
+        paper.style.height = ''
+      }
     }
   }, [open])
 
@@ -74,14 +114,14 @@ export const SmallTimezoneSelector: React.FC<
       disableAutoFocus
       slotProps={{
         paper: {
-          sx: { height: '90%' }
+          ref: paperRef,
+          sx: { height: '90%', maxHeight: '90dvh' }
         }
       }}
     >
       <Box sx={{ px: 2 }}>
         <TextField
           inputRef={inputRef}
-          autoFocus
           fullWidth
           variant="standard"
           placeholder={t('calendar.searchTimezone')}
@@ -91,7 +131,10 @@ export const SmallTimezoneSelector: React.FC<
           ) => setSearchQuery(e.target.value)}
           slotProps={{
             htmlInput: {
-              'aria-label': t('calendar.searchTimezone')
+              'aria-label': t('calendar.searchTimezone'),
+              autoComplete: 'off',
+              inputMode: 'search',
+              enterKeyHint: 'search'
             },
             input: {
               startAdornment: (
@@ -104,7 +147,8 @@ export const SmallTimezoneSelector: React.FC<
           }}
           sx={{
             '& .MuiInputBase-root': {
-              padding: '8px 0'
+              padding: '8px 0',
+              fontSize: '16px'
             }
           }}
         />
