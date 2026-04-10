@@ -4,7 +4,8 @@ import {
   Box,
   TextField,
   List,
-  InputAdornment
+  InputAdornment,
+  useTheme
 } from '@linagora/twake-mui'
 import { Search as SearchIcon } from '@mui/icons-material'
 import React, { useState, useMemo, useEffect, useRef } from 'react'
@@ -33,6 +34,8 @@ export const SmallTimezoneSelector: React.FC<
   }
 > = ({ value, onChange, referenceDate, onClose, open }) => {
   const { t } = useI18n()
+
+  const theme = useTheme()
 
   const [searchQuery, setSearchQuery] = useState('')
   const timezoneList = useTimeZoneList()
@@ -77,7 +80,7 @@ export const SmallTimezoneSelector: React.FC<
           sx: { height: '90%' }
         }
       }}
-      sx={{ zIndex: 1300 }}
+      sx={{ zIndex: theme.zIndex.modal + 100 }}
     >
       <Box sx={{ px: 2 }}>
         <TextField
