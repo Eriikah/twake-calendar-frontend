@@ -35,7 +35,9 @@ import { CalendarItemList } from '../Calendar/CalendarItemList'
 
 const SEARCH_OBJECT_TYPES = ['user', 'contact']
 
-export default function SearchBar() {
+const SearchBar: React.FC<{
+  onToggleSearch?: (extendedStatus: boolean) => void
+}> = ({ onToggleSearch }) => {
   const { t } = useI18n()
   const dispatch = useAppDispatch()
   const calendars = useAppSelector(selectCalendars)
@@ -76,7 +78,7 @@ export default function SearchBar() {
   const handleFilterChange = (
     field: FilterField,
     value: string | userAttendee[]
-  ) => {
+  ): void => {
     setFilters(prev => ({ ...prev, [field]: value }))
     if (field === 'organizers') {
       setSelectedContacts(
@@ -96,7 +98,17 @@ export default function SearchBar() {
       organizers: userAttendee[]
       attendees: userAttendee[]
     }
-  ) {
+  ):
+    | {
+        search: string
+        filters: {
+          searchIn: string[]
+          keywords: string
+          organizers: string[]
+          attendees: string[]
+        }
+      }
+    | undefined {
     const trimmedSearch = searchQuery.trim()
     const trimmedKeywords = filters.keywords.trim()
 
@@ -133,7 +145,7 @@ export default function SearchBar() {
     }
   }
 
-  const handleClearFilters = () => {
+  const handleClearFilters = (): void => {
     setFilters({
       searchIn: 'my-calendars',
       keywords: '',
@@ -144,11 +156,11 @@ export default function SearchBar() {
     setFilterError(false)
   }
 
-  const handleContactSelect = (contacts: User[]) => {
+  const handleContactSelect = (contacts: User[]): void => {
     setSelectedContacts(contacts)
     setSearch('')
     if (contacts.length > 0) {
-      handleSearch('', {
+      void handleSearch('', {
         ...filters,
         organizers: contacts.map(contact =>
           createAttendee({
@@ -168,7 +180,7 @@ export default function SearchBar() {
       organizers: userAttendee[]
       attendees: userAttendee[]
     }
-  ) => {
+  ): Promise<void> => {
     const cleanedQuery = buildQuery(searchQuery, filters)
     if (cleanedQuery) {
       await dispatch(searchEventsAsync(cleanedQuery))
@@ -182,7 +194,7 @@ export default function SearchBar() {
   }
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    function handleClickOutside(event: MouseEvent): void {
       const target = event.target as Node
 
       if (filterOpen) {
@@ -199,12 +211,19 @@ export default function SearchBar() {
 
       if (!search.trim() && selectedContacts.length === 0) {
         setExtended(false)
+        onToggleSearch?.(false)
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [filterOpen, search, selectedContacts])
+    return (): void =>
+      document.removeEventListener('mousedown', handleClickOutside)
+  }, [filterOpen, onToggleSearch, search, selectedContacts])
+
+  const handleOpenSearch = (): void => {
+    setExtended(true)
+    onToggleSearch?.(true)
+  }
 
   return (
     <>
@@ -218,7 +237,7 @@ export default function SearchBar() {
         }}
       >
         {!extended && (
-          <IconButton sx={{ mr: 1 }} onClick={() => setExtended(true)}>
+          <IconButton sx={{ mr: 1 }} onClick={handleOpenSearch}>
             <SearchIcon />
           </IconButton>
         )}
@@ -262,7 +281,7 @@ export default function SearchBar() {
                 autoFocus
                 placeholder={t('common.search')}
                 value={query}
-                inputRef={el => {
+                inputRef={(el: HTMLInputElement | null) => {
                   inputRef.current = el
                   const ref = params.InputProps.ref
                   if (typeof ref === 'function') {
@@ -275,7 +294,7 @@ export default function SearchBar() {
                 }}
                 onKeyDown={e => {
                   if (e.key === 'Enter') {
-                    handleSearch(query, filters)
+                    void handleSearch(query, filters)
                   }
                 }}
                 onChange={e => {
@@ -370,6 +389,7 @@ export default function SearchBar() {
                 shouldCollapseRef.current
               ) {
                 setExtended(false)
+                onToggleSearch?.(false)
               }
               shouldCollapseRef.current = false
             }
@@ -521,7 +541,7 @@ export default function SearchBar() {
             </Button>
             <Button
               variant="contained"
-              onClick={() => handleSearch(filters.keywords, filters)}
+              onClick={() => void handleSearch(filters.keywords, filters)}
             >
               {t('common.search')}
             </Button>
@@ -531,3 +551,5 @@ export default function SearchBar() {
     </>
   )
 }
+
+export default SearchBar

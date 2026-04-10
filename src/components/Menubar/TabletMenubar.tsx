@@ -7,6 +7,7 @@ import { MainTitle } from './MainTitle'
 import { SharedMenubarProps } from './Menubar'
 import { UserMenu } from './UserMenu'
 import { SmallNavigationControls } from './components/SmallNavigationControls'
+import { useState } from 'react'
 
 export const TabletMenubar: React.FC<SharedMenubarProps> = ({
   calendarRef,
@@ -26,6 +27,8 @@ export const TabletMenubar: React.FC<SharedMenubarProps> = ({
   onDateChange
 }: SharedMenubarProps) => {
   const { t } = useI18n()
+
+  const [displayDateLabel, setDisplayDateLabel] = useState(true)
 
   return (
     <header className="menubar">
@@ -53,16 +56,22 @@ export const TabletMenubar: React.FC<SharedMenubarProps> = ({
           <SmallNavigationControls onNavigate={onNavigate} />
         </div>
 
-        <div className="menu-items">
-          <div className="current-date-time">
-            <p>{dateLabel}</p>
+        {displayDateLabel && (
+          <div className="menu-items">
+            <div className="current-date-time">
+              <p>{dateLabel}</p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="right-menu">
         <div className="search-container">
-          <SearchBar />
+          <SearchBar
+            onToggleSearch={searchExtendedStatus =>
+              setDisplayDateLabel(!searchExtendedStatus)
+            }
+          />
         </div>
         <div className="menu-items">
           <IconButton
