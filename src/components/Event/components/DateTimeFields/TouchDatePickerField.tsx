@@ -39,12 +39,12 @@ const DatePickerDialogContent: React.FC<DatePickerDialogProps> = ({
 
   const [internalValue, setInternalValue] = useState<PickerValue>(value)
 
-  const handleCalendarChange = (newValue: PickerValue) => {
+  const handleCalendarChange = (newValue: PickerValue): void => {
     setInternalValue(newValue)
     onChange(newValue)
   }
 
-  const handleToggleView = () => {
+  const handleToggleView = (): void => {
     setViewMode(viewMode === 'calendar' ? 'text' : 'calendar')
   }
 
@@ -125,17 +125,17 @@ export const TouchDatePickerField: React.FC<DatePickerFieldProps> = ({
   const [open, setOpen] = useState(false)
   const [pendingValue, setPendingValue] = useState<PickerValue>(value)
 
-  const handleOpen = () => {
+  const handleOpen = (): void => {
     setPendingValue(value)
     setOpen(true)
   }
 
-  const handleAccept = (newValue: PickerValue) => {
+  const handleAccept = (newValue: PickerValue): void => {
     onChange(newValue)
     setOpen(false)
   }
 
-  const handleCancel = () => {
+  const handleCancel = (): void => {
     setPendingValue(value)
     setOpen(false)
   }
