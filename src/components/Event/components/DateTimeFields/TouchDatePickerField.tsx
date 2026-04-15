@@ -45,16 +45,12 @@ const DatePickerDialogContent: React.FC<DatePickerDialogProps> = ({
   }
 
   const handleToggleView = () => {
-    if (viewMode === 'calendar') {
-      setViewMode('text')
-    } else {
-      setViewMode('calendar')
-    }
+    setViewMode(viewMode === 'calendar' ? 'text' : 'calendar')
   }
 
   const displayDate = internalValue?.isValid()
     ? internalValue.format(DISPLAY_FORMAT)
-    : 'Pick a date'
+    : t('dateTimeFields.pickADate')
 
   return (
     <Box sx={{ p: 2, width: 280 }}>

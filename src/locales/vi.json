@@ -346,7 +346,8 @@
     "startDate": "Ngày bắt đầu",
     "startTime": "Giờ bắt đầu",
     "endDate": "Ngày kết thúc",
-    "endTime": "Giờ kết thúc"
+    "endTime": "Giờ kết thúc",
+    "pickADate": "Chọn ngày"
   },
   "websocket": {
     "browserOnline": "Bạn đã trực tuyến trở lại. Đang kết nối lại cập nhật thời gian thực…",

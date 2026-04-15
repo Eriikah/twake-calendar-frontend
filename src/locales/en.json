@@ -347,7 +347,8 @@
     "startDate": "Start Date",
     "startTime": "Start Time",
     "endDate": "End Date",
-    "endTime": "End Time"
+    "endTime": "End Time",
+    "pickADate": "Pick a date"
   },
   "websocket": {
     "browserOnline": "You’re back online. Reconnecting live updates…",

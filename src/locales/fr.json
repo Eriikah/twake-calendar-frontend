@@ -348,7 +348,8 @@
     "startDate": "Date du début",
     "startTime": "Heure du début",
     "endDate": "Date de la fin",
-    "endTime": "Heure de la fin"
+    "endTime": "Heure de la fin",
+    "pickADate": "Choisissez une date"
   },
   "websocket": {
     "browserOnline": "Vous êtes de nouveau en ligne. Reconnexion des mises à jour en temps réel…",
