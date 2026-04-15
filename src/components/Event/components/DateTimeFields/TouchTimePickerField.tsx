@@ -6,13 +6,15 @@ import {
   Divider,
   IconButton,
   SxProps,
-  TextField,
-  Theme,
-  Typography
+  Theme
 } from '@linagora/twake-mui'
 import AccessTime from '@mui/icons-material/AccessTime'
 import KeyboardAltOutlined from '@mui/icons-material/KeyboardAltOutlined'
-import { MobileTimePicker, renderTimeViewClock } from '@mui/x-date-pickers'
+import {
+  MobileTimePicker,
+  renderTimeViewClock,
+  TimeField
+} from '@mui/x-date-pickers'
 import { PickerValue } from '@mui/x-date-pickers/internals'
 import { StaticTimePicker } from '@mui/x-date-pickers/StaticTimePicker'
 import { useState } from 'react'
@@ -27,18 +29,20 @@ const TIME_DISPLAY_SX = {
 } as const
 
 const TIME_INPUT_SX: SxProps<Theme> = {
-  width: '96px',
-  '& .MuiFilledInput-root': {
+  width: '100%',
+  '& .MuiPickersInputBase-sectionAfter': { mx: '16px' },
+  '& .MuiPickersSectionList-root': { justifyContent: 'end' },
+  '& .MuiPickersInputBase-root': {
     ...TIME_DISPLAY_SX,
     color: 'text.secondary',
     backgroundColor: 'transparent !important',
     '&:before': { borderBottomColor: 'transparent !important' },
     '&:after': { borderBottomColor: 'transparent !important' }
   },
-  '& .MuiFilledInput-input': {
+  '& .MuiPickersInputBase-input': {
     textAlign: 'center'
   },
-  '& .MuiFilledInput-root.Mui-focused .MuiFilledInput-input': {
+  '& .MuiPickersInputBase-root.Mui-focused .MuiPickersInputBase-input': {
     backgroundColor: 'transparent !important',
     color: 'primary.main'
   }
@@ -49,8 +53,7 @@ const STATIC_PICKER_SX: SxProps<Theme> = {
   '& .MuiTimePickerToolbar-hourMinuteLabel': {
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
-    gap: '16px'
+    alignItems: 'center'
   },
   '& .MuiTimePickerToolbar-hourMinuteLabel .MuiPickersToolbarText-root[data-selected]':
     { color: 'primary.main' },
@@ -58,23 +61,6 @@ const STATIC_PICKER_SX: SxProps<Theme> = {
   '& .MuiPickersToolbar-title': { display: 'none' },
   '& .MuiPickersArrowSwitcher-root': { display: 'none' }
 }
-
-const padTwo = (n: number): string => String(n).padStart(2, '0')
-
-interface TimeInputProps {
-  value: string
-  onChange: (value: string) => void
-}
-
-const TimeInput: React.FC<TimeInputProps> = ({ value, onChange }) => (
-  <TextField
-    variant="filled"
-    value={value}
-    onFocus={e => e.target.select()}
-    onChange={e => onChange(e.target.value)}
-    sx={TIME_INPUT_SX}
-  />
-)
 
 type DialogView = 'clock' | 'keyboard'
 
@@ -104,26 +90,6 @@ export const TouchTimePickerField: React.FC<TimePickerFieldProps> = ({
 
   const handleCancel = (): void => {
     setOpen(false)
-  }
-
-  const handleHourChange = (raw: string): void => {
-    if (!internalValue) return
-
-    const h = parseInt(raw, 10)
-    if (isNaN(h)) return
-    if (h < 0 || h > 23) return
-
-    setInternalValue(internalValue.minute(h))
-  }
-
-  const handleMinuteChange = (raw: string): void => {
-    if (!internalValue) return
-
-    const m = parseInt(raw, 10)
-    if (isNaN(m)) return
-    if (m < 0 || m > 59) return
-
-    setInternalValue(internalValue.minute(m))
   }
 
   const toggleView = (): void =>
@@ -173,20 +139,21 @@ export const TouchTimePickerField: React.FC<TimePickerFieldProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '16px',
-              gap: '8px'
+              padding: '16px'
             }}
           >
-            <TimeInput
-              value={internalValue ? padTwo(internalValue.hour()) : '00'}
-              onChange={handleHourChange}
-            />
-            <Typography sx={{ ...TIME_DISPLAY_SX, color: 'text.secondary' }}>
-              :
-            </Typography>
-            <TimeInput
-              value={internalValue ? padTwo(internalValue.minute()) : '00'}
-              onChange={handleMinuteChange}
+            <TimeField
+              ampm={false}
+              value={internalValue}
+              onChange={setInternalValue}
+              autoFocus
+              sx={TIME_INPUT_SX}
+              slotProps={{
+                textField: {
+                  variant: 'filled',
+                  InputLabelProps: { shrink: false }
+                }
+              }}
             />
           </Box>
         )}
