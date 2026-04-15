@@ -1,4 +1,5 @@
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
+import { setIsMobileSearchOpen } from '@/features/Calendars/CalendarSlice'
 import EventPopover from '@/features/Events/EventModal'
 import EventPreviewModal from '@/features/Events/EventPreview'
 import { CalendarEvent } from '@/features/Events/EventsTypes'
@@ -32,20 +33,20 @@ import { EventErrorSnackbar } from '../Error/ErrorSnackbar'
 import { EventErrorHandler } from '../Error/EventErrorHandler'
 import { EditModeDialog } from '../Event/EditModeDialog'
 import { Menubar, MenubarProps } from '../Menubar/Menubar'
+import { TimezoneSelector } from '../Timezone/TimezoneSelector'
 import './Calendar.styl'
 import './CustomCalendar.styl'
 import { useCalendarEventHandlers } from './hooks/useCalendarEventHandlers'
 import { useCalendarViewHandlers } from './hooks/useCalendarViewHandlers'
-import { TimezoneSelector } from '../Timezone/TimezoneSelector'
+import Sidebar from './Sidebar/SideBar'
+import TempSearchDialog from './TempSearchDialog'
+import { useTouchListener } from './useTouchListener'
 import {
   eventToFullCalendarFormat,
   extractEvents,
   updateSlotLabelVisibility
 } from './utils/calendarUtils'
 import { CALENDAR_VIEWS } from './utils/constants'
-import Sidebar from './Sidebar/SideBar'
-import TempSearchDialog from './TempSearchDialog'
-import { setIsMobileSearchOpen } from '@/features/Calendars/CalendarSlice'
 import ViewMoreEvents from './ViewMoreEvents'
 
 const localeMap: Record<string, LocaleInput | undefined> = {
@@ -381,6 +382,13 @@ const CalendarApp: React.FC<CalendarAppProps> = ({
   }, [calendarRef])
 
   const { t, lang } = useI18n()
+  const calendarWrapperRef = useRef<HTMLDivElement>(null)
+
+  useTouchListener(
+    eventHandlers.handleDateSelect,
+    isTablet || isMobile,
+    calendarWrapperRef
+  )
 
   return (
     <main
@@ -405,7 +413,7 @@ const CalendarApp: React.FC<CalendarAppProps> = ({
       <div className="calendar">
         <ImportAlert />
         {menubarProps?.isIframe && <Menubar {...menubarProps} />}
-        {isTablet && (
+        {(isTablet || isMobile) && (
           <Fab
             color="primary"
             aria-label={t('event.createEvent')}
@@ -422,178 +430,184 @@ const CalendarApp: React.FC<CalendarAppProps> = ({
           </Fab>
         )}
         {view === 'calendar' && (
-          <FullCalendar
-            key={hiddenDays.join(',')}
-            ref={ref => {
-              if (ref) {
-                calendarRef.current = ref.getApi()
+          <div ref={calendarWrapperRef} style={{ height: '100%' }}>
+            <FullCalendar
+              key={hiddenDays.join(',')}
+              ref={ref => {
+                if (ref) {
+                  calendarRef.current = ref.getApi()
+                }
+              }}
+              plugins={[
+                dayGridPlugin,
+                timeGridPlugin,
+                interactionPlugin,
+                momentTimezonePlugin
+              ]}
+              initialView={
+                currentView ||
+                (isTablet
+                  ? CALENDAR_VIEWS.timeGridDay
+                  : CALENDAR_VIEWS.timeGridWeek)
               }
-            }}
-            plugins={[
-              dayGridPlugin,
-              timeGridPlugin,
-              interactionPlugin,
-              momentTimezonePlugin
-            ]}
-            initialView={
-              currentView ||
-              (isTablet
-                ? CALENDAR_VIEWS.timeGridDay
-                : CALENDAR_VIEWS.timeGridWeek)
-            }
-            firstDay={1}
-            editable={true}
-            locale={localeMap[lang]}
-            hiddenDays={hiddenDays}
-            selectable={true}
-            timeZone={timezone}
-            height="100%"
-            select={eventHandlers.handleDateSelect}
-            selectLongPressDelay={0}
-            nowIndicator
-            slotLabelClassNames={arg => [
-              updateSlotLabelVisibility(new Date(), arg, timezone)
-            ]}
-            nowIndicatorContent={viewHandlers.handleNowIndicatorContent}
-            headerToolbar={false}
-            views={{
-              timeGridWeek: { titleFormat: { month: 'long', year: 'numeric' } }
-            }}
-            dayMaxEvents={true}
-            moreLinkClick={handleMoreLinkClick}
-            events={eventToFullCalendarFormat(
-              filteredEvents,
-              filteredTempEvents,
-              userId,
-              userData?.email,
-              isPending,
-              calendars
-            )}
-            eventOrder={(a: EventApi, b: EventApi) =>
-              a.extendedProps.priority - b.extendedProps.priority
-            }
-            weekNumbers={
-              currentView === CALENDAR_VIEWS.timeGridWeek ||
-              currentView === CALENDAR_VIEWS.timeGridDay
-            }
-            weekNumberFormat={{ week: 'long' }}
-            weekNumberContent={arg => {
-              return (
-                <div className="weekSelector">
-                  {displayWeekNumbers && (
-                    <div>
-                      {t('menubar.views.week')} {arg.num}
-                    </div>
-                  )}
-                  <TimezoneSelector
-                    value={timezone}
-                    referenceDate={calendarRef.current?.getDate() ?? new Date()}
-                    onChange={(newTimezone: string) =>
-                      dispatch(setTimeZone(newTimezone))
-                    }
-                  />
-                </div>
-              )
-            }}
-            dayCellContent={arg => {
-              const month = arg.date.toLocaleDateString(t('locale'), {
-                month: 'short',
-                timeZone: timezone
-              })
-              if (arg.view.type === CALENDAR_VIEWS.dayGridMonth) {
+              firstDay={1}
+              editable={true}
+              locale={localeMap[lang]}
+              hiddenDays={hiddenDays}
+              selectable={true}
+              timeZone={timezone}
+              height="100%"
+              select={eventHandlers.handleDateSelect}
+              nowIndicator
+              slotLabelClassNames={arg => [
+                updateSlotLabelVisibility(new Date(), arg, timezone)
+              ]}
+              nowIndicatorContent={viewHandlers.handleNowIndicatorContent}
+              headerToolbar={false}
+              views={{
+                timeGridWeek: {
+                  titleFormat: { month: 'long', year: 'numeric' }
+                }
+              }}
+              dayMaxEvents={true}
+              moreLinkClick={handleMoreLinkClick}
+              events={eventToFullCalendarFormat(
+                filteredEvents,
+                filteredTempEvents,
+                userId,
+                userData?.email,
+                isPending,
+                calendars
+              )}
+              eventOrder={(a: EventApi, b: EventApi) =>
+                a.extendedProps.priority - b.extendedProps.priority
+              }
+              weekNumbers={
+                currentView === CALENDAR_VIEWS.timeGridWeek ||
+                currentView === CALENDAR_VIEWS.timeGridDay
+              }
+              weekNumberFormat={{ week: 'long' }}
+              weekNumberContent={arg => {
                 return (
-                  <span
-                    className={`fc-daygrid-day-number ${
-                      arg.isToday ? 'current-date' : ''
-                    }`}
-                  >
-                    {arg.dayNumberText === '1' ? month : ''} {arg.dayNumberText}
-                  </span>
+                  <div className="weekSelector">
+                    {displayWeekNumbers && (
+                      <div>
+                        {t('menubar.views.week')} {arg.num}
+                      </div>
+                    )}
+                    <TimezoneSelector
+                      value={timezone}
+                      referenceDate={
+                        calendarRef.current?.getDate() ?? new Date()
+                      }
+                      onChange={(newTimezone: string) =>
+                        dispatch(setTimeZone(newTimezone))
+                      }
+                    />
+                  </div>
                 )
-              }
-            }}
-            slotDuration="00:30:00"
-            slotLabelInterval="01:00:00"
-            scrollTime="12:00:00"
-            unselectAuto={false}
-            allDayText=""
-            slotLabelFormat={{
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false
-            }}
-            datesSet={arg => {
-              onViewChange?.(arg.view.type)
-              const calendarCurrentDate =
-                calendarRef.current?.getDate() || new Date(arg.start)
-              setDisplayedDateAndRange(calendarCurrentDate)
-
-              if (arg.view.type === CALENDAR_VIEWS.dayGridMonth) {
-                const start = new Date(arg.start).getTime()
-                const end = new Date(arg.end).getTime()
-                const middle = start + (end - start) / 2
-                setSelectedDate(new Date(middle))
-                setSelectedMiniDate(calendarCurrentDate)
-              } else {
-                setSelectedDate(calendarCurrentDate)
-                setSelectedMiniDate(calendarCurrentDate)
-              }
-
-              // Always use the calendar's current date for consistency
-              if (onDateChange) {
-                onDateChange(calendarCurrentDate)
-              }
-
-              // Notify parent about view change
-              setCurrentView(arg.view.type)
-
-              // Update slot label visibility when view changes
-              setTimeout(() => {
-                updateSlotLabelVisibility(new Date())
-              }, 100)
-            }}
-            dayHeaderContent={arg => {
-              const m = moment.tz(arg.date, timezone)
-
-              const date = m.date()
-              const weekDay = m
-                .toDate()
-                .toLocaleDateString(t('locale'), {
-                  weekday: 'short',
+              }}
+              dayCellContent={arg => {
+                const month = arg.date.toLocaleDateString(t('locale'), {
+                  month: 'short',
                   timeZone: timezone
                 })
-                .toUpperCase()
-
-              return (
-                <div
-                  className={`fc-daygrid-day-top ${isTablet || isMobile ? 'fc-daygrid-day-top--mobile' : ''}`}
-                >
-                  <small>{weekDay}</small>
-                  {arg.view.type !== CALENDAR_VIEWS.dayGridMonth && (
+                if (arg.view.type === CALENDAR_VIEWS.dayGridMonth) {
+                  return (
                     <span
-                      className={`fc-daygrid-day-number ${arg.isToday ? 'current-date' : ''}`}
+                      className={`fc-daygrid-day-number ${
+                        arg.isToday ? 'current-date' : ''
+                      }`}
                     >
-                      {date}
+                      {arg.dayNumberText === '1' ? month : ''}{' '}
+                      {arg.dayNumberText}
                     </span>
-                  )}
-                </div>
-              )
-            }}
-            dayHeaderDidMount={viewHandlers.handleDayHeaderDidMount}
-            dayHeaderWillUnmount={viewHandlers.handleDayHeaderWillUnmount}
-            viewDidMount={viewHandlers.handleViewDidMount}
-            viewWillUnmount={viewHandlers.handleViewWillUnmount}
-            eventClick={eventHandlers.handleEventClick}
-            eventAllow={eventHandlers.handleEventAllow}
-            eventDrop={arg => {
-              void eventHandlers.handleEventDrop(arg)
-            }}
-            eventResize={arg => {
-              void eventHandlers.handleEventResize(arg)
-            }}
-            eventContent={viewHandlers.handleEventContent}
-            eventDidMount={viewHandlers.handleEventDidMount}
-          />
+                  )
+                }
+              }}
+              slotDuration="00:30:00"
+              slotLabelInterval="01:00:00"
+              scrollTime="12:00:00"
+              unselectAuto={false}
+              allDayText=""
+              slotLabelFormat={{
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+              }}
+              datesSet={arg => {
+                onViewChange?.(arg.view.type)
+                const calendarCurrentDate =
+                  calendarRef.current?.getDate() || new Date(arg.start)
+                setDisplayedDateAndRange(calendarCurrentDate)
+
+                if (arg.view.type === CALENDAR_VIEWS.dayGridMonth) {
+                  const start = new Date(arg.start).getTime()
+                  const end = new Date(arg.end).getTime()
+                  const middle = start + (end - start) / 2
+                  setSelectedDate(new Date(middle))
+                  setSelectedMiniDate(calendarCurrentDate)
+                } else {
+                  setSelectedDate(calendarCurrentDate)
+                  setSelectedMiniDate(calendarCurrentDate)
+                }
+
+                // Always use the calendar's current date for consistency
+                if (onDateChange) {
+                  onDateChange(calendarCurrentDate)
+                }
+
+                // Notify parent about view change
+                setCurrentView(arg.view.type)
+
+                // Update slot label visibility when view changes
+                setTimeout(() => {
+                  updateSlotLabelVisibility(new Date())
+                }, 100)
+              }}
+              dayHeaderContent={arg => {
+                const m = moment.tz(arg.date, timezone)
+
+                const date = m.date()
+                const weekDay = m
+                  .toDate()
+                  .toLocaleDateString(t('locale'), {
+                    weekday: 'short',
+                    timeZone: timezone
+                  })
+                  .toUpperCase()
+
+                return (
+                  <div
+                    className={`fc-daygrid-day-top ${isTablet || isMobile ? 'fc-daygrid-day-top--mobile' : ''}`}
+                  >
+                    <small>{weekDay}</small>
+                    {arg.view.type !== CALENDAR_VIEWS.dayGridMonth && (
+                      <span
+                        className={`fc-daygrid-day-number ${arg.isToday ? 'current-date' : ''}`}
+                      >
+                        {date}
+                      </span>
+                    )}
+                  </div>
+                )
+              }}
+              dayHeaderDidMount={viewHandlers.handleDayHeaderDidMount}
+              dayHeaderWillUnmount={viewHandlers.handleDayHeaderWillUnmount}
+              viewDidMount={viewHandlers.handleViewDidMount}
+              viewWillUnmount={viewHandlers.handleViewWillUnmount}
+              eventClick={eventHandlers.handleEventClick}
+              eventAllow={eventHandlers.handleEventAllow}
+              eventDrop={arg => {
+                void eventHandlers.handleEventDrop(arg)
+              }}
+              eventResize={arg => {
+                void eventHandlers.handleEventResize(arg)
+              }}
+              eventContent={viewHandlers.handleEventContent}
+              eventDidMount={viewHandlers.handleEventDidMount}
+            />
+          </div>
         )}
         {view === 'search' && <SearchResultsPage />}
         <EventPopover
