@@ -377,12 +377,11 @@ const CalendarApp: React.FC<CalendarAppProps> = ({
     errorHandler: errorHandler.current
   })
 
-  const { offsetX, isAnimating, onTouchStart, onTouchMove, onTouchEnd } =
-    useSwipeCalendar({
-      calendarRef,
-      containerRef: calendarWrapperRef,
-      isMobile
-    })
+  const { offsetX, isAnimating } = useSwipeCalendar({
+    calendarRef,
+    containerRef: calendarWrapperRef,
+    isMobile
+  })
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'test') {
@@ -441,10 +440,7 @@ const CalendarApp: React.FC<CalendarAppProps> = ({
           <div
             ref={calendarWrapperRef}
             className="calendar-viewport"
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-            style={{ height: '100%' }}
+            style={{ height: '100%', touchAction: 'pan-y' }}
           >
             <div
               className={`calendar-track ${isAnimating ? 'calendar-track--animate' : ''}`}

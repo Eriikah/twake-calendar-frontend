@@ -17,28 +17,17 @@ export const useSwipeAnimation = (
   const finalizeSwipe = useCallback(
     (targetOffset: number, deltaX: number) => {
       setIsAnimating(true)
-      setOffsetX(targetOffset)
 
+      if (deltaX > 0) {
+        calendarRef.current?.prev()
+      } else {
+        calendarRef.current?.next()
+      }
+
+      setOffsetX(0)
       setTimeout(() => {
         setIsAnimating(false)
-        setOffsetX(-targetOffset)
-
-        // Apply date change
-        if (deltaX > 0) {
-          calendarRef.current?.prev()
-        } else {
-          calendarRef.current?.next()
-        }
-
-        // Slide back to center (requesting animation state)
-        requestAnimationFrame(() => {
-          setIsAnimating(true)
-          setOffsetX(0)
-        })
-
-        // Immediate reset to preserve "snappy" behavior as per latest user tweak
-        setIsAnimating(false)
-      }, 100)
+      }, 300)
     },
     [calendarRef]
   )
