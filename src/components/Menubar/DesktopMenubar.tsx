@@ -1,4 +1,4 @@
-import { IconButton } from '@linagora/twake-mui'
+import { IconButton, useTheme } from '@linagora/twake-mui'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import { useI18n } from 'twake-i18n'
@@ -31,9 +31,13 @@ export const DesktopMenubar: React.FC<SharedMenubarProps> = ({
   onUserMenuClose
 }) => {
   const { t } = useI18n()
+  const theme = useTheme()
 
   return (
-    <header className="menubar">
+    <header
+      className="menubar"
+      style={{ borderBottom: `1px solid ${theme.palette.divider}` }}
+    >
       <div className="left-menu">
         {!isIframe && (
           <div className="menu-items">
