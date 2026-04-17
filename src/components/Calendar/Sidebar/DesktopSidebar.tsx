@@ -30,7 +30,7 @@ export const DesktopSidebar: React.FC<CalendarSidebarProps> = ({
           paddingLeft: 3,
           paddingRight: 2,
           width: '270px',
-          marginTop: isIframe ? 0 : '70px'
+          marginTop: isIframe ? 1 : '70px'
         },
         zIndex: 5
       }}
