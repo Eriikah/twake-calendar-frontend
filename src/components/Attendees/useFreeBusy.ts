@@ -1,6 +1,8 @@
-import { getFreeBusyForAddedAttendeesREPORT } from '@/features/Events/api/getFreeBusyForAddedAttendeesREPORT'
-import { getFreeBusyForEventAttendeesPOST } from '@/features/Events/api/getFreeBusyForEventAttendeesPOST'
-import { getUserDataFromEmail } from '@/features/Events/api/getUserDataFromEmail'
+import {
+  getFreeBusyForAddedAttendees,
+  getFreeBusyForEventAttendees,
+  getUserDataFromEmail
+} from '@/features/Events/EventApi'
 import moment from 'moment-timezone'
 import { useEffect, useRef, useState } from 'react'
 
@@ -150,7 +152,7 @@ export function useAttendeesFreeBusy({
     setStatusMap(prev => ({ ...prev, ...toLoadingMap(existingAttendees) }))
 
     fetchFreeBusyMap(existingAttendees, resolved =>
-      getFreeBusyForEventAttendeesPOST(
+      getFreeBusyForEventAttendees(
         resolved.map(r => r.userId),
         toUtcIcal(start, timezone),
         toUtcIcal(end, timezone),
@@ -208,7 +210,7 @@ export function useAttendeesFreeBusy({
       Promise.all(
         resolved.map(async ({ email, userId }) => {
           try {
-            const busy = await getFreeBusyForAddedAttendeesREPORT(
+            const busy = await getFreeBusyForAddedAttendees(
               userId,
               moment.tz(start, timezone).utc().format('YYYYMMDDTHHmmss'),
               moment.tz(end, timezone).utc().format('YYYYMMDDTHHmmss')

@@ -1,8 +1,12 @@
-import { api } from '@/utils/apiUtils'
+import { extractCalendarHrefs } from '@/utils/extractCalendarHrefs'
+import { extractEventBaseUuid } from '@/utils/extractEventBaseUuid'
+import { isValidEmail } from '@/utils/isValidEmail'
 import { convertEventDateTimeToISO, resolveTimezoneId } from '@/utils/timezone'
 import { TIMEZONES } from '@/utils/timezone-data'
 import ICAL from 'ical.js'
+import { hasFreeBusyConflict } from '../../components/Attendees/useFreeBusy'
 import { CalDavItem } from '../Calendars/api/types'
+import { getCalendars } from '../Calendars/CalendarApi'
 import { Calendar } from '../Calendars/CalendarTypes'
 import {
   VCalComponent,
@@ -10,6 +14,23 @@ import {
   VObjectValue
 } from '../Calendars/types/CalendarData'
 import { SearchEventsResponse } from '../Search/types/SearchEventsResponse'
+import {
+  CounterProposalPayload,
+  deleteEventRaw,
+  fetchAllRecurrentVevents,
+  fetchEventIcs,
+  fetchEventRaw,
+  fetchFreeBusyPost,
+  fetchFreeBusyReports,
+  fetchUserByEmail,
+  FreeBusyPostQuery,
+  importEventRaw,
+  moveEventRaw,
+  postCounterProposalRaw,
+  putEventRaw,
+  reportEventRaw,
+  searchEventRaw
+} from './EventDao'
 import { CalendarEvent } from './EventsTypes'
 import {
   calendarEventToJCal,
@@ -22,36 +43,30 @@ export async function reportEvent(
   event: CalendarEvent,
   match: { start: string; end: string }
 ): Promise<CalDavItem> {
-  const response = await api(`dav${event.URL}`, {
-    method: 'REPORT',
-    body: JSON.stringify({ match }),
-    headers: { Accept: 'application/json' }
-  })
-  if (!response.ok) {
-    throw new Error(`REPORT request failed with status ${response.status}`)
-  }
-  const eventData: CalDavItem = await response.json()
-  return eventData
+  return reportEventRaw(event, match)
 }
 
-export async function getEvent(event: CalendarEvent, isMaster?: boolean) {
-  const response = await api.get(`dav${event.URL}`)
-  const eventData = await response.text()
+export async function getEvent(
+  event: CalendarEvent,
+  isMaster?: boolean
+): Promise<CalendarEvent> {
+  const eventData = await fetchEventRaw(event)
 
-  const eventical = ICAL.parse(eventData)
-  const vevents = (eventical[2] || []).filter(
-    ([name]: [string]) => name.toLowerCase() === 'vevent'
+  const eventical = ICAL.parse(eventData) as VCalComponent
+  const vevents = (eventical[2] ?? []).filter(
+    ([name]) => name.toLowerCase() === 'vevent'
+  )
+  const vtimezones = (eventical[2] ?? []).filter(
+    ([name]) => name.toLowerCase() === 'vtimezone'
   )
 
-  const vtimezones = (eventical[2] || []).filter(
-    ([name]: [string]) => name.toLowerCase() === 'vtimezone'
-  )
-
-  let targetVevent
+  let targetVevent: VCalComponent | undefined
   if (isMaster) {
     targetVevent = vevents.find(
-      ([, props]: VCalComponent) =>
-        !props.find(([k]) => k.toLowerCase() === 'recurrence-id')
+      ([, props]) =>
+        !(props as VObjectProperty[]).find(
+          ([k]) => k.toLowerCase() === 'recurrence-id'
+        )
     )
     if (!targetVevent) {
       targetVevent = vevents[0]
@@ -63,11 +78,11 @@ export async function getEvent(event: CalendarEvent, isMaster?: boolean) {
   let timezoneFromVTimezone: string | undefined
   if (vtimezones.length > 0) {
     const vtimezone = vtimezones[0]
-    const tzidProp = vtimezone[1]?.find(
-      ([k]: string[]) => k.toLowerCase() === 'tzid'
+    const tzidProp = (vtimezone[1] as VObjectProperty[]).find(
+      ([k]) => k.toLowerCase() === 'tzid'
     )
-    if (tzidProp && tzidProp[3]) {
-      const resolvedTz = resolveTimezoneId(tzidProp[3])
+    if (tzidProp?.[3]) {
+      const resolvedTz = resolveTimezoneId(tzidProp[3] as string)
       if (resolvedTz) {
         timezoneFromVTimezone = resolvedTz
       }
@@ -75,24 +90,22 @@ export async function getEvent(event: CalendarEvent, isMaster?: boolean) {
   }
 
   let timezoneFromDTSTART: string | undefined
-  const dtstartProp = targetVevent[1]?.find(
-    ([k]: string[]) => k.toLowerCase() === 'dtstart'
+  const dtstartProp = (targetVevent[1] as VObjectProperty[]).find(
+    ([k]) => k.toLowerCase() === 'dtstart'
   )
   if (dtstartProp) {
-    const dtstartParams = dtstartProp[1]
+    const dtstartParams = dtstartProp[1] as Record<string, string>
     const dtstartValue = dtstartProp[3]
-    if (dtstartParams) {
-      const tzParam =
-        dtstartParams.tzid ||
-        dtstartParams.TZID ||
-        dtstartParams.Tzid ||
-        dtstartParams.tZid ||
-        dtstartParams.tzId
-      if (tzParam) {
-        const resolvedTz = resolveTimezoneId(tzParam)
-        if (resolvedTz) {
-          timezoneFromDTSTART = resolvedTz
-        }
+    const tzParam =
+      dtstartParams['tzid'] ??
+      dtstartParams['TZID'] ??
+      dtstartParams['Tzid'] ??
+      dtstartParams['tZid'] ??
+      dtstartParams['tzId']
+    if (tzParam) {
+      const resolvedTz = resolveTimezoneId(tzParam)
+      if (resolvedTz) {
+        timezoneFromDTSTART = resolvedTz
       }
     }
     if (
@@ -105,17 +118,18 @@ export async function getEvent(event: CalendarEvent, isMaster?: boolean) {
   }
 
   const eventjson = parseCalendarEvent(
-    targetVevent[1],
+    targetVevent[1] as VObjectProperty[],
     event.color ?? {},
     { id: event?.calId } as Calendar,
     event.URL
   )
 
   const finalTimezone =
-    timezoneFromVTimezone ||
-    timezoneFromDTSTART ||
-    eventjson.timezone ||
+    timezoneFromVTimezone ??
+    timezoneFromDTSTART ??
+    eventjson.timezone ??
     'Etc/UTC'
+
   eventjson.timezone = finalTimezone
 
   if (!eventjson.allday && eventjson.start && finalTimezone) {
@@ -132,31 +146,22 @@ export async function getEvent(event: CalendarEvent, isMaster?: boolean) {
     }
   }
 
-  if (isMaster) {
-    const merged = { ...event, ...eventjson }
-    merged.timezone = finalTimezone
-    return merged
-  }
   const merged = { ...event, ...eventjson }
   merged.timezone = finalTimezone
   return merged
 }
 
-export async function dlEvent(event: CalendarEvent) {
-  const response = await api.get(`dav${event.URL}?export=`)
-  const eventData = await response.text()
-
-  return eventData
+export async function dlEvent(event: CalendarEvent): Promise<string> {
+  const response = await fetchEventIcs(event)
+  return response
 }
 
-export async function putEvent(event: CalendarEvent, calOwnerEmail?: string) {
-  const response = await api(`dav${event.URL}`, {
-    method: 'PUT',
-    body: JSON.stringify(calendarEventToJCal(event, calOwnerEmail)),
-    headers: {
-      'content-type': 'text/calendar; charset=utf-8'
-    }
-  })
+export async function putEvent(
+  event: CalendarEvent,
+  calOwnerEmail?: string
+): Promise<Response> {
+  const jCal = calendarEventToJCal(event, calOwnerEmail)
+  const response = await putEventRaw(event, jCal)
 
   if (response.status === 201) {
     console.info('Event created successfully:', response.url || event.URL)
@@ -168,8 +173,8 @@ export async function putEvent(event: CalendarEvent, calOwnerEmail?: string) {
 export async function putEventWithOverrides(
   updatedEvent: CalendarEvent,
   calOwnerEmail?: string
-) {
-  const vevents = await getAllRecurrentEvent(updatedEvent)
+): Promise<Response> {
+  const vevents = await fetchAllRecurrentVevents(updatedEvent)
 
   const updatedVevent = makeVevent(
     updatedEvent,
@@ -180,61 +185,64 @@ export async function putEventWithOverrides(
   let replaced = false
   for (let i = 0; i < vevents.length; i++) {
     const ve = vevents[i]
-    const recurrenceId = ve[1].find(([k]: string[]) => k === 'recurrence-id')
+    const recurrenceId = (ve[1] as VObjectProperty[]).find(
+      ([k]) => k === 'recurrence-id'
+    )
     if (recurrenceId && recurrenceId[3] === updatedEvent.recurrenceId) {
-      vevents[i] = updatedVevent // replace
+      vevents[i] = updatedVevent as VCalComponent // replace
       replaced = true
       break
     }
   }
   if (!replaced && updatedEvent.recurrenceId) {
-    vevents.push(updatedVevent) // add new override
+    vevents.push(updatedVevent as VCalComponent) // add new override
   }
 
   const timezoneData = TIMEZONES.zones[updatedEvent.timezone]
   const vtimezone = makeTimezone(timezoneData, updatedEvent)
 
   const newJCal = ['vcalendar', [], [...vevents, vtimezone.component.jCal]]
-
-  return api(`dav${updatedEvent.URL}`, {
-    method: 'PUT',
-    body: JSON.stringify(newJCal),
-    headers: {
-      'content-type': 'text/calendar; charset=utf-8'
-    }
-  })
+  return putEventRaw(updatedEvent, newJCal)
 }
 
-export const deleteEventInstance = async (event: CalendarEvent) => {
+export const deleteEventInstance = async (
+  event: CalendarEvent
+): Promise<Response> => {
   // Get all VEVENTs (master + overrides) from the series
-  const vevents = await getAllRecurrentEvent(event)
+  const vevents = await fetchAllRecurrentVevents(event)
 
   // Find the master VEVENT
   const masterIndex = vevents.findIndex(
-    ([, props]: VCalComponent) =>
-      !props.find(([k]) => k.toLowerCase() === 'recurrence-id')
+    ([, props]) =>
+      !(props as VObjectProperty[]).find(
+        ([k]) => k.toLowerCase() === 'recurrence-id'
+      )
   )
 
   if (masterIndex === -1) {
     throw new Error('No master VEVENT found for this series')
   }
 
-  const exdateValue = event.recurrenceId || event.start
+  const exdateValue = event.recurrenceId ?? event.start
   const seriesEvent = parseCalendarEvent(
-    vevents[masterIndex][1],
+    vevents[masterIndex][1] as VObjectProperty[],
     {},
     { id: event.calId } as Calendar,
     ''
   )
-  const masterProps = vevents[masterIndex][1]
+  const masterProps = vevents[masterIndex][1] as VObjectProperty[]
 
-  // Check if this date is already in EXDATE (avoid duplicates)
-  const normalizeRecurrenceId = (id: VObjectValue) =>
-    String(id ?? '').replace(/Z$/, '')
+  const normalizeRecurrenceId = (id: VObjectValue): string =>
+    (typeof id === 'string' || typeof id === 'number'
+      ? String(id)
+      : ''
+    ).replace(/Z$/, '')
+
   const isDuplicate = masterProps.some((prop: VObjectProperty) => {
     if (prop[0].toLowerCase() === 'exdate' && prop[3]) {
       return (
-        normalizeRecurrenceId(prop[3]) === normalizeRecurrenceId(exdateValue)
+        normalizeRecurrenceId(prop[3]) ===
+        normalizeRecurrenceId(exdateValue as VObjectValue)
       )
     }
     return false
@@ -250,14 +258,14 @@ export const deleteEventInstance = async (event: CalendarEvent) => {
   vevents[masterIndex][1] = masterProps
 
   // Remove the override instance if it exists (in case it was an override being deleted)
-  const filteredVevents = vevents.filter(([, props]: VCalComponent) => {
-    const recurrenceIdProp = props.find(
+  const filteredVevents = vevents.filter(([, props]) => {
+    const recurrenceIdProp = (props as VObjectProperty[]).find(
       ([k]) => k.toLowerCase() === 'recurrence-id'
     )
     if (!recurrenceIdProp) return true // Keep master
     return (
       normalizeRecurrenceId(recurrenceIdProp[3]) !==
-      normalizeRecurrenceId(event.recurrenceId ?? '')
+      normalizeRecurrenceId((event.recurrenceId ?? '') as VObjectValue)
     ) // Remove matching override
   })
 
@@ -271,25 +279,19 @@ export const deleteEventInstance = async (event: CalendarEvent) => {
     [...filteredVevents, vtimezone.component.jCal]
   ]
 
-  return api(`dav${event.URL}`, {
-    method: 'PUT',
-    body: JSON.stringify(newJCal),
-    headers: {
-      'content-type': 'text/calendar; charset=utf-8'
-    }
-  })
+  return putEventRaw(event, newJCal)
 }
 
 export const updateSeriesPartstat = async (
   event: CalendarEvent,
   attendeeEmail: string,
   partstat: string
-) => {
-  const vevents = await getAllRecurrentEvent(event)
+): Promise<Response> => {
+  const vevents = await fetchAllRecurrentVevents(event)
 
   // Update PARTSTAT in ALL VEVENTs (master + exceptions)
   const updatedVevents = vevents.map((vevent: VCalComponent) => {
-    const properties = vevent[1]
+    const properties = vevent[1] as VObjectProperty[]
     const updatedProperties = properties.map((prop: VObjectProperty) => {
       // Find ATTENDEE properties
       if (prop[0] === 'attendee') {
@@ -297,13 +299,13 @@ export const updateSeriesPartstat = async (
         // Check if this is the target attendee
         if (calAddress.toLowerCase().includes(attendeeEmail.toLowerCase())) {
           // Update PARTSTAT parameter
-          const params = { ...prop[1], partstat: partstat }
-          return [prop[0], params, prop[2], prop[3]]
+          const params = { ...(prop[1] as Record<string, string>), partstat }
+          return [prop[0], params, prop[2], prop[3]] as VObjectProperty
         }
       }
       return prop
     })
-    return [vevent[0], updatedProperties, vevent[2]]
+    return [vevent[0], updatedProperties, vevent[2]] as VCalComponent
   })
 
   const timezoneData = TIMEZONES.zones[event.timezone]
@@ -315,45 +317,31 @@ export const updateSeriesPartstat = async (
     [...updatedVevents, vtimezone.component.jCal]
   ]
 
-  return api(`dav${event.URL}`, {
-    method: 'PUT',
-    body: JSON.stringify(newJCal),
-    headers: {
-      'content-type': 'text/calendar; charset=utf-8'
-    }
-  })
+  return putEventRaw(event, newJCal)
 }
 
-export async function getAllRecurrentEvent(event: CalendarEvent) {
-  const response = await api.get(`dav${event.URL}`)
-  const eventData = await response.text()
-  const jcal = ICAL.parse(eventData)
-  const vevents = jcal[2].filter(([name]: string[]) => name === 'vevent')
-  return vevents
+export async function getAllRecurrentEvent(
+  event: CalendarEvent
+): Promise<VCalComponent[]> {
+  return fetchAllRecurrentVevents(event)
 }
 
-export async function moveEvent(event: CalendarEvent, newUrl: string) {
-  const response = await api(`dav${event.URL}`, {
-    method: 'MOVE',
-    headers: {
-      destination: newUrl
-    }
-  })
-  return response
+export async function moveEvent(
+  event: CalendarEvent,
+  newUrl: string
+): Promise<Response> {
+  return moveEventRaw(event, newUrl)
 }
 
-export async function deleteEvent(eventURL: string) {
-  const response = await api(`dav${eventURL}`, {
-    method: 'DELETE'
-  })
-  return response
+export async function deleteEvent(eventURL: string): Promise<Response> {
+  return deleteEventRaw({ URL: eventURL } as CalendarEvent)
 }
 
-export async function importEventFromFile(id: string, calLink: string) {
-  const response = await api.post(`api/import`, {
-    body: JSON.stringify({ fileId: id, target: calLink })
-  })
-  return response
+export async function importEventFromFile(
+  id: string,
+  calLink: string
+): Promise<Response> {
+  return importEventRaw(id, calLink)
 }
 
 export async function searchEvent(
@@ -385,11 +373,129 @@ export async function searchEvent(
   if (attendees.length) {
     reqParam.attendees = attendees
   }
-  const response = await api
-    .post('calendar/api/events/search?limit=30&offset=0', {
-      body: JSON.stringify(reqParam)
-    })
-    .json()
+  return searchEventRaw(reqParam)
+}
 
-  return response as SearchEventsResponse
+export async function getFreeBusyForAddedAttendees(
+  userId: string,
+  start: string,
+  end: string
+): Promise<boolean> {
+  const calendars = await getCalendars(
+    userId,
+    'withFreeBusy=true&withRights=true'
+  )
+  const hrefs = extractCalendarHrefs(calendars)
+  if (hrefs.length === 0) return false
+
+  const results = await fetchFreeBusyReports({ hrefs, start, end })
+  return results.some(data => (data ? hasFreeBusyConflict(data) : false))
+}
+
+interface BusySlot {
+  uid: string
+  start: string
+  end: string
+}
+
+interface CalendarFreeBusy {
+  id: string
+  busy: BusySlot[]
+}
+
+interface UserFreeBusy {
+  id: string
+  calendars: CalendarFreeBusy[]
+}
+interface FreeBusyPayload {
+  users?: UserFreeBusy[]
+}
+
+export async function getFreeBusyForEventAttendees(
+  userIds: string[],
+  start: string,
+  end: string,
+  eventUid: string
+): Promise<Record<string, boolean>> {
+  const query: FreeBusyPostQuery = { userIds, start, end, eventUid }
+  const payload = (await fetchFreeBusyPost(query)) as FreeBusyPayload
+  const users = Array.isArray(payload.users) ? payload.users : []
+  const eventUidBase = extractEventBaseUuid(eventUid)
+  return Object.fromEntries(
+    users.map(u => {
+      const isBusy = (u.calendars ?? []).some(cal =>
+        (cal.busy ?? []).some(
+          slot => extractEventBaseUuid(slot.uid) !== eventUidBase
+        )
+      )
+      return [u.id, isBusy]
+    })
+  )
+}
+
+export async function getUserDataFromEmail(
+  email: string
+): Promise<Array<Record<string, string>>> {
+  if (!isValidEmail(email)) return []
+  return fetchUserByEmail(email)
+}
+
+export async function postCounterProposal({
+  event,
+  senderEmail,
+  recipientEmail,
+  proposedStart,
+  proposedEnd,
+  message
+}: {
+  event: CalendarEvent
+  senderEmail: string
+  recipientEmail: string
+  proposedStart: string
+  proposedEnd: string
+  message?: string
+}): Promise<Response> {
+  // Build the counter event with proposed dates
+  const counterEvent: CalendarEvent = {
+    ...event,
+    start: proposedStart,
+    end: proposedEnd,
+    sequence: event.sequence ?? 0
+  }
+  // Build vevent jCal
+  const vevent = makeVevent(
+    counterEvent,
+    counterEvent.timezone,
+    senderEmail,
+    !event.recurrenceId
+  )
+  if (message) {
+    vevent[1].push(['comment', {}, 'text', message])
+  }
+  // Build vtimezone
+  const timezoneData = TIMEZONES.zones[counterEvent.timezone]
+  const vtimezone = makeTimezone(timezoneData, counterEvent)
+
+  // Assemble full vcalendar with METHOD:COUNTER
+  const jcal = [
+    'vcalendar',
+    [
+      ['version', {}, 'text', '2.0'],
+      ['prodid', {}, 'text', '-//OpenPaaS//OpenPaaS//EN'],
+      ['method', {}, 'text', 'COUNTER']
+    ],
+    [vevent, vtimezone.component.jCal]
+  ]
+
+  // Serialize to raw ICS
+  const counterICS = new ICAL.Component(jcal).toString()
+  const payload: CounterProposalPayload = {
+    ical: counterICS,
+    sender: senderEmail,
+    recipient: recipientEmail,
+    uid: extractEventBaseUuid(event.uid),
+    sequence: counterEvent.sequence ?? 0,
+    method: 'COUNTER'
+  }
+  return postCounterProposalRaw(event, payload)
 }

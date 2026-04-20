@@ -2,9 +2,7 @@ import {
   hasFreeBusyConflict,
   useAttendeesFreeBusy
 } from '@/components/Attendees/useFreeBusy'
-import * as getFreeBusyREPORT from '@/features/Events/api/getFreeBusyForAddedAttendeesREPORT'
-import * as getFreeBusyPOST from '@/features/Events/api/getFreeBusyForEventAttendeesPOST'
-import * as getUserData from '@/features/Events/api/getUserDataFromEmail'
+import * as EventApi from '@/features/Events/EventApi'
 import { renderHook, waitFor } from '@testing-library/react'
 
 jest.mock('moment-timezone', () => {
@@ -12,21 +10,17 @@ jest.mock('moment-timezone', () => {
   return actual
 })
 
-jest.mock('@/features/Events/api/getUserDataFromEmail')
-jest.mock('@/features/Events/api/getFreeBusyForAddedAttendeesREPORT')
-jest.mock('@/features/Events/api/getFreeBusyForEventAttendeesPOST')
+jest.mock('@/features/Events/EventApi')
 
-const mockGetUserData = getUserData.getUserDataFromEmail as jest.MockedFunction<
-  typeof getUserData.getUserDataFromEmail
+const mockGetUserData = EventApi.getUserDataFromEmail as jest.MockedFunction<
+  typeof EventApi.getUserDataFromEmail
 >
-const mockREPORT =
-  getFreeBusyREPORT.getFreeBusyForAddedAttendeesREPORT as jest.MockedFunction<
-    typeof getFreeBusyREPORT.getFreeBusyForAddedAttendeesREPORT
-  >
-const mockPOST =
-  getFreeBusyPOST.getFreeBusyForEventAttendeesPOST as jest.MockedFunction<
-    typeof getFreeBusyPOST.getFreeBusyForEventAttendeesPOST
-  >
+const mockREPORT = EventApi.getFreeBusyForAddedAttendees as jest.MockedFunction<
+  typeof EventApi.getFreeBusyForAddedAttendees
+>
+const mockPOST = EventApi.getFreeBusyForEventAttendees as jest.MockedFunction<
+  typeof EventApi.getFreeBusyForEventAttendees
+>
 
 const START = '2026-03-14T14:00:00'
 const END = '2026-03-14T15:00:00'
