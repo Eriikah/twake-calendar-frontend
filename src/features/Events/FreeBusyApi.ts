@@ -8,7 +8,7 @@ import {
   FreeBusyPostQuery
 } from './FreeBusyDao'
 
-export async function getFreeBusyForAddedAttendees(
+export async function getFreeBusyForAddedAttendee(
   userId: string,
   start: string,
   end: string

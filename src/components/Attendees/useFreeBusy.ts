@@ -1,5 +1,5 @@
 import {
-  getFreeBusyForAddedAttendees,
+  getFreeBusyForAddedAttendee,
   getFreeBusyForEventAttendees
 } from '@/features/Events/FreeBusyApi'
 import { getUserDataFromEmail } from '@/features/User/userAPI'
@@ -210,7 +210,7 @@ export function useAttendeesFreeBusy({
       Promise.all(
         resolved.map(async ({ email, userId }) => {
           try {
-            const busy = await getFreeBusyForAddedAttendees(
+            const busy = await getFreeBusyForAddedAttendee(
               userId,
               moment.tz(start, timezone).utc().format('YYYYMMDDTHHmmss'),
               moment.tz(end, timezone).utc().format('YYYYMMDDTHHmmss')

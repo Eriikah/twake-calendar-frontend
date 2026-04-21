@@ -85,28 +85,23 @@ export async function getEvent(
   const dtstartProp = (targetVevent[1] as VObjectProperty[]).find(
     ([k]) => k.toLowerCase() === 'dtstart'
   )
-  if (dtstartProp) {
-    const dtstartParams = dtstartProp[1] as Record<string, string>
-    const dtstartValue = dtstartProp[3]
-    const tzParam =
-      dtstartParams['tzid'] ??
-      dtstartParams['TZID'] ??
-      dtstartParams['Tzid'] ??
-      dtstartParams['tZid'] ??
-      dtstartParams['tzId']
-    if (tzParam) {
-      const resolvedTz = resolveTimezoneId(tzParam)
-      if (resolvedTz) {
-        timezoneFromDTSTART = resolvedTz
-      }
-    }
-    if (
-      !timezoneFromDTSTART &&
-      typeof dtstartValue === 'string' &&
-      dtstartValue.endsWith('Z')
-    ) {
-      timezoneFromDTSTART = 'Etc/UTC'
-    }
+  const dtstartParams = dtstartProp?.[1] as Record<string, string>
+  const dtstartValue = dtstartProp?.[3]
+  const tzParam =
+    dtstartParams?.['tzid'] ??
+    dtstartParams?.['TZID'] ??
+    dtstartParams?.['Tzid'] ??
+    dtstartParams?.['tZid'] ??
+    dtstartParams?.['tzId']
+
+  timezoneFromDTSTART = resolveTimezoneId(tzParam)
+
+  if (
+    !timezoneFromDTSTART &&
+    typeof dtstartValue === 'string' &&
+    dtstartValue.endsWith('Z')
+  ) {
+    timezoneFromDTSTART = 'Etc/UTC'
   }
 
   const eventjson = parseCalendarEvent(
@@ -285,15 +280,15 @@ export const updateSeriesPartstat = async (
   const updatedVevents = vevents.map((vevent: VCalComponent) => {
     const properties = vevent[1] as VObjectProperty[]
     const updatedProperties = properties.map((prop: VObjectProperty) => {
-      // Find ATTENDEE properties
-      if (prop[0] === 'attendee') {
-        const calAddress = prop[3] as string
-        // Check if this is the target attendee
-        if (calAddress.toLowerCase().includes(attendeeEmail.toLowerCase())) {
-          // Update PARTSTAT parameter
-          const params = { ...(prop[1] as Record<string, string>), partstat }
-          return [prop[0], params, prop[2], prop[3]] as VObjectProperty
-        }
+      const calAddress = prop[3] as string
+      // Find ATTENDEE properties & Check if this is the target attendee
+      if (
+        prop[0] === 'attendee' &&
+        calAddress.toLowerCase().includes(attendeeEmail.toLowerCase())
+      ) {
+        // Update PARTSTAT parameter
+        const params = { ...(prop[1] as Record<string, string>), partstat }
+        return [prop[0], params, prop[2], prop[3]] as VObjectProperty
       }
       return prop
     })
