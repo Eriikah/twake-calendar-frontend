@@ -18,11 +18,9 @@ export async function getFreeBusyForAddedAttendees(
     'withFreeBusy=true&withRights=true'
   )
   const hrefs = extractCalendarHrefs(calendars)
-  console.log(hrefs)
   if (hrefs.length === 0) return false
 
   const results = await fetchFreeBusyReports({ hrefs, start, end })
-  console.log(results)
   return results.some(data => (data ? hasFreeBusyConflict(data) : false))
 }
 
