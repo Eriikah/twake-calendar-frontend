@@ -1,17 +1,15 @@
 import { api } from '@/utils/apiUtils'
-import { CalendarEvent } from './EventsTypes'
 
-/**
- * Fires REPORT requests against each calendar href to collect raw free/busy
- * data. Returns an array of parsed JSON payloads (null on failure).
- * It's for getting the free busy for added attendees in an event (new or while modifying)
- */
 export interface FreeBusyQuery {
   hrefs: string[]
   start: string
   end: string
 }
-
+/**
+ * Fires REPORT requests against each calendar href to collect raw free/busy
+ * data. Returns an array of parsed JSON payloads (null on failure).
+ * It's for getting the free busy for added attendees in an event (new or while modifying)
+ */
 export async function fetchFreeBusyReports(
   query: FreeBusyQuery
 ): Promise<unknown[]> {
@@ -32,17 +30,17 @@ export async function fetchFreeBusyReports(
   )
 }
 
-/**
- * POSTs to the freebusy endpoint and returns the raw response payload.
- * Throws on non-OK status.
- * It's for getting the free busy for present attendees while editing event
- */
 export interface FreeBusyPostQuery {
   userIds: string[]
   start: string
   end: string
   eventUid: string
 }
+/**
+ * POSTs to the freebusy endpoint and returns the raw response payload.
+ * Throws on non-OK status.
+ * It's for getting the free busy for present attendees while editing event
+ */
 export async function fetchFreeBusyPost(
   query: FreeBusyPostQuery
 ): Promise<unknown> {

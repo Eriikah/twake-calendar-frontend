@@ -7,5 +7,8 @@ export async function fetchUserByEmail(
   email: string
 ): Promise<Array<Record<string, string>>> {
   const r = await api(`api/users?email=${encodeURIComponent(email)}`)
+  if (!r.ok) {
+    return []
+  }
   return r.json()
 }
