@@ -8,7 +8,7 @@ import { SnackbarAlert } from '@/components/Loading/SnackBarAlert'
 import moment from 'moment-timezone'
 import { useEffect, useState } from 'react'
 import { useI18n } from 'twake-i18n'
-import { postCounterProposal } from '../api/sendCounterProposal'
+import { postCounterProposal } from '../EventApi'
 import { EventTimeSubtitle } from '../EventPreview/EventTimeSubtitle'
 import { ContextualizedEvent } from '../EventsTypes'
 

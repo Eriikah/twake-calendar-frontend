@@ -1,10 +1,9 @@
-import { api } from '@/utils/apiUtils'
 import { TIMEZONES } from '@/utils/timezone-data'
 import {
   VCalComponent,
   VObjectProperty
 } from '../../Calendars/types/CalendarData'
-import { getAllRecurrentEvent } from '../EventApi'
+import { fetchAllRecurrentVevents, putEventRaw } from '../EventDao'
 import { CalendarEvent } from '../EventsTypes'
 import { makeTimezone, makeVevent } from '../utils'
 
@@ -20,26 +19,22 @@ const METADATA_FIELDS = [
 ] as const
 
 // Helper function to get field values from props
-const getFieldValues = (props: VObjectProperty[], fieldName: string) => {
-  return props.filter(([k]) => k.toLowerCase() === fieldName.toLowerCase())
-}
+const getFieldValues = (props: VObjectProperty[], fieldName: string) =>
+  props.filter(([k]) => k.toLowerCase() === fieldName.toLowerCase())
 
 // Helper function to find a single field value from props
-const findFieldValue = (props: VObjectProperty[], fieldName: string) => {
-  return props.find(([k]) => k.toLowerCase() === fieldName.toLowerCase())
-}
+const findFieldValue = (props: VObjectProperty[], fieldName: string) =>
+  props.find(([k]) => k.toLowerCase() === fieldName.toLowerCase())
 
 // Helper function to serialize for comparison
-const serialize = (values: VObjectProperty[] | VCalComponent[]) => {
-  return JSON.stringify(values)
-}
+const serialize = (values: VObjectProperty[] | VCalComponent[]) =>
+  JSON.stringify(values)
 
 // Helper function to filter components by name
-const filterComponentsByName = (components: VCalComponent[], name: string) => {
-  return components.filter(
+const filterComponentsByName = (components: VCalComponent[], name: string) =>
+  components.filter(
     ([componentName]) => componentName.toLowerCase() === name.toLowerCase()
   )
-}
 
 // Detect which metadata fields changed between old and new master
 const detectChangedMetadataFields = (
@@ -125,11 +120,10 @@ const incrementSequenceNumber = (props: VObjectProperty[]) => {
 const updateValarmComponents = (
   components: VCalComponent[],
   newValarm: VCalComponent[]
-) => {
-  return components
+) =>
+  components
     .filter(([name]) => name.toLowerCase() !== 'valarm')
     .concat(newValarm)
-}
 
 // Update a single vevent with metadata changes
 const updateVeventWithMetadataChanges = (
@@ -156,10 +150,9 @@ const updateVeventWithMetadataChanges = (
   }
 
   // Handle VALARM component updates
-  let updatedComponents = components
-  if (valarmChanged) {
-    updatedComponents = updateValarmComponents(components, newValarm)
-  }
+  const updatedComponents = valarmChanged
+    ? updateValarmComponents(components, newValarm)
+    : components
 
   return [veventType, newProps, updatedComponents]
 }
@@ -205,7 +198,8 @@ export const updateSeries = async (
   calOwnerEmail?: string,
   removeOverrides: boolean = true
 ) => {
-  const vevents = (await getAllRecurrentEvent(event)) as VCalComponent[]
+  const vevents = await fetchAllRecurrentVevents(event)
+
   const masterIndex = vevents.findIndex(
     ([, props]) => !findFieldValue(props, 'recurrence-id')
   )
@@ -249,11 +243,5 @@ export const updateSeries = async (
 
   const newJCal = ['vcalendar', [], [...finalVevents, vtimezone.component.jCal]]
 
-  return api(`dav${event.URL}`, {
-    method: 'PUT',
-    body: JSON.stringify(newJCal),
-    headers: {
-      'content-type': 'text/calendar; charset=utf-8'
-    }
-  })
+  return putEventRaw(event, newJCal)
 }
