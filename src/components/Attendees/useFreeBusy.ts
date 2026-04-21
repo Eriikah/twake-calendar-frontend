@@ -1,8 +1,8 @@
 import {
   getFreeBusyForAddedAttendees,
-  getFreeBusyForEventAttendees,
-  getUserDataFromEmail
-} from '@/features/Events/EventApi'
+  getFreeBusyForEventAttendees
+} from '@/features/Events/FreeBusyApi'
+import { getUserDataFromEmail } from '@/features/User/userAPI'
 import moment from 'moment-timezone'
 import { useEffect, useRef, useState } from 'react'
 

@@ -2,7 +2,9 @@ import {
   hasFreeBusyConflict,
   useAttendeesFreeBusy
 } from '@/components/Attendees/useFreeBusy'
-import * as EventApi from '@/features/Events/EventApi'
+import * as CalendarApi from '@/features/Calendars/CalendarApi'
+import * as FreeBusyDao from '@/features/Events/FreeBusyDao'
+import * as UserDao from '@/features/User/UserDao'
 import { renderHook, waitFor } from '@testing-library/react'
 
 jest.mock('moment-timezone', () => {
@@ -10,21 +12,129 @@ jest.mock('moment-timezone', () => {
   return actual
 })
 
-jest.mock('@/features/Events/EventApi')
+jest.mock('@/features/Events/FreeBusyDao')
+jest.mock('@/features/User/UserDao')
+jest.mock('@/features/Calendars/CalendarApi')
 
-const mockGetUserData = EventApi.getUserDataFromEmail as jest.MockedFunction<
-  typeof EventApi.getUserDataFromEmail
+const mockGetUserData = UserDao.fetchUserByEmail as jest.MockedFunction<
+  typeof UserDao.fetchUserByEmail
 >
-const mockREPORT = EventApi.getFreeBusyForAddedAttendees as jest.MockedFunction<
-  typeof EventApi.getFreeBusyForAddedAttendees
+const mockREPORT = FreeBusyDao.fetchFreeBusyReports as jest.MockedFunction<
+  typeof FreeBusyDao.fetchFreeBusyReports
 >
-const mockPOST = EventApi.getFreeBusyForEventAttendees as jest.MockedFunction<
-  typeof EventApi.getFreeBusyForEventAttendees
+const mockPOST = FreeBusyDao.fetchFreeBusyPost as jest.MockedFunction<
+  typeof FreeBusyDao.fetchFreeBusyPost
 >
+const mockGetCalendars = CalendarApi.getCalendars as jest.MockedFunction<
+  typeof CalendarApi.getCalendars
+>
+
+const mockCalendarsResponse = {
+  _embedded: {
+    'dav:calendar': [
+      {
+        _links: {
+          self: {
+            href: '/calendars/user-carol/user-carol'
+          }
+        }
+      }
+    ]
+  }
+}
+
+const freeIcal = [
+  {
+    _links: {
+      self: {
+        href: '\/calendars\/user-carol\/e38d1ea7-6d2c-46c6-8933-cdb325d4458e'
+      }
+    },
+    data: [
+      'vcalendar',
+      [],
+      [
+        [
+          'vfreebusy',
+          [
+            ['dtstart', {}, 'date-time', '2026-03-14T14:00:00Z'],
+            ['dtend', {}, 'date-time', '2026-03-14T15:00:00Z'],
+            ['dtstamp', {}, 'date-time', '2026-03-14T13:00:00Z']
+          ],
+          []
+        ]
+      ]
+    ]
+  }
+]
+
+const busyIcal = [
+  {
+    _links: {
+      self: {
+        href: '\/calendars\/user-carol\/e38d1ea7-6d2c-46c6-8933-cdb325d4458e'
+      }
+    },
+    data: [
+      'vcalendar',
+      [],
+      [
+        [
+          'vfreebusy',
+          [
+            ['dtstart', {}, 'date-time', '2026-03-14T14:00:00Z'],
+            ['dtend', {}, 'date-time', '2026-03-14T15:00:00Z'],
+            ['dtstamp', {}, 'date-time', '2026-03-14T13:00:00Z'],
+            [
+              'freebusy',
+              {},
+              'period',
+              ['2026-03-14T14:00:00Z', '2026-03-14T15:00:00Z']
+            ]
+          ],
+          []
+        ]
+      ]
+    ]
+  }
+]
 
 const START = '2026-03-14T14:00:00'
 const END = '2026-03-14T15:00:00'
 const TZ = 'Europe/Paris'
+
+const freePostResponse = {
+  start: '20260314T130000',
+  end: '20260314T140000',
+  users: [
+    {
+      id: 'user-carol',
+      calendars: [{ id: 'user-carol', busy: [] }]
+    }
+  ]
+}
+
+const busyPostResponse = {
+  start: '20260314T130000',
+  end: '20260314T140000',
+  users: [
+    {
+      id: 'user-carol',
+      calendars: [
+        {
+          id: 'user-carol',
+          busy: [
+            {
+              uid: 'fa507111-07d5-44b4-a611-c27845a66ccf',
+              start: START,
+              end: END
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
 
 describe('hasFreeBusyConflict', () => {
   it('returns false for non-vcalendar data', () => {
@@ -76,13 +186,16 @@ describe('hasFreeBusyConflict', () => {
 })
 
 describe('useAttendeesFreeBusy — Flow B (new attendees)', () => {
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockGetCalendars.mockResolvedValue(mockCalendarsResponse as never)
+  })
 
   const newAttendee = { email: 'alice@example.com', userId: 'user-alice' }
 
   it('shows loading then free for a new attendee', async () => {
-    mockREPORT.mockResolvedValue(false)
-
+    mockGetCalendars.mockResolvedValue(mockCalendarsResponse as never)
+    mockREPORT.mockResolvedValue(freeIcal)
     const { result } = renderHook(() =>
       useAttendeesFreeBusy({
         existingAttendees: [],
@@ -99,8 +212,8 @@ describe('useAttendeesFreeBusy — Flow B (new attendees)', () => {
   })
 
   it('shows busy when REPORT returns true', async () => {
-    mockREPORT.mockResolvedValue(true)
-
+    mockGetCalendars.mockResolvedValue(mockCalendarsResponse as never)
+    mockREPORT.mockResolvedValue(busyIcal)
     const { result } = renderHook(() =>
       useAttendeesFreeBusy({
         existingAttendees: [],
@@ -134,8 +247,20 @@ describe('useAttendeesFreeBusy — Flow B (new attendees)', () => {
 
   it('resolves userId via getUserDataFromEmail when not provided', async () => {
     mockGetUserData.mockResolvedValue([{ _id: 'resolved-id' }] as never)
-    mockREPORT.mockResolvedValue(false)
-
+    mockGetCalendars.mockResolvedValue({
+      _embedded: {
+        'dav:calendar': [
+          {
+            _links: {
+              self: {
+                href: '/calendars/resolved-id/resolved-id'
+              }
+            }
+          }
+        ]
+      }
+    } as never)
+    mockREPORT.mockResolvedValue(freeIcal)
     const attendeeWithoutId = { email: 'bob@example.com' }
 
     const { result } = renderHook(() =>
@@ -153,9 +278,11 @@ describe('useAttendeesFreeBusy — Flow B (new attendees)', () => {
     )
     expect(mockGetUserData).toHaveBeenCalledWith('bob@example.com')
     expect(mockREPORT).toHaveBeenCalledWith(
-      'resolved-id',
-      expect.any(String),
-      expect.any(String)
+      expect.objectContaining({
+        hrefs: ['/calendars/resolved-id/resolved-id'],
+        start: expect.any(String),
+        end: expect.any(String)
+      })
     )
   })
 
@@ -179,8 +306,8 @@ describe('useAttendeesFreeBusy — Flow B (new attendees)', () => {
   })
 
   it('does not re-fetch an attendee already fetched', async () => {
-    mockREPORT.mockResolvedValue(false)
-
+    mockGetCalendars.mockResolvedValue(mockCalendarsResponse as never)
+    mockREPORT.mockResolvedValue(freeIcal)
     const { result, rerender } = renderHook(
       ({ attendees }) =>
         useAttendeesFreeBusy({
@@ -200,8 +327,8 @@ describe('useAttendeesFreeBusy — Flow B (new attendees)', () => {
   })
 
   it('removes departed attendee from the map', async () => {
-    mockREPORT.mockResolvedValue(false)
-
+    mockGetCalendars.mockResolvedValue(mockCalendarsResponse as never)
+    mockREPORT.mockResolvedValue(freeIcal)
     const { result, rerender } = renderHook(
       ({ attendees }) =>
         useAttendeesFreeBusy({
@@ -224,8 +351,8 @@ describe('useAttendeesFreeBusy — Flow B (new attendees)', () => {
   })
 
   it('invalidates cache and re-fetches when time window changes', async () => {
-    mockREPORT.mockResolvedValue(false)
-
+    mockGetCalendars.mockResolvedValue(mockCalendarsResponse as never)
+    mockREPORT.mockResolvedValue(freeIcal)
     const { result, rerender } = renderHook(
       ({ start, end }) =>
         useAttendeesFreeBusy({
@@ -248,8 +375,8 @@ describe('useAttendeesFreeBusy — Flow B (new attendees)', () => {
   })
 
   it('passes UTC-converted iCal times to the API', async () => {
-    mockREPORT.mockResolvedValue(false)
-
+    mockGetCalendars.mockResolvedValue(mockCalendarsResponse as never)
+    mockREPORT.mockResolvedValue(freeIcal)
     renderHook(() =>
       useAttendeesFreeBusy({
         existingAttendees: [],
@@ -264,9 +391,10 @@ describe('useAttendeesFreeBusy — Flow B (new attendees)', () => {
 
     // Paris is UTC+1 in March (before DST), so 16:00 → 15:00 UTC
     expect(mockREPORT).toHaveBeenCalledWith(
-      'user-alice',
-      '20260314T150000',
-      '20260314T160000'
+      expect.objectContaining({
+        start: '20260314T150000',
+        end: '20260314T160000'
+      })
     )
   })
 })
@@ -291,7 +419,7 @@ describe('useAttendeesFreeBusy — Flow A (existing attendees)', () => {
   })
 
   it('shows loading then free for existing attendees', async () => {
-    mockPOST.mockResolvedValue({ 'user-carol': false })
+    mockPOST.mockResolvedValue(freePostResponse)
 
     const { result } = renderHook(() =>
       useAttendeesFreeBusy({
@@ -312,7 +440,7 @@ describe('useAttendeesFreeBusy — Flow A (existing attendees)', () => {
   })
 
   it('shows busy when POST returns busy for userId', async () => {
-    mockPOST.mockResolvedValue({ 'user-carol': true })
+    mockPOST.mockResolvedValue(busyPostResponse)
 
     const { result } = renderHook(() =>
       useAttendeesFreeBusy({
@@ -325,9 +453,9 @@ describe('useAttendeesFreeBusy — Flow A (existing attendees)', () => {
       })
     )
 
-    await waitFor(() =>
+    await waitFor(() => {
       expect(result.current[existingAttendee.email]).toBe('busy')
-    )
+    })
   })
 
   it('shows unknown when POST throws', async () => {
@@ -350,7 +478,7 @@ describe('useAttendeesFreeBusy — Flow A (existing attendees)', () => {
   })
 
   it('passes the eventUid to the POST API', async () => {
-    mockPOST.mockResolvedValue({ 'user-carol': false })
+    mockPOST.mockResolvedValue(freePostResponse)
 
     renderHook(() =>
       useAttendeesFreeBusy({
@@ -364,12 +492,12 @@ describe('useAttendeesFreeBusy — Flow A (existing attendees)', () => {
     )
 
     await waitFor(() => expect(mockPOST).toHaveBeenCalled())
-    expect(mockPOST).toHaveBeenCalledWith(
-      ['user-carol'],
-      expect.any(String),
-      expect.any(String),
-      'event-abc'
-    )
+    expect(mockPOST).toHaveBeenCalledWith({
+      end: '20260314T140000',
+      eventUid: 'event-abc',
+      start: '20260314T130000',
+      userIds: ['user-carol']
+    })
   })
 })
 

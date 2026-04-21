@@ -1,13 +1,15 @@
 import { User } from '@/components/Attendees/types'
 import { api } from '@/utils/apiUtils'
+import { isValidEmail } from '@/utils/isValidEmail'
 import { BusinessHour } from '../Settings/SettingsSlice'
 import { OpenPaasUserData } from './type/OpenPaasUserData'
+import { ResourceData } from './type/ResourceData'
+import { fetchUserByEmail } from './UserDao'
 import {
   ConfigurationItem,
   ModuleConfiguration,
   SearchResponseItem
 } from './userDataTypes'
-import { ResourceData } from './type/ResourceData'
 
 export async function getOpenPaasUser() {
   const user = await api.get(`api/user`)
@@ -145,4 +147,11 @@ export async function updateUserConfigurations(
   return await api.patch(`api/configurations?scope=user`, {
     json: modules
   })
+}
+
+export async function getUserDataFromEmail(
+  email: string
+): Promise<Array<Record<string, string>>> {
+  if (!isValidEmail(email)) return []
+  return fetchUserByEmail(email)
 }

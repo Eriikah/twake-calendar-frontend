@@ -91,74 +91,6 @@ export async function fetchAllRecurrentVevents(
 }
 
 /**
- * Fires REPORT requests against each calendar href to collect raw free/busy
- * data. Returns an array of parsed JSON payloads (null on failure).
- */
-export interface FreeBusyQuery {
-  hrefs: string[]
-  start: string
-  end: string
-}
-
-export async function fetchFreeBusyReports(
-  query: FreeBusyQuery
-): Promise<unknown[]> {
-  const body = JSON.stringify({
-    type: 'free-busy-query',
-    match: { start: query.start, end: query.end }
-  })
-  return Promise.all(
-    query.hrefs.map(href =>
-      api(`dav${href}`, {
-        method: 'REPORT',
-        headers: { Accept: 'application/json, text/plain, */*' },
-        body
-      })
-        .then(r => (r.ok ? r.json() : null))
-        .catch(() => null)
-    )
-  )
-}
-
-/**
- * POSTs to the freebusy endpoint and returns the raw response payload.
- * Throws on non-OK status.
- */
-export interface FreeBusyPostQuery {
-  userIds: string[]
-  start: string
-  end: string
-  eventUid: string
-}
-
-export async function fetchFreeBusyPost(
-  query: FreeBusyPostQuery
-): Promise<unknown> {
-  const r = await api('dav/calendars/freebusy', {
-    method: 'POST',
-    headers: { Accept: 'application/json, text/plain, */*' },
-    body: JSON.stringify({
-      start: query.start,
-      end: query.end,
-      users: query.userIds,
-      uids: [query.eventUid]
-    })
-  })
-  if (!r.ok) throw new Error(`HTTP ${r.status}`)
-  return r.json()
-}
-
-/**
- * Fetches user data by email. Returns raw JSON array.
- */
-export async function fetchUserByEmail(
-  email: string
-): Promise<Array<Record<string, string>>> {
-  const r = await api(`api/users?email=${encodeURIComponent(email)}`)
-  return r.json()
-}
-
-/**
  * POSTs an iTIP COUNTER proposal for a calendar event.
  * Accepts a pre-serialized ICS string and the envelope metadata.
  */
@@ -170,7 +102,6 @@ export interface CounterProposalPayload {
   sequence: number
   method: 'COUNTER'
 }
-
 export async function postCounterProposalRaw(
   event: CalendarEvent,
   payload: CounterProposalPayload
