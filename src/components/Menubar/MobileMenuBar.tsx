@@ -10,6 +10,9 @@ import './Menubar.styl'
 import { DatePickerMobile } from './components/DatePickerMobile'
 import { Typography } from '@mui/material'
 import { SmallNavigationControls } from './components/SmallNavigationControls'
+import { useAppDispatch, useAppSelector } from '@/app/hooks'
+import { setView } from '@/features/Settings/SettingsSlice'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 
 export type MobileMenubarProps = {
   calendarRef: React.RefObject<CalendarApi | null>
@@ -27,6 +30,9 @@ export const MobileMenubar: React.FC<MobileMenubarProps> = ({
   onOpenSidebar
 }) => {
   const { t } = useI18n()
+  const dispatch = useAppDispatch()
+
+  const view = useAppSelector(state => state.settings.view)
 
   const [openDatePicker, setOpenDatePicker] = useState(false)
 
@@ -46,53 +52,81 @@ export const MobileMenubar: React.FC<MobileMenubarProps> = ({
     })
   }
 
+  const handleBackClick = (event: React.MouseEvent): void => {
+    event.stopPropagation()
+    event.preventDefault()
+    dispatch(setView('calendar'))
+  }
+
   return (
     <>
       <header className="menubar menubar--mobile">
-        <div className="left-menu">
-          <IconButton
-            onClick={onOpenSidebar}
-            aria-label={t('menubar.toggleSidebar')}
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <div className="menu-items">
-            <SmallNavigationControls onNavigate={handleNavigation} />
-          </div>
-          <div className="menu-items">
-            <Stack direction="row" className="current-date-time">
-              <Typography
-                sx={{ lineHeight: 'unset' }}
-                onClick={onToggleDatePicker}
-              >
-                {dateLabel}
-              </Typography>
+        {view === 'settings' ? (
+          <>
+            <IconButton
+              onClick={handleBackClick}
+              aria-label={t('settings.back')}
+              className="back-button"
+            >
+              <ArrowBackIcon />
+            </IconButton>
+
+            <Typography variant="h3" sx={{ width: '100%' }}>
+              {t('menubar.settings')}
+            </Typography>
+          </>
+        ) : (
+          <>
+            <div className="left-menu">
               <IconButton
-                size="small"
-                onClick={onToggleDatePicker}
-                aria-label={
-                  openDatePicker
-                    ? t('menubar.hideDatePicker')
-                    : t('menubar.showDatePicker')
-                }
-                title={
-                  openDatePicker
-                    ? t('menubar.hideDatePicker')
-                    : t('menubar.showDatePicker')
-                }
-                aria-expanded={openDatePicker}
+                onClick={onOpenSidebar}
+                aria-label={t('menubar.toggleSidebar')}
+                sx={{ mr: 2 }}
               >
-                {openDatePicker ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
+                <MenuIcon />
               </IconButton>
-            </Stack>
-          </div>
-        </div>
-        <div className="right-menu">
-          <div className="search-container">
-            <SearchBar />
-          </div>
-        </div>
+              <div className="menu-items">
+                <SmallNavigationControls onNavigate={handleNavigation} />
+              </div>
+              <div className="menu-items">
+                <Stack direction="row" className="current-date-time">
+                  <Typography
+                    sx={{ lineHeight: 'unset' }}
+                    onClick={onToggleDatePicker}
+                  >
+                    {dateLabel}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={onToggleDatePicker}
+                    aria-label={
+                      openDatePicker
+                        ? t('menubar.hideDatePicker')
+                        : t('menubar.showDatePicker')
+                    }
+                    title={
+                      openDatePicker
+                        ? t('menubar.hideDatePicker')
+                        : t('menubar.showDatePicker')
+                    }
+                    aria-expanded={openDatePicker}
+                  >
+                    {openDatePicker ? (
+                      <ArrowDropUpIcon />
+                    ) : (
+                      <ArrowDropDownIcon />
+                    )}
+                  </IconButton>
+                </Stack>
+              </div>
+            </div>
+            <div className="right-menu">
+              <div className="search-container">
+                <SearchBar />
+              </div>
+            </div>
+          </>
+        )}
       </header>
 
       {openDatePicker ? (

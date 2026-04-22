@@ -1,15 +1,21 @@
-import { Drawer, IconButton, Box } from '@linagora/twake-mui'
+import {
+  Drawer,
+  Box,
+  useTheme,
+  ListItemIcon,
+  ListItemText,
+  ListItemButton
+} from '@linagora/twake-mui'
 import { CalendarSidebarProps } from './SideBar'
 import { SidebarCommonContent } from './SidebarCommonContent'
 import { ViewSwitcher } from './ViewSwitcher'
 import { MainTitle } from '@/components/Menubar/MainTitle'
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import { useI18n } from 'twake-i18n'
-import { AppListMenu } from '@/components/Menubar/AppListMenu'
-import { UserMenu } from '@/components/Menubar/UserMenu'
-import { useAppDispatch, useAppSelector } from '@/app/hooks'
+import { useAppDispatch } from '@/app/hooks'
 import { useUtilMenus } from '../hooks/useUtilMenus'
 import { setIsMobileSearchOpen } from '@/features/Calendars/CalendarSlice'
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
+import { UtilButtons } from './UtilButtons'
 
 export const MobileSidebar: React.FC<CalendarSidebarProps> = ({
   open,
@@ -26,23 +32,18 @@ export const MobileSidebar: React.FC<CalendarSidebarProps> = ({
   onDateChange
 }) => {
   const { t } = useI18n()
-  const user = useAppSelector(state => state.user.userData)
+  const theme = useTheme()
   const dispatch = useAppDispatch()
 
-  const {
-    anchorEl,
-    supportLink,
-    userMenuAnchorEl,
-    handleAppMenuOpen,
-    handleAppMenuClose,
-    handleUserMenuOpen,
-    handleUserMenuClose,
-    handleSettingsClick,
-    handleLogoutClick
-  } = useUtilMenus()
+  const { handleSettingsClick } = useUtilMenus()
 
   const openSearch = (): void => {
     dispatch(setIsMobileSearchOpen(true))
+  }
+
+  const openSettings = (): void => {
+    handleSettingsClick()
+    onClose()
   }
 
   return (
@@ -77,39 +78,7 @@ export const MobileSidebar: React.FC<CalendarSidebarProps> = ({
             onDateChange={onDateChange}
           />
 
-          <Box display="flex" alignItems="center">
-            {supportLink && (
-              <IconButton
-                component="a"
-                href={supportLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ marginRight: 4 }}
-                aria-label={t('menubar.help')}
-                title={t('menubar.help')}
-              >
-                <HelpOutlineIcon fontSize="small" />
-              </IconButton>
-            )}
-
-            <AppListMenu
-              anchorEl={anchorEl}
-              onAppMenuOpen={handleAppMenuOpen}
-              onAppMenuClose={handleAppMenuClose}
-              iconSize="small"
-            />
-
-            <UserMenu
-              anchorEl={userMenuAnchorEl}
-              onClose={handleUserMenuClose}
-              onSettingsClick={handleSettingsClick}
-              onLogoutClick={() => void handleLogoutClick()}
-              onUserMenuOpen={handleUserMenuOpen}
-              isIframe={isIframe}
-              user={user}
-              size="s"
-            />
-          </Box>
+          <UtilButtons isIframe={isIframe} />
         </Box>
       )}
 
@@ -127,6 +96,32 @@ export const MobileSidebar: React.FC<CalendarSidebarProps> = ({
         setSelectedCalendars={setSelectedCalendars}
         openSearchOnMobile={openSearch}
       />
+
+      <Box sx={{ marginTop: 1 }}>
+        <ListItemButton sx={{ padding: 0 }} onClick={openSettings}>
+          <ListItemIcon sx={{ minWidth: 'unset' }}>
+            <SettingsOutlinedIcon
+              sx={{
+                marginRight: 1,
+                color: theme.palette.grey.A700,
+                fontSize: 20
+              }}
+            />
+          </ListItemIcon>
+          <ListItemText
+            primary={t('menubar.settings')}
+            slotProps={{
+              primary: {
+                sx: {
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  lineHeight: '20px'
+                }
+              }
+            }}
+          />
+        </ListItemButton>
+      </Box>
     </Drawer>
   )
 }
