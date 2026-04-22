@@ -146,7 +146,10 @@ export const MobileMenubar: React.FC<MobileMenubarProps> = ({
               <div className="search-container">
                 <IconButton
                   sx={{ mr: 1 }}
-                  onClick={() => setOpenEventSearch(true)}
+                  onClick={() => {
+                    setOpenDatePicker(false)
+                    setOpenEventSearch(true)
+                  }}
                   aria-label={t('common.search')}
                 >
                   <SearchIcon />

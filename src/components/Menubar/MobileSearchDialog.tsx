@@ -1,4 +1,3 @@
-import { userAttendee } from '@/features/User/models/attendee'
 import { Box, Button, Paper } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 import { AttendeeOptionsList } from '../Attendees/AttendeeOptionsList'
@@ -8,7 +7,7 @@ interface MobileSearchDialogProps {
   open: boolean
   onShow: () => void
   options: User[]
-  selectedUsers: User[] | userAttendee[]
+  selectedUsers: User[]
   onOptionClick: (user: User) => void
 }
 

@@ -50,22 +50,6 @@ const MobileSearchBar: React.FC = () => {
 
   const [, setFilterError] = useState(false)
 
-  type FilterField = 'searchIn' | 'keywords' | 'organizers' | 'attendees'
-  const handleFilterChange = (
-    field: FilterField,
-    value: string | userAttendee[]
-  ): void => {
-    setFilters(prev => ({ ...prev, [field]: value }))
-    if (field === 'organizers') {
-      setSelectedContacts(
-        (value as userAttendee[]).map((a: userAttendee) => ({
-          displayName: a.cn ?? a.cal_address,
-          email: a.cal_address || ''
-        }))
-      )
-    }
-  }
-
   function buildQuery(
     searchQuery: string,
     filters: {
@@ -74,7 +58,17 @@ const MobileSearchBar: React.FC = () => {
       organizers: userAttendee[]
       attendees: userAttendee[]
     }
-  ) {
+  ):
+    | {
+        search: string
+        filters: {
+          keywords: string
+          organizers: string[]
+          attendees: string[]
+          searchIn: string[]
+        }
+      }
+    | undefined {
     const trimmedSearch = searchQuery.trim()
     const trimmedKeywords = filters.keywords.trim()
 
@@ -116,17 +110,21 @@ const MobileSearchBar: React.FC = () => {
   )
 
   const handleContactSelect = (contacts: User[]): void => {
+    const organizers = contacts.map(contact =>
+      createAttendee({
+        cal_address: contact.email,
+        cn: contact.displayName
+      })
+    )
+
     setSelectedContacts(contacts)
     setSearch('')
+    setSearchState({ query: '', options: [], loading: false })
+
     if (contacts.length > 0) {
       void handleSearch('', {
         ...filters,
-        organizers: contacts.map(contact =>
-          createAttendee({
-            cal_address: contact.email,
-            cn: contact.displayName
-          })
-        )
+        organizers
       })
     }
   }
@@ -160,6 +158,7 @@ const MobileSearchBar: React.FC = () => {
             handleContactSelect(users)
           }}
           hideOptions
+          inputValue={searchState.query}
           onSearchStateChange={handleSearchChange}
           objectTypes={SEARCH_OBJECT_TYPES}
           onToggleEventPreview={() => {}}
@@ -217,7 +216,12 @@ const MobileSearchBar: React.FC = () => {
                         onClick={() => {
                           setQuery('')
                           setSearch('')
-                          handleFilterChange('keywords', '')
+                          setFilters(prev => ({
+                            ...prev,
+                            keywords: '',
+                            attendees: [],
+                            organizers: []
+                          }))
                           setSelectedContacts([])
                         }}
                       >
@@ -235,11 +239,13 @@ const MobileSearchBar: React.FC = () => {
       <MobileSearchDialog
         open={dialogOpen}
         onShow={() => {
-          searchState.query && handleSearch(searchState.query, filters)
+          if (searchState.query) {
+            void handleSearch(searchState.query, filters)
+          }
           setDialogOpen(false)
         }}
         options={searchState.options ?? []}
-        selectedUsers={filters.organizers}
+        selectedUsers={selectedContacts}
         onOptionClick={user =>
           handleContactSelect([
             ...selectedContacts,
