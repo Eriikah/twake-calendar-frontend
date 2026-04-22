@@ -8,7 +8,7 @@ import { useMobileSearch } from './useMobileSearch'
 const SEARCH_OBJECT_TYPES = ['user', 'contact']
 
 const MobileSearchBar: React.FC = () => {
-  const [dialogOpen, setDialogOpen] = useState(true)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   const {
     inputQuery,

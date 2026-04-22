@@ -1,6 +1,14 @@
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { selectCalendars } from '@/app/selectors/selectCalendars'
-import { searchEventsAsync } from '@/features/Search/SearchSlice'
+import { AttendeesFilter } from '@/features/Search/AttendeesFilter'
+import { KeywordsFilter } from '@/features/Search/KeywordsFilter'
+import { OrganizersFilter } from '@/features/Search/OrganizersFilter'
+import { SearchInFilter } from '@/features/Search/SearchInFilter'
+import {
+  clearFilters,
+  searchEventsAsync,
+  setFilters
+} from '@/features/Search/SearchSlice'
 import { setView } from '@/features/Settings/SettingsSlice'
 import { userAttendee } from '@/features/User/models/attendee'
 import { createAttendee } from '@/features/User/models/attendee.mapper'
@@ -45,17 +53,13 @@ const SearchBar: React.FC<{
   const personnalCalendars = userId
     ? calendars.filter(c => extractEventBaseUuid(c.id) === userId)
     : []
+  const filters = useAppSelector(
+    state => state.searchResult.searchParams.filters
+  )
 
   const [search, setSearch] = useState('')
   const [selectedContacts, setSelectedContacts] = useState<User[]>([])
   const [extended, setExtended] = useState(false)
-
-  const [filters, setFilters] = useState({
-    searchIn: 'my-calendars',
-    keywords: '',
-    organizers: [] as userAttendee[],
-    attendees: [] as userAttendee[]
-  })
 
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const filterOpen = Boolean(anchorEl)
@@ -79,7 +83,7 @@ const SearchBar: React.FC<{
     field: FilterField,
     value: string | userAttendee[]
   ): void => {
-    setFilters(prev => ({ ...prev, [field]: value }))
+    dispatch(setFilters({ ...filters, [field]: value }))
     if (field === 'organizers') {
       setSelectedContacts(
         (value as userAttendee[]).map((a: userAttendee) => ({
@@ -146,12 +150,7 @@ const SearchBar: React.FC<{
   }
 
   const handleClearFilters = (): void => {
-    setFilters({
-      searchIn: 'my-calendars',
-      keywords: '',
-      organizers: [] as userAttendee[],
-      attendees: [] as userAttendee[]
-    })
+    dispatch(clearFilters())
     setAnchorEl(null)
     setFilterError(false)
   }
@@ -399,131 +398,10 @@ const SearchBar: React.FC<{
         <Card sx={{ p: 2, pb: 1 }}>
           <CardContent>
             <Stack spacing={2}>
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: '140px 1fr',
-                  gap: 2,
-                  alignItems: 'center'
-                }}
-              >
-                <InputLabel id="search-in" sx={{ m: 0 }}>
-                  {t('search.searchIn')}
-                </InputLabel>
-                <Select
-                  displayEmpty
-                  value={filters.searchIn}
-                  onChange={e => handleFilterChange('searchIn', e.target.value)}
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        maxHeight: 300,
-                        color: '#8C9CAF'
-                      }
-                    }
-                  }}
-                  sx={{ height: '40px' }}
-                >
-                  <MenuItem value="">
-                    <Typography
-                      sx={{
-                        color: '#243B55',
-                        font: 'Roboto',
-                        fontSize: '16px',
-                        weight: 400,
-                        pointerEvents: 'auto'
-                      }}
-                    >
-                      {t('search.filter.allCalendar')}
-                    </Typography>
-                  </MenuItem>
-                  <Divider />
-                  <MenuItem
-                    value="my-calendars"
-                    sx={{
-                      color: '#243B55',
-                      font: 'Roboto',
-                      fontSize: '12px',
-                      weight: 400,
-                      pointerEvents: 'auto'
-                    }}
-                  >
-                    {t('search.filter.myCalendar')}
-                  </MenuItem>
-                  {CalendarItemList(personnalCalendars)}
-                </Select>
-              </Box>
-
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: '140px 1fr',
-                  gap: 2,
-                  alignItems: 'center'
-                }}
-              >
-                <InputLabel id="keywords" sx={{ m: 0 }}>
-                  {t('search.keywords')}
-                </InputLabel>
-                <TextField
-                  fullWidth
-                  error={filterError}
-                  helperText={filterError ? t('search.error.emptySearch') : ''}
-                  placeholder={t('search.keywordsPlaceholder')}
-                  value={filters.keywords}
-                  onChange={e => {
-                    handleFilterChange('keywords', e.target.value)
-                    if (e.target.value.trim()) {
-                      setFilterError(false)
-                    }
-                  }}
-                  size="small"
-                />
-              </Box>
-
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: '140px 1fr',
-                  gap: 2,
-                  alignItems: 'center'
-                }}
-              >
-                <InputLabel id="from" sx={{ m: 0 }}>
-                  {t('search.organizers')}
-                </InputLabel>
-                <UserSearch
-                  attendees={filters.organizers}
-                  setAttendees={(users: userAttendee[]) => {
-                    handleFilterChange('organizers', users)
-                    if (users.length > 0) {
-                      setFilterError(false)
-                    }
-                  }}
-                />
-              </Box>
-
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: '140px 1fr',
-                  gap: 2,
-                  alignItems: 'center'
-                }}
-              >
-                <InputLabel id="participant" sx={{ m: 0 }}>
-                  {t('search.participants')}
-                </InputLabel>
-                <UserSearch
-                  attendees={filters.attendees}
-                  setAttendees={(users: userAttendee[]) => {
-                    handleFilterChange('attendees', users)
-                    if (users.length > 0) {
-                      setFilterError(false)
-                    }
-                  }}
-                />
-              </Box>
+              <SearchInFilter mode="popover" />
+              <KeywordsFilter mode="popover" />
+              <OrganizersFilter mode="popover" />
+              <AttendeesFilter mode="popover" />
             </Stack>
           </CardContent>
 

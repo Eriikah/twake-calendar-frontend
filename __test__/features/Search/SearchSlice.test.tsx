@@ -26,7 +26,16 @@ describe('SearchSlice', () => {
         results: [],
         hits: 0,
         error: null,
-        loading: false
+        loading: false,
+        searchParams: {
+          filters: {
+            attendees: [],
+            keywords: '',
+            organizers: [],
+            searchIn: 'my-calendars'
+          },
+          search: ''
+        }
       })
     })
   })

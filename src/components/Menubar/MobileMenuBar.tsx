@@ -148,6 +148,7 @@ export const MobileMenubar: React.FC<MobileMenubarProps> = ({
                   sx={{ mr: 1 }}
                   onClick={() => {
                     setOpenDatePicker(false)
+                    dispatch(setView('search'))
                     setOpenEventSearch(true)
                   }}
                   aria-label={t('common.search')}

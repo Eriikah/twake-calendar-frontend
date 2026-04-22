@@ -1,19 +1,36 @@
 import { formatReduxError } from '@/utils/errorUtils'
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { searchEvent } from '../Events/EventApi'
+import { userAttendee } from '../User/models/attendee'
+
+export interface SearchFilters {
+  searchIn: string
+  keywords: string
+  organizers: userAttendee[]
+  attendees: userAttendee[]
+}
+
+export interface SearchParams {
+  search: string
+  filters: SearchFilters
+}
 
 export interface SearchResultsState {
+  searchParams: SearchParams
   hits: number
   results: Record<string, unknown>[]
   error: string | null
   loading: boolean
 }
 
-const initialState: SearchResultsState = {
-  results: [],
-  hits: 0,
-  error: null,
-  loading: false
+export const defaultSearchParams: SearchParams = {
+  search: '',
+  filters: {
+    searchIn: 'my-calendars',
+    keywords: '',
+    organizers: [],
+    attendees: []
+  }
 }
 
 export const searchEventsAsync = createAsyncThunk<
@@ -45,8 +62,16 @@ export const searchEventsAsync = createAsyncThunk<
   }
 })
 
+const initialState: SearchResultsState = {
+  searchParams: defaultSearchParams,
+  hits: 0,
+  results: [],
+  error: null,
+  loading: false
+}
+
 export const searchResultsSlice = createSlice({
-  name: 'settings',
+  name: 'searchResult',
   initialState,
   reducers: {
     setResults: (state, action: PayloadAction<[]>) => {
@@ -54,6 +79,21 @@ export const searchResultsSlice = createSlice({
     },
     setHits: (state, action: PayloadAction<number>) => {
       state.hits = action.payload
+    },
+    setFilters: (state, action: PayloadAction<Partial<SearchFilters>>) => {
+      state.searchParams.filters = {
+        ...state.searchParams.filters,
+        ...action.payload
+      }
+    },
+    clearFilters: state => {
+      state.searchParams.filters = defaultSearchParams.filters
+    },
+    clearSearch: state => {
+      state.searchParams = defaultSearchParams
+      state.results = []
+      state.hits = 0
+      state.error = null
     }
   },
   extraReducers: builder => {
@@ -74,5 +114,6 @@ export const searchResultsSlice = createSlice({
   }
 })
 
-export const { setResults, setHits } = searchResultsSlice.actions
+export const { setResults, setHits, setFilters, clearFilters, clearSearch } =
+  searchResultsSlice.actions
 export default searchResultsSlice.reducer
