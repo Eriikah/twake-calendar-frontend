@@ -5,6 +5,7 @@ import { User } from '../Attendees/types'
 
 interface MobileSearchDialogProps {
   open: boolean
+  showSearchButton: boolean
   onShow: () => void
   options: User[]
   selectedUsers: User[]
@@ -14,6 +15,7 @@ interface MobileSearchDialogProps {
 export function MobileSearchDialog({
   open,
   onShow,
+  showSearchButton,
   options,
   selectedUsers,
   onOptionClick
@@ -46,16 +48,18 @@ export function MobileSearchDialog({
           selectedUsers={selectedUsers}
         />
       </Box>
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-        <Button
-          variant="contained"
-          onClick={() => {
-            onShow()
-          }}
-        >
-          {t('common.show')}
-        </Button>
-      </Box>
+      {showSearchButton && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+          <Button
+            variant="contained"
+            onClick={() => {
+              onShow()
+            }}
+          >
+            {t('common.show')}
+          </Button>
+        </Box>
+      )}
     </Paper>
   )
 }

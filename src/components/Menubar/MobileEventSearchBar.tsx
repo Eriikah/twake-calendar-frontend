@@ -58,6 +58,7 @@ const MobileSearchBar: React.FC = () => {
       <MobileSearchDialog
         open={dialogOpen}
         onShow={handleShow}
+        showSearchButton={!!inputQuery || filters.organizers.length > 0}
         options={searchState.options ?? []}
         selectedUsers={selectedContacts}
         onOptionClick={user =>
