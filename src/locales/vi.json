@@ -128,6 +128,15 @@
         "saturday": "Bảy",
         "sunday": "CN"
       },
+      "fullDays": {
+        "monday": "Thứ hai",
+        "tuesday": "Thứ ba",
+        "wednesday": "Thứ tư",
+        "thursday": "Thứ năm",
+        "friday": "Thứ sáu",
+        "saturday": "Thứ bảy",
+        "sunday": "Chủ nhật"
+      },
       "end": {
         "label": "Lặp lại bao nhiêu lần",
         "never": "Luôn luôn",

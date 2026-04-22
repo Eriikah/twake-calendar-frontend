@@ -6,23 +6,27 @@ import {
   setAlarmEmails,
   updateUserConfigurationsAsync
 } from '../User/userSlice'
+import { useScreenSizeDetection } from '@/useScreenSizeDetection'
 
 interface NotificationsSettingsProps {
   onAlarmEmailsError: () => void
 }
 
-export function NotificationsSettings({
+export const NotificationsSettings: React.FC<NotificationsSettingsProps> = ({
   onAlarmEmailsError
-}: NotificationsSettingsProps) {
+}) => {
   const dispatch = useAppDispatch()
   const { t } = useI18n()
+
+  const { isTooSmall: isMobile } = useScreenSizeDetection()
+
   const alarmEmailsEnabled = useAppSelector(
     state => state.user?.alarmEmailsEnabled ?? true
   )
 
   const handleAlarmEmailsToggle = (
     event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  ): void => {
     const newValue = event.target.checked
     const previousValue = alarmEmailsEnabled
     dispatch(setAlarmEmails(newValue))
@@ -48,7 +52,11 @@ export function NotificationsSettings({
         }
         label={t('settings.notifications.email')}
         labelPlacement="start"
-        sx={{ minWidth: 400, justifyContent: 'space-between', marginLeft: 0 }}
+        sx={{
+          minWidth: isMobile ? '100%' : 400,
+          justifyContent: 'space-between',
+          marginLeft: 0
+        }}
       />
     </Box>
   )

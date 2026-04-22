@@ -129,6 +129,15 @@
         "saturday": "SA",
         "sunday": "SU"
       },
+      "fullDays": {
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
+      },
       "end": {
         "label": "How many times to repeat",
         "never": "Always",

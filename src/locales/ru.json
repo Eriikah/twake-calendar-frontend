@@ -130,6 +130,15 @@
         "saturday": "СБ",
         "sunday": "ВС"
       },
+      "fullDays": {
+        "monday": "Понедельник",
+        "tuesday": "Вторник",
+        "wednesday": "Среда",
+        "thursday": "Четверг",
+        "friday": "Пятница",
+        "saturday": "Суббота",
+        "sunday": "Воскресенье"
+      },
       "end": {
         "label": "Сколько раз повторить",
         "never": "Всегда",

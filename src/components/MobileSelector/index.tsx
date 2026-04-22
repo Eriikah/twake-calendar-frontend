@@ -1,0 +1,107 @@
+import {
+  Box,
+  Typography,
+  styled,
+  ButtonBase,
+  SwipeableDrawer
+} from '@linagora/twake-mui'
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
+import React, { forwardRef, useImperativeHandle, useState } from 'react'
+
+export interface MobileSelectorHandle {
+  open: boolean
+  onClose: () => void
+}
+
+const StyledSwipeableDrawer = styled(SwipeableDrawer)(({ theme }) => ({
+  zIndex: theme.zIndex.modal + 100
+}))
+
+const SelectorButton = styled(ButtonBase)(({ theme }) => ({
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: theme.spacing(1.5, 2),
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: theme.palette.background.paper,
+  color: theme.palette.text.secondary,
+  textAlign: 'left',
+  cursor: 'pointer',
+  transition: 'border-color 0.2s',
+  '&:hover': {
+    borderColor: theme.palette.text.primary
+  }
+}))
+
+interface MobileSelectorProps {
+  displayText: string
+  children?: React.ReactNode
+  bottomSheetRef?: React.RefObject<HTMLDivElement>
+  paperRef?: React.RefObject<HTMLDivElement>
+  bottomSheetChildren?: (props: {
+    open: boolean
+    onClose: () => void
+  }) => React.ReactNode
+}
+
+export const MobileSelector = forwardRef<
+  MobileSelectorHandle,
+  MobileSelectorProps
+>(
+  (
+    { displayText, children, bottomSheetRef, paperRef, bottomSheetChildren },
+    ref
+  ) => {
+    const [open, setOpen] = useState(false)
+
+    const onClose = (): void => {
+      setOpen(false)
+    }
+
+    useImperativeHandle(ref, () => ({
+      open,
+      onClose
+    }))
+
+    return (
+      <>
+        <SelectorButton onClick={() => setOpen(true)}>
+          <Typography variant="body1">{displayText}</Typography>
+          <Box
+            component={ArrowDropDownIcon}
+            sx={{
+              fontSize: 20,
+              transition: 'transform 0.2s',
+              transform: open ? 'rotate(180deg)' : 'rotate(0deg)'
+            }}
+          />
+        </SelectorButton>
+
+        {children ? (
+          <StyledSwipeableDrawer
+            ref={bottomSheetRef}
+            anchor="bottom"
+            open={open}
+            onClose={onClose}
+            onOpen={(): void => {}}
+            disableAutoFocus
+            slotProps={{
+              paper: {
+                ref: paperRef,
+                sx: { maxHeight: '90dvh' }
+              }
+            }}
+          >
+            {children}
+          </StyledSwipeableDrawer>
+        ) : (
+          bottomSheetChildren?.({ open, onClose })
+        )}
+      </>
+    )
+  }
+)
+
+MobileSelector.displayName = 'MobileSelector'
