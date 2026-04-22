@@ -1,20 +1,21 @@
+import { useAppDispatch, useAppSelector } from '@/app/hooks'
+import { setView } from '@/features/Settings/SettingsSlice'
 import { CalendarApi } from '@fullcalendar/core'
-import { IconButton, Stack } from '@linagora/twake-mui'
+import { IconButton, Stack, useTheme } from '@linagora/twake-mui'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp'
 import MenuIcon from '@mui/icons-material/Menu'
+import SearchIcon from '@mui/icons-material/Search'
+import { Typography } from '@mui/material'
 import React, { useState } from 'react'
 import { useI18n } from 'twake-i18n'
-import SearchBar from './EventSearchBar'
-import './Menubar.styl'
 import { DatePickerMobile } from './components/DatePickerMobile'
-import { Typography } from '@mui/material'
 import { SmallNavigationControls } from './components/SmallNavigationControls'
-import { useAppDispatch, useAppSelector } from '@/app/hooks'
-import { setView } from '@/features/Settings/SettingsSlice'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import './Menubar.styl'
+import MobileSearchBar from './MobileEventSearchBar'
 
-export type MobileMenubarProps = {
+export interface MobileMenubarProps {
   calendarRef: React.RefObject<CalendarApi | null>
   currentDate: Date
   onDateChange?: (date: Date) => void
@@ -34,7 +35,10 @@ export const MobileMenubar: React.FC<MobileMenubarProps> = ({
 
   const view = useAppSelector(state => state.settings.view)
 
+  const theme = useTheme()
+
   const [openDatePicker, setOpenDatePicker] = useState(false)
+  const [openEventSearch, setOpenEventSearch] = useState(false)
 
   // Use i18n for month names instead of date-fns
   const monthIndex = currentDate.getMonth()
@@ -56,6 +60,24 @@ export const MobileMenubar: React.FC<MobileMenubarProps> = ({
     event.stopPropagation()
     event.preventDefault()
     dispatch(setView('calendar'))
+  }
+
+  if (openEventSearch) {
+    return (
+      <header className="menubar menubar--mobile">
+        <IconButton
+          onClick={e => {
+            setOpenEventSearch(false)
+            handleBackClick(e)
+          }}
+          aria-label={t('common.back')}
+          sx={{ mr: 1 }}
+        >
+          <ArrowBackIcon sx={{ color: theme.palette.text.secondary }} />
+        </IconButton>
+        <MobileSearchBar />
+      </header>
+    )
   }
 
   return (
@@ -122,7 +144,13 @@ export const MobileMenubar: React.FC<MobileMenubarProps> = ({
             </div>
             <div className="right-menu">
               <div className="search-container">
-                <SearchBar />
+                <IconButton
+                  sx={{ mr: 1 }}
+                  onClick={() => setOpenEventSearch(true)}
+                  aria-label={t('common.search')}
+                >
+                  <SearchIcon />
+                </IconButton>
               </div>
             </div>
           </>

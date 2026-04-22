@@ -1,0 +1,62 @@
+import { userAttendee } from '@/features/User/models/attendee'
+import { Box, Button, Paper } from '@linagora/twake-mui'
+import { useI18n } from 'twake-i18n'
+import { AttendeeOptionsList } from '../Attendees/AttendeeOptionsList'
+import { User } from '../Attendees/types'
+
+interface MobileSearchDialogProps {
+  open: boolean
+  onShow: () => void
+  options: User[]
+  selectedUsers: User[] | userAttendee[]
+  onOptionClick: (user: User) => void
+}
+
+export function MobileSearchDialog({
+  open,
+  onShow,
+  options,
+  selectedUsers,
+  onOptionClick
+}: MobileSearchDialogProps): JSX.Element {
+  const { t } = useI18n()
+
+  if (!open) return <></>
+
+  return (
+    <Paper
+      elevation={4}
+      sx={{
+        position: 'fixed',
+        top: '70px',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        p: 2,
+        zIndex: theme => theme.zIndex.appBar - 1,
+        borderRadius: 0,
+        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
+      <Box sx={{ flex: 1, mt: 1, overflowY: 'auto' }}>
+        <AttendeeOptionsList
+          options={options}
+          onOptionClick={onOptionClick}
+          selectedUsers={selectedUsers}
+        />
+      </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+        <Button
+          variant="contained"
+          onClick={() => {
+            onShow()
+          }}
+        >
+          {t('common.show')}
+        </Button>
+      </Box>
+    </Paper>
+  )
+}
