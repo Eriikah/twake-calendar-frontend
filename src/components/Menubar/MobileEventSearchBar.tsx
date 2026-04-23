@@ -1,4 +1,5 @@
 import { Box, type AutocompleteRenderInputParams } from '@linagora/twake-mui'
+import { useState } from 'react'
 import { PeopleSearch } from '../Attendees/PeopleSearch'
 import { MobileSearchDialog } from './MobileSearchDialog'
 import { SearchTextField } from './MobileSearchFieldText'
@@ -7,8 +8,9 @@ import { useMobileSearch } from './useMobileSearch'
 const SEARCH_OBJECT_TYPES = ['user', 'contact']
 
 const MobileSearchBar: React.FC = () => {
+  const [dialogOpen, setDialogOpen] = useState(true)
+
   const {
-    dialogOpen,
     inputQuery,
     setInputQuery,
     searchState,
@@ -19,7 +21,7 @@ const MobileSearchBar: React.FC = () => {
     handleContactSelect,
     clearAll,
     handleShow
-  } = useMobileSearch()
+  } = useMobileSearch(setDialogOpen)
 
   return (
     <>
@@ -49,7 +51,7 @@ const MobileSearchBar: React.FC = () => {
               setQuery={setQuery}
               selectedContacts={selectedContacts}
               onQueryChange={setInputQuery}
-              onEnter={() => handleSearch(query, filters)}
+              onEnter={() => void handleSearch(query, filters)}
               onClear={clearAll}
             />
           )}

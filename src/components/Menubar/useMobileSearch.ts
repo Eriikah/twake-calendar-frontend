@@ -1,11 +1,12 @@
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { selectCalendars } from '@/app/selectors/selectCalendars'
+import { Calendar } from '@/features/Calendars/CalendarTypes'
 import { searchEventsAsync } from '@/features/Search/SearchSlice'
 import { setView } from '@/features/Settings/SettingsSlice'
 import { userAttendee } from '@/features/User/models/attendee'
 import { createAttendee } from '@/features/User/models/attendee.mapper'
 import { extractEventBaseUuid } from '@/utils/extractEventBaseUuid'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { User } from '../Attendees/types'
 import { SearchState } from '../Calendar/utils/tempSearchUtil'
 
@@ -31,7 +32,17 @@ function buildQuery(
   filters: Filters,
   allIds: string[],
   personalIds: string[]
-) {
+):
+  | {
+      search: string
+      filters: {
+        keywords: string
+        organizers: string[]
+        attendees: string[]
+        searchIn: string[]
+      }
+    }
+  | undefined {
   const trimmedSearch = searchQuery.trim()
   const trimmedKeywords = filters.keywords.trim()
   const hasSearchCriteria =
@@ -51,15 +62,29 @@ function buildQuery(
   }
 }
 
-export function useMobileSearch() {
+export function useMobileSearch(setDialogOpen: (b: boolean) => void): {
+  inputQuery: string
+  setInputQuery: React.Dispatch<React.SetStateAction<string>>
+  searchState: SearchState
+  selectedContacts: User[]
+  filters: Filters
+  handleSearch: (searchQuery: string, currentFilters: Filters) => Promise<void>
+  handleSearchChange: ({ query, options, loading }: SearchState) => void
+  handleContactSelect: (contacts: User[]) => void
+  clearAll: () => void
+  handleShow: () => void
+} {
   const dispatch = useAppDispatch()
   const calendars = useAppSelector(selectCalendars)
   const userId = useAppSelector(state => state.user.userData?.openpaasId)
-  const personalCalendars = userId
-    ? calendars.filter(c => extractEventBaseUuid(c.id) === userId)
-    : []
+  const personalCalendars = useMemo(
+    (): Calendar[] =>
+      userId
+        ? calendars.filter(c => extractEventBaseUuid(c.id) === userId)
+        : [],
+    [calendars, userId]
+  )
 
-  const [dialogOpen, setDialogOpen] = useState(true)
   const [inputQuery, setInputQuery] = useState('')
   const [searchState, setSearchState] = useState<SearchState>({
     query: '',
@@ -87,7 +112,7 @@ export function useMobileSearch() {
       dispatch(setView('search'))
       setDialogOpen(false)
     },
-    [dispatch, calendars, personalCalendars]
+    [dispatch, calendars, personalCalendars, setDialogOpen]
   )
 
   const handleSearchChange = useCallback(
@@ -104,7 +129,7 @@ export function useMobileSearch() {
         loading: loading ?? prev.loading
       }))
     },
-    []
+    [setDialogOpen]
   )
 
   const handleContactSelect = useCallback(
@@ -112,11 +137,13 @@ export function useMobileSearch() {
       const organizers = contacts.map(c =>
         createAttendee({ cal_address: c.email, cn: c.displayName })
       )
+      const nextFilters = { ...filters, organizers }
       setSelectedContacts(contacts)
+      setFilters(nextFilters)
       setInputQuery('')
       setSearchState({ query: '', options: [], loading: false })
       if (contacts.length > 0) {
-        void handleSearch('', { ...filters, organizers })
+        void handleSearch('', nextFilters)
       }
     },
     [filters, handleSearch]
@@ -133,15 +160,14 @@ export function useMobileSearch() {
       organizers: []
     }))
     setDialogOpen(false)
-  }, [])
+  }, [setDialogOpen])
 
   const handleShow = useCallback((): void => {
-    if (inputQuery) void handleSearch(inputQuery, filters)
+    void handleSearch(inputQuery, filters)
     setDialogOpen(false)
-  }, [inputQuery, filters, handleSearch])
+  }, [inputQuery, filters, handleSearch, setDialogOpen])
 
   return {
-    dialogOpen,
     inputQuery,
     setInputQuery,
     searchState,

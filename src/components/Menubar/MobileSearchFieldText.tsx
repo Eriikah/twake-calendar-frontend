@@ -2,7 +2,8 @@ import {
   InputAdornment,
   IconButton,
   TextField,
-  type AutocompleteRenderInputParams
+  type AutocompleteRenderInputParams,
+  useTheme
 } from '@linagora/twake-mui'
 import SearchIcon from '@mui/icons-material/Search'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff'
@@ -29,6 +30,7 @@ export const SearchTextField: React.FC<SearchTextFieldProps> = ({
   onClear
 }) => {
   const { t } = useI18n()
+  const theme = useTheme()
   return (
     <TextField
       {...params}
@@ -44,7 +46,7 @@ export const SearchTextField: React.FC<SearchTextFieldProps> = ({
       }}
       variant="outlined"
       sx={{
-        borderRadius: '999px',
+        borderRadius: theme.shape.borderRadius,
         '& .MuiInputBase-input': { padding: '12px 10px' },
         animation: 'scaleIn 0.25s ease-out',
         '@keyframes scaleIn': {
@@ -53,7 +55,7 @@ export const SearchTextField: React.FC<SearchTextFieldProps> = ({
         },
         transformOrigin: 'right',
         '& .MuiOutlinedInput-root': {
-          borderRadius: '999px',
+          borderRadius: theme.shape.borderRadius,
           height: 40,
           padding: '0 10px'
         }
@@ -63,7 +65,7 @@ export const SearchTextField: React.FC<SearchTextFieldProps> = ({
         startAdornment: (
           <>
             <InputAdornment position="start">
-              <SearchIcon sx={{ color: '#605D62' }} />
+              <SearchIcon sx={{ color: theme.palette.grey[700] }} />
             </InputAdornment>
             {params.InputProps.startAdornment}
           </>
