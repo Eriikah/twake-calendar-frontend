@@ -1,4 +1,5 @@
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
+import { clearSearch } from '@/features/Search/SearchSlice'
 import { setView } from '@/features/Settings/SettingsSlice'
 import { CalendarApi } from '@fullcalendar/core'
 import { IconButton, Stack, useTheme } from '@linagora/twake-mui'
@@ -60,6 +61,7 @@ export const MobileMenubar: React.FC<MobileMenubarProps> = ({
     event.stopPropagation()
     event.preventDefault()
     dispatch(setView('calendar'))
+    dispatch(clearSearch())
   }
 
   if (openEventSearch) {

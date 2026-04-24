@@ -3,7 +3,7 @@ import DesktopSearchResultsPage from './DesktopSearchResultsPage'
 import MobileSearchResultsPage from './MobileSearchResultsPage'
 import './searchResult.styl'
 
-export default function SearchResultsPage() {
+const SearchResultsPage: React.FC = () => {
   const { isTooSmall: isMobile } = useScreenSizeDetection()
 
   if (isMobile) {
@@ -12,3 +12,5 @@ export default function SearchResultsPage() {
     return <DesktopSearchResultsPage />
   }
 }
+
+export default SearchResultsPage

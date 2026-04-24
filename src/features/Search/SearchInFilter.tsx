@@ -6,7 +6,7 @@ import {
   MobileSelector,
   MobileSelectorHandle
 } from '@/components/MobileSelector'
-import { setFilters } from '@/features/Search/SearchSlice'
+import { SearchFilters, setFilters } from '@/features/Search/SearchSlice'
 import { extractEventBaseUuid } from '@/utils/extractEventBaseUuid'
 import {
   Box,
@@ -21,6 +21,7 @@ import {
 } from '@linagora/twake-mui'
 import { useRef } from 'react'
 import { useI18n } from 'twake-i18n'
+import { Calendar } from '../Calendars/CalendarTypes'
 
 interface Props {
   mode: 'popover' | 'mobile'
@@ -40,61 +41,20 @@ export const SearchInFilter: React.FC<Props> = ({ mode }) => {
 
   const selectorRef = useRef<MobileSelectorHandle>(null)
 
-  const handleSelect = (value: string) => {
+  const handleSelect = (value: string): void => {
     dispatch(setFilters({ searchIn: value }))
     selectorRef.current?.onClose()
   }
 
   if (mode === 'mobile') {
-    const getDisplayLabel = () => {
-      if (!filters.searchIn) {
-        return t('search.filter.allCalendar')
-      }
-
-      if (filters.searchIn === 'my-calendars') {
-        return t('search.filter.myCalendar')
-      }
-
-      const selectedCalendar = (
-        <CalendarName
-          calendar={
-            personalCalendars.find(c => c.id === filters.searchIn) ?? {}
-          }
-        />
-      )
-
-      return selectedCalendar ? selectedCalendar : t('search.searchIn')
-    }
     return (
-      <MobileSelector ref={selectorRef} displayText={getDisplayLabel()}>
-        <List>
-          <ListItemButton
-            selected={filters.searchIn === ''}
-            onClick={() => handleSelect('')}
-          >
-            <ListItemText primary={t('search.filter.allCalendar')} />
-          </ListItemButton>
-
-          <Divider />
-
-          <ListItemButton
-            selected={filters.searchIn === 'my-calendars'}
-            onClick={() => handleSelect('my-calendars')}
-          >
-            <ListItemText primary={t('search.filter.myCalendar')} />
-          </ListItemButton>
-
-          {personalCalendars.map(c => (
-            <ListItemButton
-              key={c.id}
-              selected={filters.searchIn === c.id}
-              onClick={() => handleSelect(c.id)}
-            >
-              <CalendarName calendar={c} />
-            </ListItemButton>
-          ))}
-        </List>
-      </MobileSelector>
+      <CalendarMobileSelector
+        selectorRef={selectorRef}
+        filters={filters}
+        personalCalendars={personalCalendars}
+        t={t}
+        handleSelect={handleSelect}
+      />
     )
   }
 
@@ -129,5 +89,73 @@ export const SearchInFilter: React.FC<Props> = ({ mode }) => {
         {CalendarItemList(personalCalendars)}
       </Select>{' '}
     </Box>
+  )
+}
+
+const getDisplayLabel = (
+  filters: SearchFilters,
+  personalCalendars: Calendar[],
+  t: (key: string) => string
+): string | JSX.Element => {
+  if (!filters.searchIn) {
+    return t('search.filter.allCalendar')
+  }
+
+  if (filters.searchIn === 'my-calendars') {
+    return t('search.filter.myCalendar')
+  }
+
+  const selectedCalendar = (
+    <CalendarName
+      calendar={
+        personalCalendars.find(c => c.id === filters.searchIn) ??
+        ({} as Calendar)
+      }
+    />
+  )
+
+  return selectedCalendar ? selectedCalendar : t('search.searchIn')
+}
+
+const CalendarMobileSelector: React.FC<{
+  selectorRef: React.RefObject<MobileSelectorHandle>
+  filters: SearchFilters
+  personalCalendars: Calendar[]
+  t: (key: string) => string
+  handleSelect: (value: string) => void
+}> = ({ selectorRef, filters, personalCalendars, t, handleSelect }) => {
+  return (
+    <MobileSelector
+      ref={selectorRef}
+      displayText={getDisplayLabel(filters, personalCalendars, t)}
+    >
+      <List>
+        <ListItemButton
+          selected={filters.searchIn === ''}
+          onClick={() => handleSelect('')}
+        >
+          <ListItemText primary={t('search.filter.allCalendar')} />
+        </ListItemButton>
+
+        <Divider />
+
+        <ListItemButton
+          selected={filters.searchIn === 'my-calendars'}
+          onClick={() => handleSelect('my-calendars')}
+        >
+          <ListItemText primary={t('search.filter.myCalendar')} />
+        </ListItemButton>
+
+        {personalCalendars.map(c => (
+          <ListItemButton
+            key={c.id}
+            selected={filters.searchIn === c.id}
+            onClick={() => handleSelect(c.id)}
+          >
+            <CalendarName calendar={c} />
+          </ListItemButton>
+        ))}
+      </List>
+    </MobileSelector>
   )
 }

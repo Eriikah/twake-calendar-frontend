@@ -19,6 +19,7 @@ const StyledSwipeableDrawer = styled(SwipeableDrawer)(({ theme }) => ({
 
 const SelectorButton = styled(ButtonBase)(({ theme }) => ({
   width: '100%',
+  whiteSpace: 'nowrap',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -36,7 +37,7 @@ const SelectorButton = styled(ButtonBase)(({ theme }) => ({
 }))
 
 interface MobileSelectorProps {
-  displayText: string
+  displayText: string | React.ReactNode
   children?: React.ReactNode
   bottomSheetRef?: React.RefObject<HTMLDivElement>
   paperRef?: React.RefObject<HTMLDivElement>
@@ -68,7 +69,11 @@ export const MobileSelector = forwardRef<
     return (
       <>
         <SelectorButton onClick={() => setOpen(true)}>
-          <Typography variant="body1">{displayText}</Typography>
+          {typeof displayText === 'string' ? (
+            <Typography variant="body1">{displayText}</Typography>
+          ) : (
+            displayText
+          )}
           <Box
             component={ArrowDropDownIcon}
             sx={{

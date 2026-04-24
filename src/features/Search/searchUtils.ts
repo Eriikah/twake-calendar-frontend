@@ -1,14 +1,4 @@
-import { userAttendee } from '@/features/User/models/attendee'
 import { SearchFilters } from './SearchSlice'
-
-export function buildOrganizersAndAttendeesFilter(filters: {
-  searchIn: string
-  keywords: string
-  organizers: userAttendee[]
-  attendees: userAttendee[]
-}): string[] {
-  return filters.organizers.map(u => u.cal_address)
-}
 
 export function getSearchInCalendars(
   searchIn: string,

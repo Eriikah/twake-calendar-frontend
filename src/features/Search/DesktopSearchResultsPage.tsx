@@ -75,7 +75,7 @@ const styles = {
   }
 }
 
-export default function DesktopSearchResultsPage() {
+export default function DesktopSearchResultsPage(): JSX.Element {
   const { t } = useI18n()
   const dispatch = useAppDispatch()
   const { error, loading, hits, results } = useAppSelector(
@@ -148,7 +148,7 @@ function ResultItem({
 }: {
   eventData: SearchEventResult
   dispatch: AppDispatch
-}) {
+}): JSX.Element {
   const { t } = useI18n()
   const startDate = new Date(eventData.data.start)
   const endDate = eventData.data.end ? new Date(eventData.data.end) : startDate
@@ -164,7 +164,9 @@ function ResultItem({
 
   const [openPreview, setOpenPreview] = useState(false)
 
-  const handleOpenResult = async (eventData: SearchEventResult) => {
+  const handleOpenResult = async (
+    eventData: SearchEventResult
+  ): Promise<void> => {
     if (calendar) {
       const event = {
         URL: eventData._links.self.href,
@@ -202,7 +204,7 @@ function ResultItem({
           textAlign: 'left',
           maxWidth: '80vw'
         }}
-        onClick={() => handleOpenResult(eventData)}
+        onClick={() => void handleOpenResult(eventData)}
       >
         <Typography sx={{ ...styles.M3BodyLarge, minWidth: '90px' }}>
           {startDate.toLocaleDateString(t('locale'), {

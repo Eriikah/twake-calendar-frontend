@@ -19,16 +19,11 @@ import {
   Card,
   CardActions,
   CardContent,
-  Divider,
   IconButton,
   InputAdornment,
-  InputLabel,
-  MenuItem,
   Popover,
-  Select,
   Stack,
   TextField,
-  Typography,
   type AutocompleteRenderInputParams
 } from '@linagora/twake-mui'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff'
@@ -36,10 +31,8 @@ import SearchIcon from '@mui/icons-material/Search'
 import TuneIcon from '@mui/icons-material/Tune'
 import { useEffect, useRef, useState } from 'react'
 import { useI18n } from 'twake-i18n'
-import UserSearch from '../Attendees/AttendeeSearch'
 import { PeopleSearch } from '../Attendees/PeopleSearch'
 import { User } from '../Attendees/types'
-import { CalendarItemList } from '../Calendar/CalendarItemList'
 
 const SEARCH_OBJECT_TYPES = ['user', 'contact']
 
@@ -76,6 +69,7 @@ const SearchBar: React.FC<{
 
   const inputRef = useRef<HTMLInputElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const [popperAnchor, setPopperAnchor] = useState<HTMLDivElement | null>(null)
   const shouldCollapseRef = useRef(false)
 
   type FilterField = 'searchIn' | 'keywords' | 'organizers' | 'attendees'
@@ -227,7 +221,12 @@ const SearchBar: React.FC<{
   return (
     <>
       <Box
-        ref={containerRef}
+        ref={(el: HTMLDivElement | null) => {
+          containerRef.current = el
+          if (el && !popperAnchor) {
+            setPopperAnchor(el)
+          }
+        }}
         sx={{
           position: 'relative',
           width: extended ? '100%' : 'auto',
@@ -251,7 +250,7 @@ const SearchBar: React.FC<{
             onToggleEventPreview={() => {}}
             customSlotProps={{
               popper: {
-                anchorEl: containerRef.current,
+                anchorEl: popperAnchor,
                 placement: 'bottom-start',
                 sx: {
                   minWidth: searchWidth,
@@ -399,9 +398,19 @@ const SearchBar: React.FC<{
           <CardContent>
             <Stack spacing={2}>
               <SearchInFilter mode="popover" />
-              <KeywordsFilter mode="popover" />
-              <OrganizersFilter mode="popover" />
-              <AttendeesFilter mode="popover" />
+              <KeywordsFilter
+                mode="popover"
+                error={filterError}
+                onErrorClear={() => setFilterError(false)}
+              />
+              <OrganizersFilter
+                mode="popover"
+                onErrorClear={() => setFilterError(false)}
+              />
+              <AttendeesFilter
+                mode="popover"
+                onErrorClear={() => setFilterError(false)}
+              />
             </Stack>
           </CardContent>
 

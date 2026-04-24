@@ -2,6 +2,7 @@ import { formatReduxError } from '@/utils/errorUtils'
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { searchEvent } from '../Events/EventApi'
 import { userAttendee } from '../User/models/attendee'
+import { SearchEventResult } from './types/SearchEventResult'
 
 export interface SearchFilters {
   searchIn: string
@@ -18,7 +19,7 @@ export interface SearchParams {
 export interface SearchResultsState {
   searchParams: SearchParams
   hits: number
-  results: Record<string, unknown>[]
+  results: Record<string, SearchEventResult>[]
   error: string | null
   loading: boolean
 }
@@ -34,7 +35,7 @@ export const defaultSearchParams: SearchParams = {
 }
 
 export const searchEventsAsync = createAsyncThunk<
-  { hits: number; events: Record<string, unknown>[] },
+  { hits: number; events: Record<string, SearchEventResult>[] },
   {
     search: string
     filters: {
@@ -51,7 +52,10 @@ export const searchEventsAsync = createAsyncThunk<
 
     return {
       hits: Number(response._total_hits),
-      events: response._embedded?.events ?? []
+      events: (response._embedded?.events ?? []) as Record<
+        string,
+        SearchEventResult
+      >[]
     }
   } catch (err) {
     const error = err as { response?: { status?: number } }
@@ -79,6 +83,9 @@ export const searchResultsSlice = createSlice({
     },
     setHits: (state, action: PayloadAction<number>) => {
       state.hits = action.payload
+    },
+    setSearchQuery: (state, action: PayloadAction<string>) => {
+      state.searchParams.search = action.payload
     },
     setFilters: (state, action: PayloadAction<Partial<SearchFilters>>) => {
       state.searchParams.filters = {
@@ -114,6 +121,12 @@ export const searchResultsSlice = createSlice({
   }
 })
 
-export const { setResults, setHits, setFilters, clearFilters, clearSearch } =
-  searchResultsSlice.actions
+export const {
+  setResults,
+  setHits,
+  setFilters,
+  setSearchQuery,
+  clearFilters,
+  clearSearch
+} = searchResultsSlice.actions
 export default searchResultsSlice.reducer

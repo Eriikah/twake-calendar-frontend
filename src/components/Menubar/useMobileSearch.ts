@@ -2,8 +2,11 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { selectCalendars } from '@/app/selectors/selectCalendars'
 import { Calendar } from '@/features/Calendars/CalendarTypes'
 import {
-    clearFilters,
-    searchEventsAsync, SearchFilters, setFilters
+  clearFilters,
+  searchEventsAsync,
+  SearchFilters,
+  setFilters,
+  setSearchQuery
 } from '@/features/Search/SearchSlice'
 import { buildQuery } from '@/features/Search/searchUtils'
 import { setView } from '@/features/Settings/SettingsSlice'
@@ -62,6 +65,7 @@ export function useMobileSearch(setDialogOpen: (b: boolean) => void): {
         personalCalendars.map(c => c.id)
       )
       if (!query) return
+      dispatch(setSearchQuery(searchQuery))
       await dispatch(searchEventsAsync(query))
       dispatch(setView('search'))
       setDialogOpen(false)
@@ -100,7 +104,7 @@ export function useMobileSearch(setDialogOpen: (b: boolean) => void): {
         void handleSearch('', nextFilters)
       }
     },
-    [filters, handleSearch]
+    [filters, handleSearch, dispatch]
   )
 
   const clearAll = useCallback((): void => {
@@ -109,7 +113,7 @@ export function useMobileSearch(setDialogOpen: (b: boolean) => void): {
     setSearchState({ query: '', options: [], loading: false })
     dispatch(clearFilters())
     setDialogOpen(false)
-  }, [setDialogOpen])
+  }, [setDialogOpen, dispatch])
 
   const handleShow = useCallback((): void => {
     void handleSearch(inputQuery, filters)
