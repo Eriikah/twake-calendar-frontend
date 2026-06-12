@@ -41,7 +41,7 @@ const config: Config = {
           '<rootDir>/fileTransformer.ts'
       },
       transformIgnorePatterns: [
-        '/node_modules/(?!(preact|@fullcalendar|react-calendar|get-user-locale|memoize|mimic-function|@wojtekmaj|ky|cozy-ui|p-map|@linagora/twake-mui|@lottiefiles)/)'
+        '/node_modules/(?!(preact|@fullcalendar|react-calendar|get-user-locale|memoize|mimic-function|@wojtekmaj|ky|cozy-ui|p-map|@linagora/twake-mui|@linagora/twake-icons|mime)/)'
       ],
 
       moduleNameMapper: {
