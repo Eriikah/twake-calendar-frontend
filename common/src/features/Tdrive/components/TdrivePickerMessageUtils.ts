@@ -30,7 +30,7 @@ export function parseFileSelection(data: unknown): TdriveFile | null {
   const file = msg.file as Record<string, unknown> | undefined
   if (!file) return null
 
-  const { id, name, url, action } = file
+  const { id, name, url } = file
   if (
     typeof id !== 'string' ||
     typeof name !== 'string' ||
@@ -43,6 +43,6 @@ export function parseFileSelection(data: unknown): TdriveFile | null {
     id,
     name,
     url,
-    type: action === 'sharingLink' ? 'sharingLink' : 'downloadLink'
+    type: 'sharingLink'
   }
 }
