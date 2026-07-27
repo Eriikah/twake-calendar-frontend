@@ -101,7 +101,7 @@ describe('TdriveDao', () => {
               permissions: ['GET'],
               actions: [
                 {
-                  sharingLink: { label: 'Add as link' }
+                  sharingLink: { label: 'Add as Attachment' }
                 }
               ]
             }

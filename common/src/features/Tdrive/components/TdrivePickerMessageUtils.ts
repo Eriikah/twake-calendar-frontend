@@ -21,33 +21,30 @@ export function buildReadyResponse(intentId: string): object {
   return { type: `${intentId}:send`, payload: {} }
 }
 
-function isValidFile(
-  file: Record<string, unknown>
-): file is { id: string; name: string; url: string } {
-  return (
-    typeof file.id === 'string' &&
-    typeof file.name === 'string' &&
-    typeof file.url === 'string'
-  )
+function parseTdriveDocument(doc: unknown): TdriveFile | null {
+  if (typeof doc !== 'object' || doc === null) return null
+  const { id, name, sharingLink, mimeType } = doc as Record<string, unknown>
+  if (typeof id !== 'string' || typeof name !== 'string') return null
+  if (typeof sharingLink === 'string') {
+    return {
+      id,
+      name,
+      url: sharingLink,
+      type: 'sharingLink',
+      mimeType: typeof mimeType === 'string' ? mimeType : null
+    }
+  }
+  return null
 }
 
 export function parseFileSelection(data: unknown): TdriveFile | null {
   if (typeof data !== 'object' || data === null) return null
 
   const msg = data as Record<string, unknown>
-  if (msg.type !== 'intent-response') return null
+  if (typeof msg.type !== 'string' || !msg.type.endsWith(':done')) return null
 
-  const file = msg.file as Record<string, unknown> | undefined
-  if (!file) return null
+  const documents = msg.document
+  if (!Array.isArray(documents) || documents.length === 0) return null
 
-  if (!isValidFile(file)) {
-    return null
-  }
-
-  return {
-    id: file.id,
-    name: file.name,
-    url: file.url,
-    type: 'sharingLink'
-  }
+  return parseTdriveDocument(documents[0])
 }

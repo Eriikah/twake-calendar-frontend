@@ -49,7 +49,7 @@ export const AttachmentField: React.FC<AttachmentFieldProps> = ({
               <IconButton
                 size="small"
                 onClick={e => handleRemove(e, index)}
-                aria-label={t('action.remove')}
+                aria-label={t('actions.remove')}
               >
                 <CloseIcon />
               </IconButton>

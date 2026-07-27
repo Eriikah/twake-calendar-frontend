@@ -173,15 +173,14 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
     const v = formValues
     const isExpanded = showMore && !isMobile
 
-    const handleTdriveFileSelected = useCallback(
-      (file: TdriveFile): void => {
-        // Convert Tdrive file to Attachment
-        const attachment = new Attachment(
-          file.url,
-          file.type === 'sharingLink' ? 'text/uri-list' : undefined,
-          file.name
+    const handleTdriveFilesSelected = useCallback(
+      (files: TdriveFile[]): void => {
+        // Convert Tdrive files to Attachments
+        const attachments = files.map(
+          file =>
+            new Attachment(file.url, file.mimeType ?? undefined, file.name)
         )
-        setAttachments([...v.attachments, attachment])
+        setAttachments([...v.attachments, ...attachments])
       },
       [v.attachments, setAttachments]
     )
@@ -249,22 +248,22 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
           />
         )}
 
-        {window.TDRIVE_INTENT_URL && window.TDRIVE_ENABLED && (
-          <TdriveButton
-            onFileSelected={handleTdriveFileSelected}
-            showMore={showMore}
-          />
-        )}
-
         <AddDescButton
           showDescription={v.showDescription}
           setShowDescription={setShowDescription}
           showMore={showMore}
           description={v.description}
           setDescription={setDescription}
-          attachments={v.attachments}
-          setAttachments={setAttachments}
         />
+
+        {window.TDRIVE_INTENT_URL && window.TDRIVE_ENABLED && (
+          <TdriveButton
+            onFilesSelected={handleTdriveFilesSelected}
+            showMore={showMore}
+            attachments={v.attachments}
+            setAttachments={setAttachments}
+          />
+        )}
 
         <LocationField
           location={v.location}

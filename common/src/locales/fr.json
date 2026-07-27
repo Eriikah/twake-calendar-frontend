@@ -65,6 +65,9 @@
     "back": "Retour",
     "show": "Afficher"
   },
+  "tdrive": {
+    "addAsAttachment": "Ajouter en pièce jointe"
+  },
   "search": {
     "searchIn": "Rechercher dans",
     "filter": {
@@ -190,6 +193,7 @@
       "tdriveFiles": "Fichiers",
       "tdrivePickerTitle": "Sélectionner un fichier depuis le drive",
       "tdriveLoadingError": "Échec du chargement du drive. Veuillez réessayer.",
+      "tdrivePickerError": "Échec de l'ouverture du sélecteur de fichiers. Veuillez réessayer.",
       "location": "Lieu",
       "locationPlaceholder": "Ajouter un lieu",
       "calendar": "Calendrier",

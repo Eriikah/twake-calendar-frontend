@@ -1,22 +1,31 @@
 import React from 'react'
 import { SectionPreviewRow } from '@common/components/Event/components/SectionPreviewRow'
 import { FieldWithLabel } from '@common/components/Event/components/FieldWithLabel'
-import { Box, Button, Icon, Snackbar, Alert } from '@linagora/twake-mui'
+import { AttachmentField } from '@common/components/Event/fields/AttachmentField'
+import { Box, Button, Snackbar, Alert } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 import { useScreenSizeDetection } from '@common/useScreenSizeDetection'
 import { useTdrivePicker, TdriveFile } from '../hooks/useTdrivePicker'
 import { TdrivePickerDialog } from './TdrivePickerDialog'
-import { Drive } from '@linagora/twake-icons'
+import { Icon, Drive } from '@linagora/twake-icons'
+import { Attachment } from '@common/types/Attachment'
 
 interface TdriveButtonProps {
-  onFileSelected: (file: TdriveFile) => void
+  onFilesSelected: (file: TdriveFile[]) => void
   showMore: boolean
+  attachments: Attachment[]
+  setAttachments: (attachments: Attachment[]) => void
 }
 
 const TdriveIcon: React.FC = () => (
-  <Icon sx={{ overflow: 'visible' }}>
-    <Drive fontSize="22px" />
-  </Icon>
+  <Box
+    sx={{
+      width: '24px',
+      height: '24px'
+    }}
+  >
+    <Icon icon={<Drive />} size={22} />
+  </Box>
 )
 
 const TdriveButtonInShortMode: React.FC<{
@@ -51,8 +60,10 @@ const TdriveButtonInExpandedMode: React.FC<{
 }
 
 export const TdriveButton: React.FC<TdriveButtonProps> = ({
-  onFileSelected,
-  showMore
+  onFilesSelected,
+  showMore,
+  attachments,
+  setAttachments
 }) => {
   const { t } = useI18n()
   const { isTooSmall: isMobile } = useScreenSizeDetection()
@@ -63,7 +74,7 @@ export const TdriveButton: React.FC<TdriveButtonProps> = ({
     openPicker,
     closePicker,
     onReadyToUse
-  } = useTdrivePicker({ onFileSelected })
+  } = useTdrivePicker({ onFilesSelected })
 
   const isExpanded = showMore && !isMobile
 
@@ -78,6 +89,12 @@ export const TdriveButton: React.FC<TdriveButtonProps> = ({
         ) : (
           <TdriveButtonInExpandedMode onClick={() => void openPicker()} />
         )}
+        <Box sx={{ mt: 1 }}>
+          <AttachmentField
+            attachments={attachments}
+            setAttachments={setAttachments}
+          />
+        </Box>
       </FieldWithLabel>
 
       <TdrivePickerDialog

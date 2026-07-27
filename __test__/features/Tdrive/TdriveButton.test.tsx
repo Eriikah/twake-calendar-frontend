@@ -44,7 +44,7 @@ const mockUseTdrivePicker = useTdrivePicker as jest.MockedFunction<
 >
 
 describe('TdriveButton', () => {
-  const mockOnFileSelected = jest.fn()
+  const mockOnFilesSelected = jest.fn()
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(Provider, { store: setupStore() }, children)
 
@@ -56,7 +56,7 @@ describe('TdriveButton', () => {
   it('renders short mode button when showMore is false', () => {
     render(
       React.createElement(TdriveButton, {
-        onFileSelected: mockOnFileSelected,
+        onFilesSelected: mockOnFilesSelected,
         showMore: false
       }),
       { wrapper: Wrapper }
@@ -67,7 +67,7 @@ describe('TdriveButton', () => {
   it('renders expanded mode button when showMore is true', () => {
     render(
       React.createElement(TdriveButton, {
-        onFileSelected: mockOnFileSelected,
+        onFilesSelected: mockOnFilesSelected,
         showMore: true
       }),
       { wrapper: Wrapper }
@@ -80,7 +80,7 @@ describe('TdriveButton', () => {
   it('shows label in expanded mode', () => {
     render(
       React.createElement(TdriveButton, {
-        onFileSelected: mockOnFileSelected,
+        onFilesSelected: mockOnFilesSelected,
         showMore: true
       }),
       { wrapper: Wrapper }
@@ -91,7 +91,7 @@ describe('TdriveButton', () => {
   it('does not show label in short mode', () => {
     render(
       React.createElement(TdriveButton, {
-        onFileSelected: mockOnFileSelected,
+        onFilesSelected: mockOnFilesSelected,
         showMore: false
       }),
       { wrapper: Wrapper }
@@ -102,7 +102,7 @@ describe('TdriveButton', () => {
   it('calls openPicker when short mode button is clicked', async () => {
     render(
       React.createElement(TdriveButton, {
-        onFileSelected: mockOnFileSelected,
+        onFilesSelected: mockOnFilesSelected,
         showMore: false
       }),
       { wrapper: Wrapper }
@@ -114,7 +114,7 @@ describe('TdriveButton', () => {
   it('calls openPicker when expanded mode button is clicked', async () => {
     render(
       React.createElement(TdriveButton, {
-        onFileSelected: mockOnFileSelected,
+        onFilesSelected: mockOnFilesSelected,
         showMore: true
       }),
       { wrapper: Wrapper }
@@ -130,7 +130,7 @@ describe('TdriveButton', () => {
     })
     render(
       React.createElement(TdriveButton, {
-        onFileSelected: mockOnFileSelected,
+        onFilesSelected: mockOnFilesSelected,
         showMore: false
       }),
       { wrapper: Wrapper }
@@ -148,7 +148,7 @@ describe('TdriveButton', () => {
     })
     render(
       React.createElement(TdriveButton, {
-        onFileSelected: mockOnFileSelected,
+        onFilesSelected: mockOnFilesSelected,
         showMore: false
       }),
       { wrapper: Wrapper }
@@ -159,7 +159,7 @@ describe('TdriveButton', () => {
   it('renders TdrivePickerDialog', () => {
     render(
       React.createElement(TdriveButton, {
-        onFileSelected: mockOnFileSelected,
+        onFilesSelected: mockOnFilesSelected,
         showMore: false
       }),
       { wrapper: Wrapper }

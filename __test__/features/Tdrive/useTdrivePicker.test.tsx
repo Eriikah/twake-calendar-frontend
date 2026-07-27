@@ -18,6 +18,12 @@ jest.mock('cozy-interapp', () => {
   }))
 })
 
+jest.mock('twake-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key
+  })
+}))
+
 jest.mock('@common/features/Tdrive/TdriveDao')
 jest.mock('@common/utils/tdriveUrlUtils')
 
@@ -77,7 +83,7 @@ describe('useTdrivePicker', () => {
     mockResolveTdriveUrl.mockReturnValue('https://drive.example.com')
 
     const { result } = renderHook(
-      () => useTdrivePicker({ onFileSelected: jest.fn() }),
+      () => useTdrivePicker({ onFilesSelected: jest.fn() }),
       { wrapper: createWrapper() }
     )
 
@@ -98,7 +104,7 @@ describe('useTdrivePicker', () => {
     })
 
     const { result } = renderHook(
-      () => useTdrivePicker({ onFileSelected: jest.fn() }),
+      () => useTdrivePicker({ onFilesSelected: jest.fn() }),
       { wrapper: createWrapper(defaultUserState) }
     )
 
@@ -118,7 +124,12 @@ describe('useTdrivePicker', () => {
     expect(mockCreate).toHaveBeenCalledWith(
       'PICK',
       'io.cozy.files',
-      { actions: [{ sharingLink: { label: 'Add as link' } }] },
+      {
+        theme: { type: 'light' },
+        multiple: true,
+        sharingLink: { label: 'tdrive.addAsAttachment' },
+        downloadLink: null
+      },
       ['GET']
     )
 
@@ -144,7 +155,7 @@ describe('useTdrivePicker', () => {
     mockResolveTdriveUrl.mockReturnValue(null)
 
     const { result } = renderHook(
-      () => useTdrivePicker({ onFileSelected: jest.fn() }),
+      () => useTdrivePicker({ onFilesSelected: jest.fn() }),
       { wrapper: createWrapper() }
     )
 
@@ -161,7 +172,7 @@ describe('useTdrivePicker', () => {
     mockResolveTdriveUrl.mockReturnValue('https://drive.example.com')
 
     const { result } = renderHook(
-      () => useTdrivePicker({ onFileSelected: jest.fn() }),
+      () => useTdrivePicker({ onFilesSelected: jest.fn() }),
       {
         wrapper: createWrapper({
           user: {
@@ -186,7 +197,7 @@ describe('useTdrivePicker', () => {
     mockExchangeToken.mockRejectedValue(new Error('API Error'))
 
     const { result } = renderHook(
-      () => useTdrivePicker({ onFileSelected: jest.fn() }),
+      () => useTdrivePicker({ onFilesSelected: jest.fn() }),
       {
         wrapper: createWrapper({
           user: {
@@ -207,11 +218,11 @@ describe('useTdrivePicker', () => {
     expect(result.current.openPickerError).toBe('tdrivePickerFailed')
   })
 
-  it('calls onFileSelected with file from intent result', async () => {
+  it('calls onFilesSelected with file from intent result', async () => {
     mockResolveTdriveUrl.mockReturnValue('https://drive.example.com')
     mockExchangeToken.mockResolvedValue(defaultTokenResponse)
 
-    const onFileSelected = jest.fn()
+    const onFilesSelected = jest.fn()
 
     mockStart.mockImplementation((_container, { onReadyToUse } = {}) => {
       onReadyToUse?.()
@@ -223,7 +234,7 @@ describe('useTdrivePicker', () => {
       })
     })
 
-    const { result } = renderHook(() => useTdrivePicker({ onFileSelected }), {
+    const { result } = renderHook(() => useTdrivePicker({ onFilesSelected }), {
       wrapper: createWrapper({
         user: {
           userData: { email: 'alice@example.com' },
@@ -238,12 +249,15 @@ describe('useTdrivePicker', () => {
       await result.current.openPicker()
     })
 
-    expect(onFileSelected).toHaveBeenCalledWith({
-      id: 'file-123',
-      name: 'test-document.pdf',
-      url: 'https://drive.example.com/file-123',
-      type: 'sharingLink'
-    })
+    expect(onFilesSelected).toHaveBeenCalledWith([
+      {
+        id: 'file-123',
+        name: 'test-document.pdf',
+        url: 'https://drive.example.com/file-123',
+        type: 'sharingLink',
+        mimeType: null
+      }
+    ])
 
     expect(result.current.isOpen).toBe(false)
   })
@@ -259,7 +273,7 @@ describe('useTdrivePicker', () => {
     })
 
     const { result } = renderHook(
-      () => useTdrivePicker({ onFileSelected: jest.fn() }),
+      () => useTdrivePicker({ onFilesSelected: jest.fn() }),
       { wrapper: createWrapper(defaultUserState) }
     )
 

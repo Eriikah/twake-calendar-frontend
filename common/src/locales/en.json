@@ -65,6 +65,9 @@
     "back": "Back",
     "show": "Show"
   },
+  "tdrive": {
+    "addAsAttachment": "Add as attachment"
+  },
   "search": {
     "searchIn": "Search in",
     "filter": {
@@ -190,6 +193,7 @@
       "tdriveFiles": "Files",
       "tdrivePickerTitle": "Select a file from drive",
       "tdriveLoadingError": "Failed to load drive. Please try again.",
+      "tdrivePickerError": "Failed to open file picker. Please try again.",
       "location": "Location",
       "locationPlaceholder": "Add location",
       "calendar": "Calendar",
