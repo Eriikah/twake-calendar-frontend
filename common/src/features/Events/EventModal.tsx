@@ -19,7 +19,7 @@ const EventPopover: React.FC<{
   onClose: (refresh?: boolean) => void
   selectedRange: DateSelectArg | null
   setSelectedRange: React.Dispatch<React.SetStateAction<DateSelectArg | null>>
-  setDraftCalendarId: (id: string) => void
+  setDraftCalendarId?: (id: string) => void
   calendarRef: React.RefObject<CalendarApi | null>
   event?: CalendarEvent
 }> = ({
