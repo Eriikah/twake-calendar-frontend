@@ -5,6 +5,7 @@ import { pluginStylus } from '@rsbuild/plugin-stylus'
 import { pluginSvgr } from '@rsbuild/plugin-svgr'
 
 import { getInjectedAliases } from '../../common/injectedAliases'
+import { setupSentryPlugin } from '../../common/sentryBuildUtils'
 import { injectedAliases } from './injectedAliases'
 
 export default defineConfig({
@@ -50,6 +51,11 @@ export default defineConfig({
       '@common': path.resolve(__dirname, '../../common/src'),
       react: require.resolve('react'),
       'react-dom': require.resolve('react-dom')
+    }
+  },
+  tools: {
+    rspack(_, { appendPlugins }) {
+      setupSentryPlugin(appendPlugins, 'dist')
     }
   }
 })

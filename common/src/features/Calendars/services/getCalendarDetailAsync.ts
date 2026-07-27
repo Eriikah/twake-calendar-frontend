@@ -92,7 +92,7 @@ export const getCalendarDetailThunk = (
       rejected: (state, action) => {
         state.pending = false
         if (
-          action.payload?.message.includes('aborted') ||
+          action.payload?.message?.toLowerCase().includes('aborted') ||
           action.error.name === 'AbortError'
         ) {
           return
