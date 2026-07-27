@@ -12,7 +12,7 @@ import {
 import { ClickAwayListener } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined'
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useI18n } from 'twake-i18n'
 import { Tooltip } from '../Tooltip'
 import { stringAvatar } from '../Event/utils/eventUtils'
@@ -80,14 +80,69 @@ export function AttendeePopover({
   const userEmail = useAppSelector(state => state.user.userData?.email)
 
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
+  const openTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const clearOpenTimeout = (): void => {
+    if (openTimeoutRef.current) {
+      clearTimeout(openTimeoutRef.current)
+      openTimeoutRef.current = null
+    }
+  }
+
+  const clearCloseTimeout = (): void => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
+  }
+
+  const handleTriggerMouseEnter = (
+    event: React.MouseEvent<HTMLElement>
+  ): void => {
+    clearCloseTimeout()
+    clearOpenTimeout()
+    const target = event.currentTarget
+    if (anchorEl) {
+      setAnchorEl(target)
+      return
+    }
+    openTimeoutRef.current = setTimeout(() => {
+      setAnchorEl(target)
+    }, 200)
+  }
+
+  const handlePopoverMouseEnter = (): void => {
+    clearCloseTimeout()
+    clearOpenTimeout()
+  }
+
+  const handleMouseLeave = (): void => {
+    clearOpenTimeout()
+    clearCloseTimeout()
+    closeTimeoutRef.current = setTimeout(() => {
+      setAnchorEl(null)
+    }, 200)
+  }
 
   const handleClick = (event: React.MouseEvent<HTMLElement>): void => {
+    clearOpenTimeout()
+    clearCloseTimeout()
     setAnchorEl(anchorEl ? null : event.currentTarget)
   }
 
   const handleClose = (): void => {
+    clearOpenTimeout()
+    clearCloseTimeout()
     setAnchorEl(null)
   }
+
+  useEffect(() => {
+    return (): void => {
+      clearOpenTimeout()
+      clearCloseTimeout()
+    }
+  }, [])
 
   const open = Boolean(anchorEl)
 
@@ -106,6 +161,8 @@ export function AttendeePopover({
       <div>
         <div
           onClick={handleClick}
+          onMouseEnter={handleTriggerMouseEnter}
+          onMouseLeave={handleMouseLeave}
           onKeyDown={event => {
             if (event.key === 'Enter' || event.key === ' ') {
               handleClick(event as unknown as React.MouseEvent<HTMLElement>)
@@ -137,6 +194,8 @@ export function AttendeePopover({
         >
           <Paper
             elevation={4}
+            onMouseEnter={handlePopoverMouseEnter}
+            onMouseLeave={handleMouseLeave}
             sx={{
               p: 3,
               display: 'flex',

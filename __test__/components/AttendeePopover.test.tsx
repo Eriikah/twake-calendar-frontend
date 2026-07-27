@@ -1,5 +1,5 @@
 import React from 'react'
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, act } from '@testing-library/react'
 import { renderWithProviders } from '../utils/Renderwithproviders'
 import { AttendeePopover } from '@common/components/Attendees/AttendeePopover'
 import { userAttendee } from '@common/features/User/models/attendee'
@@ -41,5 +41,54 @@ describe('AttendeePopover (Private)', () => {
         'tooltip.createEventWithAttendee(attendee=John Doe)'
       )
     ).toBeInTheDocument()
+  })
+
+  it('opens popover after pending hover delay on mouse enter and closes on mouse leave', () => {
+    jest.useFakeTimers()
+    const attendee = new userAttendee({
+      cal_address: 'john@example.com',
+      cn: 'John Doe'
+    })
+
+    renderWithProviders(
+      <AttendeePopover attendee={attendee}>
+        <span>Open Popover</span>
+      </AttendeePopover>,
+      {
+        user: {
+          userData: {
+            email: 'user@example.com',
+            workplaceFqdn: 'example.com'
+          }
+        }
+      }
+    )
+
+    const trigger = screen.getByText('Open Popover')
+    expect(screen.queryByText('attendees.sendMail')).not.toBeInTheDocument()
+
+    // Mouse enter on trigger
+    fireEvent.mouseEnter(trigger)
+    // Not open yet before pending time delay
+    expect(screen.queryByText('attendees.sendMail')).not.toBeInTheDocument()
+
+    // Fast-forward open timer
+    act(() => {
+      jest.advanceTimersByTime(200)
+    })
+    expect(screen.getByText('attendees.sendMail')).toBeInTheDocument()
+
+    // Mouse leave from trigger
+    fireEvent.mouseLeave(trigger)
+    // Still open before close timer runs
+    expect(screen.getByText('attendees.sendMail')).toBeInTheDocument()
+
+    // Fast-forward close timer
+    act(() => {
+      jest.advanceTimersByTime(200)
+    })
+    expect(screen.queryByText('attendees.sendMail')).not.toBeInTheDocument()
+
+    jest.useRealTimers()
   })
 })
