@@ -38,7 +38,8 @@ export function InfoRow({
         alignItems,
         gap: 1,
         marginBottom: 1,
-        flexWrap
+        flexWrap,
+        wordBreak: 'break-word'
       }}
     >
       {icon}

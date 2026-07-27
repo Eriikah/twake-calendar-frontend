@@ -130,6 +130,7 @@ const EventPreviewModal: React.FC<{
         actionsBorderTop={hasActionsBorderTop}
         actionsJustifyContent="center"
         style={{ overflow: 'auto' }}
+        contentSx={{ overflowX: 'hidden', overflowY: 'auto' }}
         titleSx={{ backgroundColor: '#FCFCFC' }}
         title={header}
         actions={actions}
