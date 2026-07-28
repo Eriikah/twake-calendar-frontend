@@ -44,5 +44,8 @@
     "redux-first-history": "^5.2.0",
     "twake-i18n": "^0.3.0",
     "web-vitals": "^2.1.4"
+  },
+  "devDependencies": {
+    "@sentry/webpack-plugin": "^5.4.0"
   }
 }

@@ -4,9 +4,10 @@
     "composite": true,
     "noEmit": false,
     "emitDeclarationOnly": true,
+    "types": ["node"],
     "paths": {
       "@common/*": ["./src/*"]
     }
   },
-  "include": ["src", "../*.d.ts"]
+  "include": ["src", "*.ts", "../*.d.ts"]
 }
