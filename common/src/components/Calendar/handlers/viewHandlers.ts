@@ -19,6 +19,27 @@ import { CALENDAR_VIEWS } from '@common/components/Calendar/utils/constants'
 import { createMouseHandlers } from './mouseHandlers'
 import { EventChipSchedule } from '@common/components/Event/EventChip/EventChipSchedule'
 
+const PARTSTAT_CLASS_MAP: Record<string, string> = {
+  DECLINED: 'declined-event',
+  TENTATIVE: 'tentative-event',
+  'NEEDS-ACTION': 'needs-action-event'
+}
+
+const getOwnerPartstat = (
+  calendar?: Calendar,
+  attendees: userAttendee[] = []
+): string | undefined => {
+  const ownerEmailsList = calendar?.owner?.emails
+  if (!ownerEmailsList || ownerEmailsList.length === 0) return undefined
+
+  const ownerEmails = new Set(ownerEmailsList.map(email => email.toLowerCase()))
+  const ownerAttendee = attendees.find((att: userAttendee) =>
+    ownerEmails.has(att.cal_address.toLowerCase())
+  )
+
+  return ownerAttendee?.partstat
+}
+
 export interface ViewHandlersProps {
   calendarRef: React.RefObject<CalendarApi | null>
   setSelectedDate: (date: Date) => void
@@ -226,42 +247,29 @@ export const createViewHandlers = (props: ViewHandlersProps): ViewHandlers => {
   }
 
   const handleEventDidMount = (arg: EventMountArg): void => {
+    if (arg.event.id) {
+      arg.el.setAttribute('data-event-id', arg.event.id)
+    }
+
     const extendedProps = arg.event._def.extendedProps as {
       attendee?: userAttendee[]
       calId: string
     }
-    const attendees = extendedProps.attendee ?? []
-    if (!calendars[extendedProps.calId]) return
 
-    const ownerEmails = new Set(
-      calendars[extendedProps.calId].owner?.emails?.map(email =>
-        email.toLowerCase()
+    const partstat = getOwnerPartstat(
+      calendars[extendedProps.calId],
+      extendedProps.attendee
+    )
+    if (!partstat) return
+
+    const statusClass = PARTSTAT_CLASS_MAP[partstat]
+    if (statusClass) {
+      arg.el.classList.remove(
+        'declined-event',
+        'tentative-event',
+        'needs-action-event'
       )
-    )
-    const showSpecialDisplay = attendees.filter((att: userAttendee) =>
-      ownerEmails.has(att.cal_address.toLowerCase())
-    )
-
-    if (!showSpecialDisplay[0]) return
-
-    arg.el.classList.remove(
-      'declined-event',
-      'tentative-event',
-      'needs-action-event'
-    )
-
-    switch (showSpecialDisplay[0].partstat) {
-      case 'DECLINED':
-        arg.el.classList.add('declined-event')
-        break
-      case 'TENTATIVE':
-        arg.el.classList.add('tentative-event')
-        break
-      case 'NEEDS-ACTION':
-        arg.el.classList.add('needs-action-event')
-        break
-      default:
-        break
+      arg.el.classList.add(statusClass)
     }
   }
 

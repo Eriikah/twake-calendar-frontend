@@ -13,6 +13,7 @@ import { DateSelectArg } from '@fullcalendar/core'
 import { useEffect } from 'react'
 import { useI18n } from 'twake-i18n'
 import { EventPreviewTitleRow } from './EventPreviewTitleRow'
+import { CALENDAR_VIEWS } from '../Calendar/utils/constants'
 
 const EventPreviewModal: React.FC<{
   eventId: string
@@ -20,7 +21,9 @@ const EventPreviewModal: React.FC<{
   tempEvent?: boolean
   open: boolean
   onClose: (event: unknown, reason: 'backdropClick' | 'escapeKeyDown') => void
-}> = ({ eventId, calId, tempEvent, open, onClose }) => {
+  anchorEl?: HTMLElement | null
+  currentView?: string
+}> = ({ eventId, calId, tempEvent, open, onClose, anchorEl, currentView }) => {
   const { t } = useI18n()
 
   const {
@@ -127,6 +130,8 @@ const EventPreviewModal: React.FC<{
         onClose={() => onClose({}, 'backdropClick')}
         showHeaderActions={false}
         draggable
+        dynamicPositioning={currentView !== CALENDAR_VIEWS.listWeek}
+        anchorEl={anchorEl}
         actionsBorderTop={hasActionsBorderTop}
         actionsJustifyContent="center"
         style={{ overflow: 'auto' }}
@@ -204,6 +209,7 @@ const EventPreviewModal: React.FC<{
         eventId={eventId}
         calId={updateModalCalId}
         typeOfAction={resolvedTypeOfAction}
+        anchorEl={anchorEl}
       />
 
       {/* Edit modal */}
@@ -220,6 +226,8 @@ const EventPreviewModal: React.FC<{
         eventId={eventId}
         calId={updateModalCalId}
         typeOfAction={resolvedTypeOfAction}
+        anchorEl={anchorEl}
+        currentView={currentView}
       />
 
       {/* Duplicate modal */}
@@ -241,6 +249,8 @@ const EventPreviewModal: React.FC<{
           onClose({}, 'backdropClick')
         }}
         event={event}
+        anchorEl={anchorEl}
+        currentView={currentView}
       />
     </>
   )

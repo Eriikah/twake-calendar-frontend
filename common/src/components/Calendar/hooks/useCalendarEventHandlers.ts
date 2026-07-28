@@ -95,9 +95,10 @@ export const useCalendarEventHandlers = (
     ]),
     handleCloseEventDisplay: useCallback(
       eventHandlers.handleCloseEventDisplay,
-      [props.setOpenEventDisplay]
+      [props.setOpenEventDisplay, props.setAnchorEl]
     ),
     handleEventClick: useCallback(eventHandlers.handleEventClick, [
+      props.setAnchorEl,
       props.setOpenEventDisplay,
       props.setEventDisplayedId,
       props.setEventDisplayedCalId,

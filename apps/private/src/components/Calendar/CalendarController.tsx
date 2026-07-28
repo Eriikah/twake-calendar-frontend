@@ -350,13 +350,15 @@ const CalendarController: React.FC<CalendarControllerProps> = ({
       )}
       {view === 'search' && <SearchResultsPage />}
       <EventPopover
-        open={Boolean(anchorEl)}
+        open={Boolean(anchorEl) && !openEventDisplay}
         onClose={eventHandlers.handleClosePopover}
         selectedRange={selectedRange}
         setSelectedRange={setSelectedRange}
         setDraftCalendarId={setDraftCalendarId}
         calendarRef={calendarRef}
         event={tempEvent}
+        anchorEl={anchorEl}
+        currentView={currentView}
       />
       <EditModeDialog
         type={openEditModePopup}
@@ -375,6 +377,8 @@ const CalendarController: React.FC<CalendarControllerProps> = ({
           tempEvent={eventDisplayedTemp}
           open={openEventDisplay}
           onClose={eventHandlers.handleCloseEventDisplay}
+          anchorEl={anchorEl}
+          currentView={currentView}
         />
       )}
       <EventErrorSnackbar messages={eventErrors} onClose={handleErrorClose} />

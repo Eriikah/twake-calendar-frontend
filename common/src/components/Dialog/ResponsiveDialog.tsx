@@ -22,6 +22,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import OpenInFullIcon from '@mui/icons-material/OpenInFull'
 import CozyBridge from 'cozy-external-bridge'
 import React, { ReactNode, useContext, useId, useMemo } from 'react'
+import useDynamicPosition from './useDynamicPosition'
 
 /**
  * ResponsiveDialog - A reusable dialog component that can switch between normal and expanded modes
@@ -92,6 +93,10 @@ interface ResponsiveDialogProps extends Omit<
   actionsJustifyContent?: 'flex-start' | 'center' | 'flex-end' | 'space-between'
   expandText?: string
   draggable?: boolean
+  /** Element to align the dialog next to (e.g. event chip) */
+  anchorEl?: HTMLElement | null
+  /** Enable dynamic positioning relative to anchor element (default: false) */
+  dynamicPositioning?: boolean
 }
 
 // Context is the only channel that works here: @linagora/twake-mui's Dialog
@@ -101,17 +106,19 @@ interface ResponsiveDialogProps extends Omit<
 interface DragContextValue {
   isDraggable: boolean
   isExpanded: boolean
+  open: boolean
 }
 
 const DragContext = React.createContext<DragContextValue>({
   isDraggable: false,
-  isExpanded: false
+  isExpanded: false,
+  open: false
 })
 
 // Stable module-level component — never recreated, so MUI never unmounts the Paper.
 const DraggablePaper = React.forwardRef<HTMLDivElement, PaperProps>(
   function DraggablePaper(props, forwardedRef) {
-    const { isDraggable, isExpanded } = useContext(DragContext)
+    const { isDraggable, isExpanded, open } = useContext(DragContext)
     const pos = React.useRef({ x: 0, y: 0 })
     const origin = React.useRef<{ mx: number; my: number } | null>(null)
     const el = React.useRef<HTMLDivElement>(null)
@@ -119,14 +126,14 @@ const DraggablePaper = React.forwardRef<HTMLDivElement, PaperProps>(
     // Merge MUI's forwarded ref (needed for Dialog transitions) with local ref.
     React.useImperativeHandle(forwardedRef, () => el.current as HTMLDivElement)
 
-    // Reset transform when entering expanded mode so the dialog re-centres.
+    // Reset transform when entering expanded mode or closing so the dialog re-centres.
     React.useEffect(() => {
-      if (isExpanded) {
+      if (isExpanded || !open) {
         pos.current = { x: 0, y: 0 }
         origin.current = null
         if (el.current) el.current.style.transform = ''
       }
-    }, [isExpanded])
+    }, [isExpanded, open])
 
     const onPointerDown = (e: React.PointerEvent<HTMLDivElement>): void => {
       if (!isDraggable) return
@@ -189,6 +196,8 @@ function ResponsiveDialog({
   sx,
   expandText,
   draggable = false,
+  anchorEl,
+  dynamicPositioning = false,
   ...otherDialogProps
 }: ResponsiveDialogProps): JSX.Element {
   const theme = useTheme()
@@ -201,18 +210,41 @@ function ResponsiveDialog({
   const isDraggable = draggable && !isMobile && !isExpanded
 
   const dragContextValue = useMemo<DragContextValue>(
-    () => ({ isDraggable, isExpanded }),
-    [isDraggable, isExpanded]
+    () => ({ isDraggable, isExpanded, open }),
+    [isDraggable, isExpanded, open]
   )
+
+  const position = useDynamicPosition({
+    open,
+    isExpanded,
+    isMobile,
+    dynamicPositioning,
+    anchorEl,
+    headerHeight,
+    dialogId: titleId
+  })
+
+  const isDynamic = !isExpanded && !isMobile && Boolean(dynamicPositioning)
+  const isPendingPosition = isDynamic && !position
+  const hideBackdrop = isExpanded || isPendingPosition
 
   const baseSx: SxProps<Theme> | undefined = isMobile
     ? undefined
     : {
         '& .MuiBackdrop-root': {
-          opacity: isExpanded ? '0 !important' : undefined,
-          transition: isExpanded ? 'none !important' : undefined,
-          pointerEvents: isExpanded ? 'none' : undefined
+          opacity: hideBackdrop ? '0 !important' : undefined,
+          transition: hideBackdrop ? 'none !important' : undefined,
+          pointerEvents: hideBackdrop ? 'none' : undefined
         },
+        ...(position && !isExpanded
+          ? {
+              '& .MuiDialog-container': {
+                display: 'flex',
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start'
+              }
+            }
+          : {}),
         '& .MuiDialog-paper': {
           overflowY: 'hidden',
           maxWidth: isExpanded ? '100%' : normalMaxWidth,
@@ -223,9 +255,17 @@ function ResponsiveDialog({
           maxHeight: isExpanded && isInIframe ? '100%' : undefined,
           margin: isExpanded
             ? `${isInIframe ? 0 : headerHeight} 0 0 0`
-            : '32px',
+            : position
+              ? '0 !important'
+              : '32px',
+          position: position && !isExpanded ? 'fixed' : undefined,
+          left: position && !isExpanded ? `${position.left}px` : undefined,
+          top: position && !isExpanded ? `${position.top}px` : undefined,
+          visibility: isPendingPosition ? 'hidden' : undefined,
+          opacity: isPendingPosition ? 0 : undefined,
           boxShadow: isExpanded ? 'none !important' : undefined,
-          transition: isExpanded ? 'none !important' : undefined,
+          transition:
+            isPendingPosition || isExpanded ? 'none !important' : undefined,
           zIndex: isExpanded ? 1200 : 1300
         },
         '& .MuiDialogActions-root .MuiBox-root': {
@@ -275,8 +315,19 @@ function ResponsiveDialog({
         maxWidth={false}
         fullScreen={isMobile}
         fullWidth
-        transitionDuration={isExpanded ? 0 : 300}
+        transitionDuration={isPendingPosition || isExpanded ? 0 : 300}
         {...otherDialogProps}
+        slotProps={{
+          ...otherDialogProps.slotProps,
+          ...(isDynamic || isExpanded
+            ? {
+                transition: {
+                  ...otherDialogProps.slotProps?.transition,
+                  timeout: 0
+                }
+              }
+            : {})
+        }}
         sx={
           [
             ...(baseSx ? [baseSx] : []),
