@@ -21,6 +21,7 @@ export interface EventSettingsUpdateModalProps {
   onCloseAll?: () => void
   eventData?: CalendarEvent | null
   typeOfAction?: 'solo' | 'all'
+  anchorEl?: HTMLElement | null
 }
 
 const EventSettingsUpdateModalInternal: React.FC<
@@ -117,6 +118,7 @@ const EventSettingsUpdateModalInternal: React.FC<
       onClose={handleClose}
       title={t('eventPreview.editEventSpecificSettings')}
       draggable
+      anchorEl={props.anchorEl}
       actions={actions}
       sx={dialogPaddingStyles(isMobile)}
     >
@@ -135,7 +137,7 @@ const EventSettingsUpdateModalInternal: React.FC<
         setBusy={setBusy}
         setEventClass={setEventClass}
         isOrganizer={isOrganizer}
-        user={currentUser}
+        user={currentUser as userAttendee}
       />
     </ResponsiveDialog>
   )

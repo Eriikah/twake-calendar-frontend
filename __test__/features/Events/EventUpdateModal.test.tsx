@@ -753,4 +753,39 @@ describe('EventUpdateModal Recurring to Non-Recurring Conversion', () => {
     // Verify onClose was NOT called (onCloseAll is used instead)
     expect(mockOnClose).not.toHaveBeenCalled()
   })
+
+  it('accepts anchorEl prop and passes it to ResponsiveDialog', async () => {
+    const anchorEl = document.createElement('div')
+    document.body.appendChild(anchorEl)
+
+    const eventData = {
+      uid: 'test-event-1',
+      title: 'Anchor Event',
+      calId: '667037022b752d0026472254/cal1',
+      start: new Date().toISOString(),
+      organizer: new userOrganiser({
+        cn: 'test',
+        cal_address: 'test@test.com'
+      }),
+      attendee: [new userAttendee({ cn: 'test', cal_address: 'test@test.com' })]
+    } as CalendarEvent
+
+    renderWithProviders(
+      <EventUpdateModal
+        open={true}
+        onClose={mockOnClose}
+        calId="667037022b752d0026472254/cal1"
+        eventId="test-event-1"
+        eventData={eventData}
+        anchorEl={anchorEl}
+      />,
+      preloadedState
+    )
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Anchor Event')).toBeInTheDocument()
+    })
+
+    document.body.removeChild(anchorEl)
+  })
 })

@@ -86,7 +86,9 @@ export const createEventHandlers = (
     if (tempUsers) {
       setTempEvent(buildInitialTempEvent(selectInfo, timezone, tempUsers))
     }
-    setAnchorEl(document.body)
+    const targetEl =
+      (selectInfo?.jsEvent?.target as HTMLElement) || document.body
+    setAnchorEl(targetEl)
   }
 
   const handleClosePopover = (): void => {
@@ -97,6 +99,7 @@ export const createEventHandlers = (
 
   const handleCloseEventDisplay = (): void => {
     setOpenEventDisplay(false)
+    setAnchorEl(null)
   }
 
   const openEventViaUrl = (urlStr: string): void => {
@@ -110,32 +113,56 @@ export const createEventHandlers = (
     }
   }
 
+  const getEventClickTarget = (
+    jsEvent?: EventClickArg['jsEvent'],
+    fallbackEl?: HTMLElement
+  ): HTMLElement => {
+    const target = jsEvent?.target as HTMLElement | undefined
+    const currentTarget = jsEvent?.currentTarget as HTMLElement | undefined
+
+    return (
+      (target?.closest(
+        '.fc-event, .fc-daygrid-event, .fc-timegrid-event'
+      ) as HTMLElement) ||
+      currentTarget ||
+      fallbackEl ||
+      target ||
+      document.body
+    )
+  }
+
+  const dispatchGetEventIfPresent = (
+    dispatch: AppDispatch,
+    calendars: Record<string, Calendar>,
+    calId?: string,
+    uid?: string
+  ): void => {
+    if (!calId || !uid) return
+    const event = calendars[calId]?.events?.[uid]
+    if (event) {
+      void dispatch(getEvent(event))
+    }
+  }
+
   const handleEventClick = (info: EventClickArg): void => {
     info.jsEvent.preventDefault()
 
+    setAnchorEl(getEventClickTarget(info.jsEvent, info.el))
+
     if (info.event.url) {
       openEventViaUrl(info.event.url)
-    } else {
-      setOpenEventDisplay(true)
-      if (
-        calendars[info.event.extendedProps.calId as string] &&
-        calendars[info.event.extendedProps.calId as string].events[
-          info.event.extendedProps.uid as string
-        ]
-      ) {
-        void dispatch(
-          getEvent(
-            calendars[info.event.extendedProps.calId as string].events[
-              info.event.extendedProps.uid as string
-            ]
-          )
-        )
-      }
-
-      setEventDisplayedId(info.event.extendedProps.uid as string)
-      setEventDisplayedCalId(info.event.extendedProps.calId as string)
-      setEventDisplayedTemp(info.event._def.extendedProps.temp as boolean)
+      return
     }
+
+    const calId = info.event.extendedProps.calId as string
+    const uid = info.event.extendedProps.uid as string
+
+    setOpenEventDisplay(true)
+    dispatchGetEventIfPresent(dispatch, calendars, calId, uid)
+
+    setEventDisplayedId(uid)
+    setEventDisplayedCalId(calId)
+    setEventDisplayedTemp(info.event._def.extendedProps.temp as boolean)
   }
 
   const handleEventAllow = (): boolean => {

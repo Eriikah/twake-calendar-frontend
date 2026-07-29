@@ -13,6 +13,7 @@ import { useCalendarPreviewSync } from '@common/components/Event/hooks/useCalend
 import { EventActions } from './EventActions'
 import { useBuildInitialValues } from '@common/components/Event/hooks/useBuildInitialValues'
 import { useSubmitCreateEvent } from '@common/features/Events/hooks/useSubmitCreateEvent'
+import { CALENDAR_VIEWS } from '@common/components/Calendar/utils/constants'
 
 const EventPopover: React.FC<{
   open: boolean
@@ -22,6 +23,8 @@ const EventPopover: React.FC<{
   setDraftCalendarId?: (id: string) => void
   calendarRef: React.RefObject<CalendarApi | null>
   event?: CalendarEvent
+  anchorEl?: HTMLElement | null
+  currentView?: string
 }> = ({
   open,
   onClose,
@@ -29,7 +32,9 @@ const EventPopover: React.FC<{
   setSelectedRange,
   setDraftCalendarId,
   calendarRef,
-  event
+  event,
+  anchorEl,
+  currentView
 }) => {
   const { t } = useI18n()
 
@@ -113,6 +118,10 @@ const EventPopover: React.FC<{
   return (
     <ResponsiveDialog
       open={open}
+      anchorEl={anchorEl}
+      dynamicPositioning={
+        currentView !== CALENDAR_VIEWS.listWeek && anchorEl !== document.body
+      }
       onClose={handleClose}
       title={modalTitle}
       isExpanded={showMore}

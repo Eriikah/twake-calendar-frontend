@@ -9,6 +9,7 @@ import { useI18n } from 'twake-i18n'
 import { EventActions } from './EventActions'
 import { useEventUpdateModal } from './useEventUpdateModal'
 import { useEditableInitialValues } from './hooks/useEditableInitialValues'
+import { CALENDAR_VIEWS } from '@common/components/Calendar/utils/constants'
 
 export interface EventUpdateModalProps {
   eventId: string
@@ -18,12 +19,14 @@ export interface EventUpdateModalProps {
   onCloseAll?: () => void
   eventData?: CalendarEvent | null
   typeOfAction?: 'solo' | 'all'
+  anchorEl?: HTMLElement | null
+  currentView?: string
 }
 
 const EventUpdateModalInternal: React.FC<
   EventUpdateModalProps & { event: CalendarEvent }
 > = props => {
-  const { open, event, typeOfAction } = props
+  const { open, event, typeOfAction, currentView } = props
   const { t } = useI18n()
   const { isTooSmall: isMobile } = useScreenSizeDetection()
 
@@ -60,6 +63,8 @@ const EventUpdateModalInternal: React.FC<
       isExpanded={showMore}
       onExpandToggle={handleExpandToggle}
       draggable={!showMore}
+      anchorEl={props.anchorEl}
+      dynamicPositioning={currentView !== CALENDAR_VIEWS.listWeek}
       actions={actions}
       sx={dialogPaddingStyles(isMobile)}
       expandText={t('tooltip.moreEventOptions')}
