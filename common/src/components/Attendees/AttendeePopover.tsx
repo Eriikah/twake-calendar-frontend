@@ -109,7 +109,7 @@ export function AttendeePopover({
     }
     openTimeoutRef.current = setTimeout(() => {
       setAnchorEl(target)
-    }, 200)
+    }, 500)
   }
 
   const handlePopoverMouseEnter = (): void => {

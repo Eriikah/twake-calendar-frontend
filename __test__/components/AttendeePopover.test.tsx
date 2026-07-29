@@ -74,7 +74,7 @@ describe('AttendeePopover (Private)', () => {
 
     // Fast-forward open timer
     act(() => {
-      jest.advanceTimersByTime(200)
+      jest.advanceTimersByTime(500)
     })
     expect(screen.getByText('attendees.sendMail')).toBeInTheDocument()
 

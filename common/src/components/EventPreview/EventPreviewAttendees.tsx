@@ -135,7 +135,16 @@ export function EventPreviewAttendees({
                 ml: isMobile ? mobileAvatarOffset : undefined
               }}
             >
-              <AvatarGroup max={ATTENDEE_DISPLAY_LIMIT}>
+              <AvatarGroup
+                max={ATTENDEE_DISPLAY_LIMIT}
+                sx={{
+                  '& .MuiAvatar-root': {
+                    '&:last-child': {
+                      marginLeft: 'var(--AvatarGroup-spacing, -8px)'
+                    }
+                  }
+                }}
+              >
                 {organizer &&
                   renderAttendeeBadge({
                     a: organizer,
