@@ -97,6 +97,8 @@ interface ResponsiveDialogProps extends Omit<
   anchorEl?: HTMLElement | null
   /** Enable dynamic positioning relative to anchor element (default: false) */
   dynamicPositioning?: boolean
+  /** Optional action element rendered on the right side of header title bar next to header action icons */
+  headerRightAction?: ReactNode
 }
 
 // Context is the only channel that works here: @linagora/twake-mui's Dialog
@@ -198,6 +200,7 @@ function ResponsiveDialog({
   draggable = false,
   anchorEl,
   dynamicPositioning = false,
+  headerRightAction,
   ...otherDialogProps
 }: ResponsiveDialogProps): JSX.Element {
   const theme = useTheme()
@@ -346,45 +349,55 @@ function ResponsiveDialog({
             [titleSx, isDraggable ? { cursor: 'move' } : {}] as SxProps<Theme>
           }
         >
-          {isExpanded && onExpandToggle && !isMobile ? (
-            <IconButton
-              onClick={onExpandToggle}
-              aria-label="show less"
-              sx={{ marginLeft: '-8px' }}
-            >
-              <ArrowBackIcon sx={{ fontSize: 30 }} />
-            </IconButton>
-          ) : showHeaderActions ? (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                width: '100%'
-              }}
-            >
-              <Box>{title}</Box>
-              <Box>
-                {onExpandToggle && !isMobile && (
-                  <Tooltip title={expandText}>
-                    <IconButton
-                      onClick={onExpandToggle}
-                      aria-label="expand"
-                      size="small"
-                      sx={{ marginRight: 1 }}
-                    >
-                      <OpenInFullIcon sx={{ padding: '2px' }} />
-                    </IconButton>
-                  </Tooltip>
-                )}
-                <IconButton onClick={onClose} aria-label="close" size="small">
-                  <CloseIcon />
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              width: '100%'
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              {isExpanded && onExpandToggle && !isMobile ? (
+                <IconButton
+                  onClick={onExpandToggle}
+                  aria-label="show less"
+                  sx={{ marginLeft: '-8px' }}
+                >
+                  <ArrowBackIcon sx={{ fontSize: 30 }} />
                 </IconButton>
-              </Box>
+              ) : (
+                title
+              )}
             </Box>
-          ) : (
-            title
-          )}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              {headerRightAction}
+              {showHeaderActions &&
+                !(isExpanded && onExpandToggle && !isMobile) && (
+                  <>
+                    {onExpandToggle && !isMobile && (
+                      <Tooltip title={expandText}>
+                        <IconButton
+                          onClick={onExpandToggle}
+                          aria-label="expand"
+                          size="small"
+                          sx={{ marginRight: 1 }}
+                        >
+                          <OpenInFullIcon sx={{ padding: '2px' }} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    <IconButton
+                      onClick={onClose}
+                      aria-label="close"
+                      size="small"
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  </>
+                )}
+            </Box>
+          </Box>
         </DialogTitle>
         <DialogContent
           dividers={dividers}

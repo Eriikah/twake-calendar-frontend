@@ -570,6 +570,8 @@
     "cancelSuccess": "Réservation annulée. Vous pouvez réserver un nouveau créneau si vous le souhaitez.",
     "createAppointmentTitle": "Créer un lien de prise de rendez-vous",
     "editAppointmentTitle": "Modifier le lien de prise de rendez-vous",
+    "activeSchedule": "Lien de rendez-vous actif",
+    "inactiveSchedule": "Lien de rendez-vous inactif",
     "scheduleName": "Nom du planning",
     "color": "Couleur",
     "chooseTimeSlot": "Choisir un créneau",

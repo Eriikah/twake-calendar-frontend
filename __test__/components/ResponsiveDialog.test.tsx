@@ -375,4 +375,39 @@ describe('ResponsiveDialog', () => {
 
     expect(mockOnExpandToggle).toHaveBeenCalledTimes(1)
   })
+
+  it('renders headerRightAction when showHeaderActions is false', () => {
+    renderWithTheme(
+      <ResponsiveDialog
+        open={true}
+        onClose={mockOnClose}
+        title="Test"
+        showHeaderActions={false}
+        headerRightAction={<button>Custom Right Action</button>}
+      >
+        <div>Content</div>
+      </ResponsiveDialog>
+    )
+
+    expect(screen.getByText('Custom Right Action')).toBeInTheDocument()
+    expect(screen.queryByLabelText('close')).not.toBeInTheDocument()
+  })
+
+  it('renders headerRightAction in desktop expanded mode', () => {
+    renderWithTheme(
+      <ResponsiveDialog
+        open={true}
+        onClose={mockOnClose}
+        title="Test"
+        isExpanded={true}
+        onExpandToggle={mockOnExpandToggle}
+        headerRightAction={<button>Custom Right Action</button>}
+      >
+        <div>Content</div>
+      </ResponsiveDialog>
+    )
+
+    expect(screen.getByText('Custom Right Action')).toBeInTheDocument()
+    expect(screen.getByLabelText('show less')).toBeInTheDocument()
+  })
 })

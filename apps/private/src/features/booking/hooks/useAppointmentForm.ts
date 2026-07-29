@@ -30,6 +30,7 @@ interface FormState {
   calendarid: string
   availabilityRules: DayAvailability[]
   color: string
+  active: boolean
 }
 
 interface UseAppointmentFormReturn extends FormState {
@@ -41,6 +42,7 @@ interface UseAppointmentFormReturn extends FormState {
   setCalendarid: (value: string) => void
   setAvailabilityRules: React.Dispatch<React.SetStateAction<DayAvailability[]>>
   setColor: (value: string) => void
+  setActive: (value: boolean) => void
   error: string | null
   setError: (value: string | null) => void
   loading: boolean
@@ -81,7 +83,8 @@ const formStateFromBookingLink = (
       })) || [DEFAULT_SLOT]
     }
   }),
-  color: bookingLink.color ?? calendarColor ?? defaultColors[4].dark
+  color: bookingLink.color ?? calendarColor ?? defaultColors[4].dark,
+  active: bookingLink.active ?? true
 })
 
 const defaultFormState = (
@@ -105,7 +108,8 @@ const defaultFormState = (
       slots: [DEFAULT_SLOT]
     }
   }),
-  color: defaultCalendarColor ?? defaultColors[4].dark
+  color: defaultCalendarColor ?? defaultColors[4].dark,
+  active: true
 })
 
 interface FormSetters {
@@ -117,6 +121,7 @@ interface FormSetters {
   setCalendarid: (value: string) => void
   setAvailabilityRules: React.Dispatch<React.SetStateAction<DayAvailability[]>>
   setColor: (value: string) => void
+  setActive: (value: boolean) => void
 }
 
 const makeSetters = (
@@ -150,7 +155,9 @@ const makeSetters = (
         typeof value === 'function' ? value(prev.availabilityRules) : value
     })),
   setColor: (value: string): void =>
-    setForm(prev => ({ ...prev, color: value }))
+    setForm(prev => ({ ...prev, color: value })),
+  setActive: (value: boolean): void =>
+    setForm(prev => ({ ...prev, active: value }))
 })
 
 const computeInitialFormState = (

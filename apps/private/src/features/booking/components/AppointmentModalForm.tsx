@@ -20,6 +20,7 @@ import { DayAvailability } from './RegularHoursField/RegularHoursTypes'
 import { useAppSelector } from '@common/app/hooks'
 import { getAccessiblePair } from '@common/utils/getAccessiblePair'
 import { useFocusTitleOnOpen } from '@common/components/Event/hooks/useAutoFocusTitle'
+import { BookingStatusSwitch } from './BookingStatusSwitch'
 
 interface AppointmentModalFormProps {
   open: boolean
@@ -42,6 +43,8 @@ interface AppointmentModalFormProps {
   userPersonalCalendars: Calendar[]
   availabilityRules?: DayAvailability[]
   setAvailabilityRules?: React.Dispatch<React.SetStateAction<DayAvailability[]>>
+  active?: boolean
+  onActiveChange?: (active: boolean) => void
   error: string | null
   loading: boolean
   isFormValid: boolean
@@ -70,6 +73,8 @@ export const AppointmentModalForm: React.FC<AppointmentModalFormProps> = ({
   userPersonalCalendars,
   availabilityRules,
   setAvailabilityRules,
+  active,
+  onActiveChange,
   error,
   loading,
   isFormValid,
@@ -92,6 +97,15 @@ export const AppointmentModalForm: React.FC<AppointmentModalFormProps> = ({
       open={open}
       onClose={onClose}
       title={title}
+      headerRightAction={
+        onActiveChange && active !== undefined ? (
+          <BookingStatusSwitch
+            active={active}
+            onChange={onActiveChange}
+            disabled={loading}
+          />
+        ) : undefined
+      }
       actions={
         <Button
           onClick={() => void onSave()}
