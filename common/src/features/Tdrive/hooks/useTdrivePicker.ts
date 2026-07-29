@@ -30,13 +30,12 @@ function convertIntentResultToFile(result: unknown): TdriveFile | null {
 
   const doc = result as Record<string, unknown>
 
-  const id =
-    (doc.id as string) || (doc._id as string) || (doc.file_id as string)
-  const name = (doc.name as string) || (doc.filename as string) || 'Unnamed'
-  const url =
-    (doc.url as string) ||
-    (doc.sharingLink as string) ||
-    (doc.downloadLink as string)
+  const str = (v: unknown): string | undefined =>
+    typeof v === 'string' && v.length > 0 ? v : undefined
+
+  const id = str(doc.id) ?? str(doc._id) ?? str(doc.file_id)
+  const name = str(doc.name) ?? str(doc.filename) ?? 'Unnamed'
+  const url = str(doc.url) ?? str(doc.sharingLink) ?? str(doc.downloadLink)
 
   if (!id || !url) return null
 
@@ -45,7 +44,7 @@ function convertIntentResultToFile(result: unknown): TdriveFile | null {
     name,
     url,
     type:
-      doc.sharingLink || doc.type === 'sharingLink'
+      str(doc.sharingLink) !== undefined || doc.type === 'sharingLink'
         ? 'sharingLink'
         : 'downloadLink'
   }
@@ -62,8 +61,8 @@ export function useTdrivePicker({
 
   const containerRef = useRef<HTMLDivElement>(null)
   const intentRef = useRef<{ stop?: () => void } | null>(null)
-  // Callback registered by the dialog to be called when the iframe is ready
   const readyCallbackRef = useRef<(() => void) | null>(null)
+  const activeCancellationRef = useRef<{ cancelled: boolean } | null>(null)
 
   const onReadyToUse = useCallback((callback: () => void) => {
     readyCallbackRef.current = callback
@@ -82,10 +81,15 @@ export function useTdrivePicker({
       return
     }
 
+    const cancellationRef = { cancelled: false }
+    activeCancellationRef.current = cancellationRef
+
     setIsOpen(true)
 
     try {
       const tokenResponse = await exchangeToken(tdriveBaseUrl, idToken)
+
+      if (cancellationRef.cancelled) return
 
       const mockClient = createMockCozyClient({
         uri: tdriveBaseUrl,
@@ -103,7 +107,11 @@ export function useTdrivePicker({
 
       intentRef.current = intent
 
-      const result = await intent.start(containerRef.current ?? document.body, {
+      if (!containerRef.current) {
+        throw new Error('Picker container is not mounted')
+      }
+
+      const result = await intent.start(containerRef.current, {
         onReady: () => {
           console.debug('Tdrive picker iframe loaded')
         },
@@ -112,21 +120,30 @@ export function useTdrivePicker({
         }
       })
 
+      if (cancellationRef.cancelled) return
+
       const file = convertIntentResultToFile(result)
       if (file) {
         onFileSelected(file)
       }
     } catch (error) {
+      if (cancellationRef.cancelled) return
       console.error('Failed to open Tdrive picker:', error)
       setOpenPickerError('tdrivePickerFailed')
     } finally {
-      intentRef.current = null
-      readyCallbackRef.current = null
-      setIsOpen(false)
+      if (!cancellationRef.cancelled) {
+        intentRef.current = null
+        readyCallbackRef.current = null
+        setIsOpen(false)
+      }
     }
   }, [tdriveBaseUrl, idToken, onFileSelected])
 
   const closePicker = useCallback(() => {
+    if (activeCancellationRef.current) {
+      activeCancellationRef.current.cancelled = true
+      activeCancellationRef.current = null
+    }
     if (typeof intentRef.current?.stop === 'function') {
       intentRef.current.stop()
     }

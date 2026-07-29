@@ -12,35 +12,25 @@ jest.mock('twake-i18n', () => ({
 }))
 
 jest.mock('@common/features/Tdrive/components/TdrivePickerDialog', () => ({
-  TdrivePickerDialog: ({
-    open,
-    iframeUrl
-  }: {
-    open: boolean
-    iframeUrl: string | null
-  }) =>
+  TdrivePickerDialog: ({ open }: { open: boolean }) =>
     React.createElement(
       'div',
-      {
-        'data-testid': 'tdrive-dialog',
-        'data-open': open,
-        'data-url': iframeUrl
-      },
+      { 'data-testid': 'tdrive-dialog', 'data-open': open },
       'Dialog'
     )
 }))
 
 const mockOpenPicker = jest.fn()
 const mockClosePicker = jest.fn()
-const mockHandleFileSelected = jest.fn()
+const mockOnReadyToUse = jest.fn()
 
 const defaultHookReturn = {
   isOpen: false,
-  iframeUrl: null,
+  containerRef: { current: null },
   openPickerError: null,
   openPicker: mockOpenPicker,
   closePicker: mockClosePicker,
-  handleFileSelected: mockHandleFileSelected
+  onReadyToUse: mockOnReadyToUse
 }
 
 jest.mock('@common/features/Tdrive/hooks/useTdrivePicker', () => ({
@@ -133,11 +123,10 @@ describe('TdriveButton', () => {
     expect(mockOpenPicker).toHaveBeenCalledTimes(1)
   })
 
-  it('forwards isOpen and iframeUrl to TdrivePickerDialog', () => {
+  it('forwards isOpen to TdrivePickerDialog', () => {
     mockUseTdrivePicker.mockReturnValue({
       ...defaultHookReturn,
-      isOpen: true,
-      iframeUrl: 'https://drive.example.com/intent'
+      isOpen: true
     })
     render(
       React.createElement(TdriveButton, {
@@ -146,11 +135,9 @@ describe('TdriveButton', () => {
       }),
       { wrapper: Wrapper }
     )
-    const dialog = screen.getByTestId('tdrive-dialog')
-    expect(dialog).toHaveAttribute('data-open', 'true')
-    expect(dialog).toHaveAttribute(
-      'data-url',
-      'https://drive.example.com/intent'
+    expect(screen.getByTestId('tdrive-dialog')).toHaveAttribute(
+      'data-open',
+      'true'
     )
   })
 

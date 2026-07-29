@@ -50,6 +50,16 @@ describe('useTdrivePicker', () => {
     }
   }
 
+  const mountContainer = (result: {
+    current: ReturnType<typeof useTdrivePicker>
+  }): void => {
+    Object.defineProperty(result.current.containerRef, 'current', {
+      value: document.createElement('div'),
+      writable: true,
+      configurable: true
+    })
+  }
+
   beforeEach(() => {
     jest.clearAllMocks()
     // Default: start() calls onReadyToUse then resolves with a file
@@ -93,6 +103,7 @@ describe('useTdrivePicker', () => {
     )
 
     // Don't await — let it hang while the picker is open
+    mountContainer(result)
     act(() => {
       void result.current.openPicker()
     })
@@ -187,6 +198,7 @@ describe('useTdrivePicker', () => {
       }
     )
 
+    mountContainer(result)
     await act(async () => {
       await result.current.openPicker()
     })
@@ -221,6 +233,7 @@ describe('useTdrivePicker', () => {
       })
     })
 
+    mountContainer(result)
     await act(async () => {
       await result.current.openPicker()
     })
@@ -250,6 +263,7 @@ describe('useTdrivePicker', () => {
       { wrapper: createWrapper(defaultUserState) }
     )
 
+    mountContainer(result)
     act(() => {
       void result.current.openPicker()
     })
