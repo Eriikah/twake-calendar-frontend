@@ -1,104 +1,50 @@
-import React from 'react'
+import React, { useState, useCallback } from 'react'
 import {
   Dialog,
+  DialogTitle,
   Box,
   IconButton,
-  Typography,
   CircularProgress
 } from '@linagora/twake-mui'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { useI18n } from 'twake-i18n'
-import { TdriveFile } from '../hooks/useTdrivePicker'
-import { usePickerIframeState } from '../hooks/usePickerIframeState'
 
 interface TdrivePickerDialogProps {
   open: boolean
-  iframeUrl: string | null
   onClose: () => void
-  onFileSelected: (file: TdriveFile) => void
-}
-
-interface PickerContentProps {
-  iframeUrl: string
-  onFileSelected: (file: TdriveFile) => void
-}
-
-const PickerContent: React.FC<PickerContentProps> = ({
-  iframeUrl,
-  onFileSelected
-}) => {
-  const { t } = useI18n()
-  const { iframeRef, iframeState } = usePickerIframeState(
-    iframeUrl,
-    onFileSelected
-  )
-
-  const showLoader = iframeState !== 'ready'
-  const showError = iframeState === 'error'
-
-  return (
-    <>
-      {showLoader && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'background.paper',
-            gap: 2,
-            zIndex: 1
-          }}
-        >
-          {showError ? (
-            <Typography color="error">
-              {t('event.form.tdriveLoadingError')}
-            </Typography>
-          ) : (
-            <CircularProgress />
-          )}
-        </Box>
-      )}
-      <iframe
-        ref={iframeRef}
-        src={iframeUrl}
-        style={{
-          width: '100%',
-          height: '100%',
-          border: 'none',
-          visibility: iframeState === 'ready' ? 'visible' : 'hidden'
-        }}
-        title="Tdrive file picker"
-      />
-    </>
-  )
+  containerRef: React.RefObject<HTMLDivElement>
+  onReadyToUse: (callback: () => void) => void
 }
 
 export const TdrivePickerDialog: React.FC<TdrivePickerDialogProps> = ({
   open,
-  iframeUrl,
   onClose,
-  onFileSelected
+  containerRef,
+  onReadyToUse
 }) => {
   const { t } = useI18n()
+  const [isReady, setIsReady] = useState(false)
+
+  // Reset loader each time the dialog opens
+  const handleTransitionEnter = useCallback(() => {
+    setIsReady(false)
+    onReadyToUse(() => setIsReady(true))
+  }, [onReadyToUse])
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth={false}
       fullWidth
+      onTransitionEnter={handleTransitionEnter}
       sx={{
         '& .MuiDialog-paper': {
           maxWidth: '900px',
           width: '100%',
           height: '80vh',
-          maxHeight: '800px'
+          maxHeight: '800px',
+          display: 'flex',
+          flexDirection: 'column'
         }
       }}
     >
@@ -109,24 +55,44 @@ export const TdrivePickerDialog: React.FC<TdrivePickerDialogProps> = ({
           justifyContent: 'space-between',
           p: 2,
           borderBottom: 1,
-          borderColor: 'divider'
+          borderColor: 'divider',
+          flexShrink: 0
         }}
       >
-        <Typography variant="h6">
+        <DialogTitle sx={{ p: 0 }}>
           {t('event.form.tdrivePickerTitle')}
-        </Typography>
-        <IconButton onClick={onClose} aria-label={t('actions.close')}>
+        </DialogTitle>
+        <IconButton aria-label={t('actions.close')} onClick={onClose}>
           <CloseIcon />
         </IconButton>
       </Box>
-      <Box sx={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-        {iframeUrl && (
-          <PickerContent
-            key={iframeUrl}
-            iframeUrl={iframeUrl}
-            onFileSelected={onFileSelected}
-          />
+      <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        {!isReady && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1
+            }}
+          >
+            <CircularProgress />
+          </Box>
         )}
+        <Box
+          ref={containerRef}
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            '& > iframe': {
+              width: '100%',
+              height: '100%',
+              border: 'none'
+            }
+          }}
+        />
       </Box>
     </Dialog>
   )

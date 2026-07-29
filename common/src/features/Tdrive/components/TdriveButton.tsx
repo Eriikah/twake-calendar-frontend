@@ -23,7 +23,6 @@ const TdriveButtonInShortMode: React.FC<{
   onClick: () => void
 }> = ({ onClick }) => {
   const { t } = useI18n()
-
   return (
     <SectionPreviewRow icon={<TdriveIcon />} onClick={onClick}>
       {t('event.form.addTdriveFile')}
@@ -35,7 +34,6 @@ const TdriveButtonInExpandedMode: React.FC<{
   onClick: () => void
 }> = ({ onClick }) => {
   const { t } = useI18n()
-
   return (
     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
       <Button
@@ -44,9 +42,7 @@ const TdriveButtonInExpandedMode: React.FC<{
         size="medium"
         variant="contained"
         color="secondary"
-        sx={{
-          borderRadius: '4px'
-        }}
+        sx={{ borderRadius: '4px' }}
       >
         {t('event.form.addTdriveFile')}
       </Button>
@@ -62,11 +58,11 @@ export const TdriveButton: React.FC<TdriveButtonProps> = ({
   const { isTooSmall: isMobile } = useScreenSizeDetection()
   const {
     isOpen,
-    iframeUrl,
+    containerRef,
     openPickerError,
     openPicker,
     closePicker,
-    handleFileSelected
+    onReadyToUse
   } = useTdrivePicker({ onFileSelected })
 
   const isExpanded = showMore && !isMobile
@@ -86,10 +82,11 @@ export const TdriveButton: React.FC<TdriveButtonProps> = ({
 
       <TdrivePickerDialog
         open={isOpen}
-        iframeUrl={iframeUrl}
         onClose={closePicker}
-        onFileSelected={handleFileSelected}
+        containerRef={containerRef}
+        onReadyToUse={onReadyToUse}
       />
+
       <Snackbar
         open={openPickerError !== null}
         autoHideDuration={4000}
