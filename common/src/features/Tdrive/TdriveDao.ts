@@ -99,14 +99,26 @@ interface FetchIntentJSONOptions {
 export const fetchIntentJSON =
   ({ tdriveBaseUrl, accessToken }: FetchIntentJSONOptions) =>
   async (method: string, path: string, body?: unknown): Promise<unknown> => {
-    const res = await fetch(`${tdriveBaseUrl}${path}`, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`
-      },
-      body: body ? JSON.stringify(body) : undefined
-    })
-    if (!res.ok) throw new Error(await res.text())
-    return res.json()
+    const normalizedBase = tdriveBaseUrl.replace(/\/+$/, '')
+    const normalizedPath = path.replace(/^\/+/, '')
+    const url = `${normalizedBase}/${normalizedPath}`
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: body ? JSON.stringify(body) : undefined,
+        signal: controller.signal
+      })
+      if (!res.ok) throw new Error(await res.text())
+      return res.json()
+    } finally {
+      clearTimeout(timeoutId)
+    }
   }

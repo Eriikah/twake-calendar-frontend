@@ -75,6 +75,7 @@ interface StartTdrivePickerOptions {
   containerRef: React.RefObject<HTMLDivElement | null>
   readyCallbackRef: React.MutableRefObject<(() => void) | null>
   cancellationRef: { cancelled: boolean }
+  intentRef: React.MutableRefObject<{ stop?: () => void } | null>
 }
 
 async function startTdrivePicker({
@@ -82,7 +83,8 @@ async function startTdrivePicker({
   idToken,
   containerRef,
   readyCallbackRef,
-  cancellationRef
+  cancellationRef,
+  intentRef
 }: StartTdrivePickerOptions): Promise<{
   file: TdriveFile | null
   intent: { stop?: () => void }
@@ -107,13 +109,15 @@ async function startTdrivePicker({
     ['GET']
   )
 
+  intentRef.current = intent
+
   if (!containerRef.current) {
     throw new Error('Picker container is not mounted')
   }
 
   const result = await intent.start(containerRef.current, {
     onReady: () => {
-      console.debug('Tdrive picker iframe loaded')
+      console.info('Tdrive picker iframe loaded')
     },
     onReadyToUse: () => {
       readyCallbackRef.current?.()
@@ -149,13 +153,16 @@ export function useTdrivePicker({
   const openPicker = useCallback(async () => {
     setOpenPickerError(null)
 
-    if (!tdriveBaseUrl) {
-      setOpenPickerError('tdriveUrlNotConfigured')
-      return
-    }
+    const validationError =
+      (isOpen && 'alreadyOpen') ||
+      (!tdriveBaseUrl && 'tdriveUrlNotConfigured') ||
+      (!idToken && 'tdriveTokenUnavailable') ||
+      null
 
-    if (!idToken) {
-      setOpenPickerError('tdriveTokenUnavailable')
+    if (validationError) {
+      if (validationError !== 'alreadyOpen') {
+        setOpenPickerError(validationError)
+      }
       return
     }
 
@@ -165,17 +172,16 @@ export function useTdrivePicker({
     setIsOpen(true)
 
     try {
-      const { file, intent } = await startTdrivePicker({
+      const { file } = await startTdrivePicker({
         tdriveBaseUrl,
         idToken,
         containerRef,
         readyCallbackRef,
-        cancellationRef
+        cancellationRef,
+        intentRef
       })
 
       if (cancellationRef.cancelled) return
-
-      intentRef.current = intent
 
       if (file) {
         onFileSelected(file)
@@ -191,7 +197,7 @@ export function useTdrivePicker({
         setIsOpen(false)
       }
     }
-  }, [tdriveBaseUrl, idToken, onFileSelected])
+  }, [isOpen, tdriveBaseUrl, idToken, onFileSelected])
 
   const closePicker = useCallback(() => {
     if (activeCancellationRef.current) {

@@ -145,7 +145,8 @@ describe('TdriveDao', () => {
             'Content-Type': 'application/json',
             Authorization: 'Bearer my-token'
           },
-          body: JSON.stringify({ foo: 'bar' })
+          body: JSON.stringify({ foo: 'bar' }),
+          signal: expect.any(AbortSignal)
         }
       )
       expect(result).toEqual({ data: 'response' })
@@ -171,7 +172,8 @@ describe('TdriveDao', () => {
             'Content-Type': 'application/json',
             Authorization: 'Bearer my-token'
           },
-          body: undefined
+          body: undefined,
+          signal: expect.any(AbortSignal)
         }
       )
     })
