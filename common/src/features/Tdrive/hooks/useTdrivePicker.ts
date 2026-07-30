@@ -198,7 +198,7 @@ export function useTdrivePicker({
         setIsOpen(false)
       }
     }
-  }, [isOpen, tdriveBaseUrl, idToken, onFilesSelected])
+  }, [isOpen, tdriveBaseUrl, idToken, onFilesSelected, t])
 
   const closePicker = useCallback(() => {
     if (activeCancellationRef.current) {

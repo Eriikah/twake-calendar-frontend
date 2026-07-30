@@ -20,11 +20,11 @@ interface TdriveButtonProps {
 const TdriveIcon: React.FC = () => (
   <Box
     sx={{
-      width: '24px',
-      height: '24px'
+      width: '18px',
+      height: '18px'
     }}
   >
-    <Icon icon={<Drive />} size={22} />
+    <Icon icon={<Drive />} size={18} />
   </Box>
 )
 
@@ -89,7 +89,7 @@ export const TdriveButton: React.FC<TdriveButtonProps> = ({
         ) : (
           <TdriveButtonInExpandedMode onClick={() => void openPicker()} />
         )}
-        <Box sx={{ mt: 1 }}>
+        <Box sx={{ pt: 1 }}>
           <AttachmentField
             attachments={attachments}
             setAttachments={setAttachments}

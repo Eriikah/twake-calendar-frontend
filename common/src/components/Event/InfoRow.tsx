@@ -36,7 +36,6 @@ export function InfoRow({
       sx={{
         display: 'flex',
         alignItems,
-        gap: 1,
         marginBottom: 1,
         flexWrap,
         wordBreak: 'break-word'
