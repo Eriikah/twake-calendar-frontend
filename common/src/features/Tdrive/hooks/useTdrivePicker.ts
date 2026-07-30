@@ -1,9 +1,8 @@
-import { useCallback, useRef, useState } from 'react'
 import { useAppSelector } from '@common/app/hooks'
 import Intents from 'cozy-interapp'
-import { exchangeToken } from '../TdriveDao'
+import { useCallback, useRef, useState } from 'react'
+import { exchangeToken, fetchIntentJSON } from '../TdriveDao'
 import { useTdriveUserContext } from './useTdriveUserContext'
-import { createMockCozyClient } from '../cozyClientMock'
 
 export interface TdriveFile {
   id: string
@@ -25,17 +24,40 @@ interface UseTdrivePickerProps {
   onFileSelected: (file: TdriveFile) => void
 }
 
+function extractString(
+  doc: Record<string, unknown>,
+  keys: string[]
+): string | undefined {
+  for (const key of keys) {
+    const value = doc[key]
+    if (typeof value === 'string' && value.length > 0) {
+      return value
+    }
+  }
+  return undefined
+}
+
+function getFileType(
+  doc: Record<string, unknown>
+): 'sharingLink' | 'downloadLink' {
+  const sharingLink = doc.sharingLink
+  if (
+    (typeof sharingLink === 'string' && sharingLink.length > 0) ||
+    doc.type === 'sharingLink'
+  ) {
+    return 'sharingLink'
+  }
+  return 'downloadLink'
+}
+
 function convertIntentResultToFile(result: unknown): TdriveFile | null {
   if (!result || typeof result !== 'object') return null
 
   const doc = result as Record<string, unknown>
 
-  const str = (v: unknown): string | undefined =>
-    typeof v === 'string' && v.length > 0 ? v : undefined
-
-  const id = str(doc.id) ?? str(doc._id) ?? str(doc.file_id)
-  const name = str(doc.name) ?? str(doc.filename) ?? 'Unnamed'
-  const url = str(doc.url) ?? str(doc.sharingLink) ?? str(doc.downloadLink)
+  const id = extractString(doc, ['id', '_id', 'file_id'])
+  const name = extractString(doc, ['name', 'filename']) ?? 'Unnamed'
+  const url = extractString(doc, ['url', 'sharingLink', 'downloadLink'])
 
   if (!id || !url) return null
 
@@ -43,11 +65,67 @@ function convertIntentResultToFile(result: unknown): TdriveFile | null {
     id,
     name,
     url,
-    type:
-      str(doc.sharingLink) !== undefined || doc.type === 'sharingLink'
-        ? 'sharingLink'
-        : 'downloadLink'
+    type: getFileType(doc)
   }
+}
+
+interface StartTdrivePickerOptions {
+  tdriveBaseUrl: string
+  idToken: string
+  containerRef: React.RefObject<HTMLDivElement | null>
+  readyCallbackRef: React.MutableRefObject<(() => void) | null>
+  cancellationRef: { cancelled: boolean }
+}
+
+async function startTdrivePicker({
+  tdriveBaseUrl,
+  idToken,
+  containerRef,
+  readyCallbackRef,
+  cancellationRef
+}: StartTdrivePickerOptions): Promise<{
+  file: TdriveFile | null
+  intent: { stop?: () => void }
+}> {
+  const tokenResponse = await exchangeToken(tdriveBaseUrl, idToken)
+
+  if (cancellationRef.cancelled) {
+    return { file: null, intent: {} }
+  }
+
+  const intents = new Intents({
+    fetch: fetchIntentJSON({
+      tdriveBaseUrl,
+      accessToken: tokenResponse.access_token
+    })
+  })
+
+  const intent = intents.create(
+    'PICK',
+    'io.cozy.files',
+    { actions: [{ sharingLink: { label: 'Add as link' } }] },
+    ['GET']
+  )
+
+  if (!containerRef.current) {
+    throw new Error('Picker container is not mounted')
+  }
+
+  const result = await intent.start(containerRef.current, {
+    onReady: () => {
+      console.debug('Tdrive picker iframe loaded')
+    },
+    onReadyToUse: () => {
+      readyCallbackRef.current?.()
+    }
+  })
+
+  if (cancellationRef.cancelled) {
+    return { file: null, intent }
+  }
+
+  const file = convertIntentResultToFile(result)
+  return { file, intent }
 }
 
 export function useTdrivePicker({
@@ -87,42 +165,18 @@ export function useTdrivePicker({
     setIsOpen(true)
 
     try {
-      const tokenResponse = await exchangeToken(tdriveBaseUrl, idToken)
-
-      if (cancellationRef.cancelled) return
-
-      const mockClient = createMockCozyClient({
-        uri: tdriveBaseUrl,
-        token: tokenResponse.access_token
+      const { file, intent } = await startTdrivePicker({
+        tdriveBaseUrl,
+        idToken,
+        containerRef,
+        readyCallbackRef,
+        cancellationRef
       })
 
-      const intents = new Intents({ client: mockClient })
-
-      const intent = intents.create(
-        'PICK',
-        'io.cozy.files',
-        { actions: [{ sharingLink: { label: 'Add as link' } }] },
-        ['GET']
-      )
+      if (cancellationRef.cancelled) return
 
       intentRef.current = intent
 
-      if (!containerRef.current) {
-        throw new Error('Picker container is not mounted')
-      }
-
-      const result = await intent.start(containerRef.current, {
-        onReady: () => {
-          console.debug('Tdrive picker iframe loaded')
-        },
-        onReadyToUse: () => {
-          readyCallbackRef.current?.()
-        }
-      })
-
-      if (cancellationRef.cancelled) return
-
-      const file = convertIntentResultToFile(result)
       if (file) {
         onFileSelected(file)
       }

@@ -21,6 +21,16 @@ export function buildReadyResponse(intentId: string): object {
   return { type: `${intentId}:send`, payload: {} }
 }
 
+function isValidFile(
+  file: Record<string, unknown>
+): file is { id: string; name: string; url: string } {
+  return (
+    typeof file.id === 'string' &&
+    typeof file.name === 'string' &&
+    typeof file.url === 'string'
+  )
+}
+
 export function parseFileSelection(data: unknown): TdriveFile | null {
   if (typeof data !== 'object' || data === null) return null
 
@@ -30,19 +40,14 @@ export function parseFileSelection(data: unknown): TdriveFile | null {
   const file = msg.file as Record<string, unknown> | undefined
   if (!file) return null
 
-  const { id, name, url } = file
-  if (
-    typeof id !== 'string' ||
-    typeof name !== 'string' ||
-    typeof url !== 'string'
-  ) {
+  if (!isValidFile(file)) {
     return null
   }
 
   return {
-    id,
-    name,
-    url,
+    id: file.id,
+    name: file.name,
+    url: file.url,
     type: 'sharingLink'
   }
 }

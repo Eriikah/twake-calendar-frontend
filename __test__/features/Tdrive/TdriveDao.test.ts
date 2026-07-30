@@ -2,7 +2,11 @@
  * @jest-environment jsdom
  */
 
-import { exchangeToken, createIntent } from '@common/features/Tdrive/TdriveDao'
+import {
+  exchangeToken,
+  createIntent,
+  fetchIntentJSON
+} from '@common/features/Tdrive/TdriveDao'
 import { api } from '@common/utils/apiUtils'
 
 jest.mock('@common/utils/apiUtils')
@@ -111,6 +115,78 @@ describe('TdriveDao', () => {
       expect(result.data.attributes.services[0].href).toBe(
         'https://drive.example.com/intents?intent=intent-123'
       )
+    })
+  })
+
+  describe('fetchIntentJSON', () => {
+    const mockFetch = jest.fn()
+
+    beforeEach(() => {
+      global.fetch = mockFetch
+    })
+
+    it('makes an authenticated request to the correct URL', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ data: 'response' })
+      })
+
+      const fetch = fetchIntentJSON({
+        tdriveBaseUrl: 'https://drive.example.com',
+        accessToken: 'my-token'
+      })
+      const result = await fetch('POST', '/intents', { foo: 'bar' })
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://drive.example.com/intents',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer my-token'
+          },
+          body: JSON.stringify({ foo: 'bar' })
+        }
+      )
+      expect(result).toEqual({ data: 'response' })
+    })
+
+    it('omits body when not provided', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({})
+      })
+
+      const fetch = fetchIntentJSON({
+        tdriveBaseUrl: 'https://drive.example.com',
+        accessToken: 'my-token'
+      })
+      await fetch('GET', '/intents')
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://drive.example.com/intents',
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer my-token'
+          },
+          body: undefined
+        }
+      )
+    })
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        text: () => Promise.resolve('Unauthorized')
+      })
+
+      const fetch = fetchIntentJSON({
+        tdriveBaseUrl: 'https://drive.example.com',
+        accessToken: 'bad-token'
+      })
+      await expect(fetch('GET', '/intents')).rejects.toThrow('Unauthorized')
     })
   })
 })
