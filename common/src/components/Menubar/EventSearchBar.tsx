@@ -132,6 +132,7 @@ const SearchBar: React.FC<{
       attendees: userAttendee[]
     }
   ): Promise<void> => {
+    setSearch(searchQuery)
     if (searchQuery) {
       handleFilterChange('keywords', searchQuery)
     }
@@ -204,6 +205,7 @@ const SearchBar: React.FC<{
 
         {extended && (
           <PeopleSearch
+            autoHighlight={false}
             selectedUsers={selectedContacts}
             showCurrentUser
             onChange={(_event, users) => {
@@ -379,6 +381,7 @@ const SearchBar: React.FC<{
                 error={filterError}
                 onErrorClear={() => setFilterError(false)}
                 onKeywordsChange={(keyword: string) => setSearch(keyword)}
+                onEnter={() => void handleSearch(filters.keywords, filters)}
               />
               <OrganizersFilter
                 mode="popover"

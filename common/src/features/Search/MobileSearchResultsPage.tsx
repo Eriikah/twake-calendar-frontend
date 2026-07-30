@@ -14,6 +14,7 @@ import {
 } from './mobileSearchResultsComponents'
 import { SearchEventResult } from './types/SearchEventResult'
 import { useEventPreview } from './useEventPreview'
+import { CALENDAR_VIEWS } from '@common/components/Calendar/utils/constants'
 
 const MobileSearchResultsPage: React.FC = () => {
   const searchResults = useAppSelector(state => state.searchResult)
@@ -130,6 +131,7 @@ const MobileResultItem: React.FC<{ eventData: SearchEventResult }> = ({
           calId={calendar.id}
           open={openPreview}
           onClose={() => setOpenPreview(false)}
+          currentView={CALENDAR_VIEWS.listWeek}
         />
       )}
     </>

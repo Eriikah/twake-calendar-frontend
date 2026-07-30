@@ -1,5 +1,6 @@
 import { stringAvatar } from '@common/components/Event/utils/eventUtils'
 import Tooltip from '@common/components/Tooltip'
+import { removeVideoConferenceFromDescription } from '@common/utils/videoConferenceUtils'
 import {
   alpha,
   Avatar,
@@ -226,7 +227,12 @@ export const RenderLocation: React.FC<{ text?: string }> = ({ text }) => {
 }
 
 export const RenderDescription: React.FC<{ text?: string }> = ({ text }) => {
-  return <RenderText text={text} sx={{ flex: '1 1 0%' }} />
+  return (
+    <RenderText
+      text={removeVideoConferenceFromDescription(text ?? '')}
+      sx={{ flex: '1 1 0%' }}
+    />
+  )
 }
 
 export const RenderVideoJoin: React.FC<VideoJoinProps> = ({ url, t }) => {

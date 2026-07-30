@@ -1,3 +1,5 @@
+import { userAttendee } from '@common/features/User/models/attendee'
+
 export type SearchEventData = {
   uid: string
   userId: string
@@ -8,13 +10,15 @@ export type SearchEventData = {
   summary?: string
   description?: string
   location?: string
-  class?: string
+  class?: 'PRIVATE' | 'PUBLIC' | 'CONFIDENTIAL'
   dtstamp?: string
   isRecurrentMaster?: boolean
-  attendees?: unknown[]
-  organizer?: {
-    cn?: string
-    email?: string
-  }
+  attendees?: userAttendee[]
+  organizer?:
+    | userAttendee
+    | {
+        cn?: string
+        email?: string
+      }
   ['x-openpaas-videoconference']?: string
 }

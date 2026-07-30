@@ -9,13 +9,15 @@ interface Props {
   error?: boolean
   onErrorClear?: () => void
   onKeywordsChange?: (keywords: string) => void
+  onEnter?: () => void
 }
 
 export const KeywordsFilter: React.FC<Props> = ({
   mode,
   error,
   onErrorClear,
-  onKeywordsChange
+  onKeywordsChange,
+  onEnter
 }) => {
   const { t } = useI18n()
   const dispatch = useAppDispatch()
@@ -34,7 +36,12 @@ export const KeywordsFilter: React.FC<Props> = ({
         dispatch(setFilters({ keywords: e.target.value }))
         if (e.target.value.trim()) {
           onErrorClear?.()
-          onKeywordsChange?.(e.target.value)
+        }
+      }}
+      onKeyDown={e => {
+        if (e.key === 'Enter') {
+          onKeywordsChange?.(filters.keywords)
+          onEnter?.()
         }
       }}
       size="small"

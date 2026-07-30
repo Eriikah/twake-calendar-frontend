@@ -59,6 +59,7 @@ export interface PeopleSearchProps {
   inputValue?: string
   inputStyles?: SxProps
   enableEmailAutocompleteAndCommit?: boolean
+  autoHighlight?: boolean
 }
 
 const autocompleteSx = {
@@ -200,7 +201,8 @@ export const PeopleSearch: React.FC<PeopleSearchProps> = ({
   onSearchStateChange,
   inputValue,
   inputStyles,
-  enableEmailAutocompleteAndCommit
+  enableEmailAutocompleteAndCommit,
+  autoHighlight = true
 }) => {
   const { t } = useI18n()
   const searchPlaceholder = placeholder ?? t('peopleSearch.placeholder')
@@ -262,7 +264,7 @@ export const PeopleSearch: React.FC<PeopleSearchProps> = ({
         multiple
         options={searchState.options}
         autoComplete={false}
-        autoHighlight
+        autoHighlight={autoHighlight}
         clearOnBlur={false}
         onBlur={freeSolo ? searchState.handleBlurCommit : undefined}
         open={isOpenOptions}

@@ -32,6 +32,7 @@ const MobileSearchBar: React.FC = () => {
         }}
       >
         <PeopleSearch
+          autoHighlight={false}
           selectedUsers={selectedContacts}
           onChange={(_event, users) => handleContactSelect(users)}
           hideOptions
