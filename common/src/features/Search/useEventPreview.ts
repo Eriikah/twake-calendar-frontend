@@ -5,6 +5,7 @@ import { browserDefaultTimeZone } from '@common/utils/timezone'
 import { useState } from 'react'
 import { getEvent } from '../Calendars/CalendarSlice'
 import { SearchEventResult } from './types/SearchEventResult'
+import { userAttendee } from '../User/models/attendee'
 
 export function useEventPreview(
   eventData: SearchEventResult,
@@ -29,17 +30,17 @@ export function useEventPreview(
       start: eventData.data.start,
       end: eventData.data.end,
       allday: eventData.data.allDay,
-      attendee: eventData.data.attendees,
+      attendee: eventData.data.attendees as userAttendee[],
       class: eventData.data.class,
       description: eventData.data.description,
       stamp: eventData.data.dtstamp,
       location: eventData.data.location,
-      organizer: eventData.data.organizer,
+      organizer: eventData.data.organizer as userAttendee,
       title: eventData.data.summary,
       timezone: timeZone
     }
-    await dispatch(getEvent(event))
     setOpenPreview(true)
+    await dispatch(getEvent(event))
   }
 
   return { openPreview, setOpenPreview, handleOpen, timeZone }

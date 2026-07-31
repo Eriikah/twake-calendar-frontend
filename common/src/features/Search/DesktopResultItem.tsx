@@ -15,6 +15,7 @@ import {
   RenderTitle,
   RenderVideoJoin
 } from './searchResultsComponents'
+import { CALENDAR_VIEWS } from '@common/components/Calendar/utils/constants'
 
 export default function DesktopResultItem({
   eventData
@@ -65,7 +66,7 @@ export default function DesktopResultItem({
           }
         }}
       >
-        <Box display="flex" alignItems="center" sx={{ minWidth: '225px' }}>
+        <Box sx={{ minWidth: '225px', display: 'flex', alignItems: 'center' }}>
           <RenderDate
             startDate={startDate}
             endDate={endDate}
@@ -109,6 +110,7 @@ export default function DesktopResultItem({
           calId={calendar.id}
           open={openPreview}
           onClose={() => setOpenPreview(false)}
+          currentView={CALENDAR_VIEWS.listWeek}
         />
       )}
     </>

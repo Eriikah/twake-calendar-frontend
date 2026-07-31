@@ -1,8 +1,13 @@
 import SearchBar from '@common/components/Menubar/EventSearchBar'
 import * as searchThunk from '@common/features/Search/SearchSlice'
+import { searchPeople } from '@common/features/User/UserDao'
+import { SearchResponseItem } from '@common/types/SearchResponseItem'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '../../utils/Renderwithproviders'
+
+jest.mock('@common/features/User/UserDao')
+const mockedSearchPeople = searchPeople
 
 describe('EventSearchBar', () => {
   const today = new Date()
@@ -229,6 +234,46 @@ describe('EventSearchBar', () => {
       })
     })
   })
+
+  it('should search with keyword on Enter without auto-selecting first suggestion', async () => {
+    const mockUser = new SearchResponseItem({
+      id: '123',
+      emailAddresses: [{ value: 'keyword@example.com' }],
+      names: [{ displayName: 'Keyword User' }],
+      objectType: 'user'
+    })
+    mockedSearchPeople.mockResolvedValueOnce([mockUser])
+
+    const searchSpy = jest.spyOn(searchThunk, 'searchEvents')
+
+    renderWithProviders(<SearchBar />, preloadedState)
+
+    const searchButton = screen.getByRole('button')
+    fireEvent.click(searchButton)
+
+    const searchInput = screen.getByPlaceholderText('common.search')
+    fireEvent.change(searchInput, { target: { value: 'keyword' } })
+
+    await waitFor(() => {
+      expect(screen.getByText('Keyword User')).toBeInTheDocument()
+    })
+
+    fireEvent.keyDown(searchInput, { key: 'Enter' })
+
+    await waitFor(() => {
+      expect(searchSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          search: 'keyword',
+          filters: expect.objectContaining({
+            organizers: []
+          })
+        })
+      )
+    })
+
+    expect(screen.queryByTestId('AttendeeChip')).not.toBeInTheDocument()
+    expect(searchSpy).toHaveBeenCalledTimes(1)
+  })
   it('should not trigger search on Enter key when search is empty', async () => {
     const searchSpy = jest.spyOn(searchThunk, 'searchEvents')
 
@@ -340,5 +385,39 @@ describe('EventSearchBar', () => {
 
     const inputAfter = screen.getByPlaceholderText('common.search')
     expect(inputAfter).toHaveValue('hello')
+  })
+
+  it('should not immediately sync KeywordsFilter input to top search bar until hitting Enter', async () => {
+    renderWithProviders(<SearchBar />, preloadedState)
+
+    // Expand search bar
+    fireEvent.click(screen.getByRole('button'))
+    const searchInput = screen.getByPlaceholderText('common.search')
+
+    // Open filter popover
+    const tuneBtn = screen
+      .getAllByRole('button')
+      .find(b => b.querySelector('[data-testid="TuneIcon"]'))
+    fireEvent.click(tuneBtn!)
+
+    await waitFor(() => {
+      expect(
+        screen.getByPlaceholderText('search.keywordsPlaceholder')
+      ).toBeInTheDocument()
+    })
+
+    const keywordsInput = screen.getByPlaceholderText(
+      'search.keywordsPlaceholder'
+    )
+    fireEvent.change(keywordsInput, { target: { value: 'typed keyword' } })
+
+    // Top search bar should not be updated immediately
+    expect(searchInput).toHaveValue('')
+
+    // Press Enter in keywords input
+    fireEvent.keyDown(keywordsInput, { key: 'Enter' })
+
+    // Top search bar should now be synced
+    expect(searchInput).toHaveValue('typed keyword')
   })
 })
