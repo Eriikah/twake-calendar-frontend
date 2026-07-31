@@ -2,6 +2,7 @@ import React from 'react'
 import { Box, IconButton, Skeleton } from '@linagora/twake-mui'
 import FormatListBulletedOutlinedIcon from '@mui/icons-material/FormatListBulletedOutlined'
 import GridViewOutlinedIcon from '@mui/icons-material/GridViewOutlined'
+import driveLogotype from '@common/static/images/drive-logotype.svg'
 
 const rowWidths = [180, 280, 220, 260, 200, 240, 170, 250, 210]
 
@@ -15,6 +16,23 @@ export const PickerSkeleton: React.FC = () => (
       backgroundColor: 'white'
     }}
   >
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        p: '24px 32px 24px 24px',
+        borderBottom: 1,
+        borderColor: 'divider'
+      }}
+    >
+      <img
+        src={driveLogotype}
+        alt="Drive logotype"
+        height="32px"
+        style={{ width: 'auto' }}
+      />
+    </Box>
     {/* Toolbar: 3 breadcrumb pills | search + 2 icon buttons */}
     <Box
       sx={{
@@ -84,7 +102,7 @@ export const PickerSkeleton: React.FC = () => (
           sx={{
             display: 'flex',
             alignItems: 'center',
-            py: 1.25,
+            py: 2,
             borderBottom: 1,
             borderColor: 'divider',
             gap: 2
