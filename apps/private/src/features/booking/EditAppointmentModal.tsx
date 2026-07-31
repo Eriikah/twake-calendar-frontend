@@ -34,6 +34,8 @@ export const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
     setCalendarid,
     color,
     setColor,
+    active,
+    setActive,
     error,
     setError,
     loading,
@@ -43,6 +45,29 @@ export const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
     availabilityRules,
     setAvailabilityRules
   } = useAppointmentForm({ bookingLink, isOpen: open })
+
+  const handleActiveToggle = async (newActive: boolean): Promise<void> => {
+    const prevActive = active
+    setActive(newActive)
+    setLoading(true)
+    setError(null)
+    try {
+      await dispatch(
+        updateBookingLink({
+          publicId: bookingLink.publicId,
+          request: {
+            active: newActive
+          }
+        })
+      ).unwrap()
+    } catch (err) {
+      console.error('Failed to update booking link active status:', err)
+      setError(err instanceof Error ? err.message : String(err))
+      setActive(prevActive)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSave = async (): Promise<void> => {
     if (!isFormValid) {
@@ -60,6 +85,7 @@ export const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
             name,
             durationMinutes: duration,
             calendarUrl: `/calendars/${calendarid}`,
+            active,
             availabilityRules: availabilityRules
               .filter(rule => rule.enabled)
               .flatMap(rule =>
@@ -106,13 +132,15 @@ export const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
       setCalendarid={setCalendarid}
       color={color}
       setColor={setColor}
+      active={active}
+      onActiveChange={newActive => void handleActiveToggle(newActive)}
       userPersonalCalendars={userPersonalCalendars}
       availabilityRules={availabilityRules}
       setAvailabilityRules={setAvailabilityRules}
       error={error}
       loading={loading}
       isFormValid={isFormValid}
-      onSave={handleSave}
+      onSave={() => void handleSave()}
       saveButtonText={t('actions.save', { defaultValue: 'Save' })}
     />
   )

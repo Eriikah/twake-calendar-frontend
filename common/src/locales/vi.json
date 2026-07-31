@@ -569,6 +569,8 @@
     "cancelSuccess": "Đặt chỗ đã bị hủy. Bạn có thể đặt một khung giờ mới nếu muốn.",
     "createAppointmentTitle": "Tạo lịch hẹn",
     "editAppointmentTitle": "Chỉnh sửa lịch hẹn",
+    "activeSchedule": "Lịch hẹn đang hoạt động",
+    "inactiveSchedule": "Lịch hẹn không hoạt động",
     "scheduleName": "Tên lịch trình",
     "color": "Màu sắc",
     "chooseTimeSlot": "Chọn khung giờ",

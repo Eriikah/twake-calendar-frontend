@@ -570,6 +570,8 @@
     "cancelSuccess": "Reservation cancelled. You can book a new slot if you wish to.",
     "createAppointmentTitle": "Create appointment schedule",
     "editAppointmentTitle": "Edit appointment schedule",
+    "activeSchedule": "Active appointment schedule",
+    "inactiveSchedule": "Inactive appointment schedule",
     "scheduleName": "Schedule name",
     "color": "Color",
     "chooseTimeSlot": "Choose time slot",

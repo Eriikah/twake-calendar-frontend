@@ -59,6 +59,7 @@ import { EditAppointmentModal } from '../../features/booking/EditAppointmentModa
 import { handleCopyLink } from '@calendar/common/src/utils/handleCopyLink'
 import { useVisibleBookingLinks } from './hooks/useVisibleBookingLinks'
 import { PrintScheduleModal } from './PrintSchedule/PrintScheduleModal'
+import WebAssetOffOutlinedIcon from '@mui/icons-material/WebAssetOffOutlined'
 
 type SectionHeader = {
   title: string
@@ -225,6 +226,15 @@ const getBookingLinkUrl = (publicId: string): URL => {
   return new URL(`${prefix}/${publicId}`)
 }
 
+const getBookingLinkIcon = (active: boolean, iconColor: string): ReactNode => {
+  const sx = { color: iconColor }
+  return active ? (
+    <EventIcon sx={sx} fontSize="small" />
+  ) : (
+    <WebAssetOffOutlinedIcon sx={sx} fontSize="small" />
+  )
+}
+
 const BookingLinkChip: React.FC<{
   link: BookingLink
   onDelete: (link: BookingLink) => void
@@ -289,7 +299,7 @@ const BookingLinkChip: React.FC<{
           onClick={() => onEdit(link)}
         >
           <div style={{ display: 'flex', padding: '9px', marginRight: '4px' }}>
-            <EventIcon sx={{ color: iconColor }} fontSize="small" />
+            {getBookingLinkIcon(link.active, iconColor)}
           </div>
 
           <Tooltip title={linkName} enterDelay={500} placement="bottom-start">

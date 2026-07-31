@@ -31,6 +31,8 @@ export const CreateAppointmentModal: React.FC<CreateAppointmentModalProps> = ({
     setCalendarid,
     color,
     setColor,
+    active,
+    setActive,
     error,
     setError,
     loading,
@@ -60,7 +62,7 @@ export const CreateAppointmentModal: React.FC<CreateAppointmentModalProps> = ({
         name,
         durationMinutes: duration,
         calendarUrl: `/calendars/${calendarid}`,
-        active: true,
+        active,
         autoAccept: false,
         availabilityRules: availabilityRules
           .filter(rule => rule.enabled)
@@ -108,6 +110,8 @@ export const CreateAppointmentModal: React.FC<CreateAppointmentModalProps> = ({
       setCalendarid={setCalendarid}
       color={color}
       setColor={setColor}
+      active={active}
+      onActiveChange={setActive}
       userPersonalCalendars={userPersonalCalendars}
       availabilityRules={availabilityRules}
       setAvailabilityRules={setAvailabilityRules}
