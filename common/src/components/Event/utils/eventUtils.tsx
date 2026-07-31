@@ -73,23 +73,23 @@ function renderFullAttendeeBadge({
   const displayName = a.cn || a.cal_address
 
   return (
-    <Box
-      key={key}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1.5,
-        marginBottom: 0.5,
-        padding: 0.5,
-        borderRadius: 1
-      }}
-    >
-      {a.cutype === 'RESOURCE' ? (
-        <Box sx={{ marginRight: 2 }}>
-          <ResourceIcon />
-        </Box>
-      ) : (
-        <AttendeePopover attendee={a}>
+    <AttendeePopover attendee={a} key={key}>
+      <Box
+        key={key}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          marginBottom: 0.5,
+          padding: 0.5,
+          borderRadius: 1
+        }}
+      >
+        {a.cutype === 'RESOURCE' ? (
+          <Box sx={{ marginRight: 2 }}>
+            <ResourceIcon />
+          </Box>
+        ) : (
           <Badge
             overlap="circular"
             sx={{ marginRight: 2 }}
@@ -112,26 +112,24 @@ function renderFullAttendeeBadge({
           >
             <Avatar {...stringAvatar(displayName)} />
           </Badge>
-        </AttendeePopover>
-      )}
-      <Box style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <AttendeePopover attendee={a}>
+        )}
+        <Box style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <Typography variant="body2" noWrap>
             {displayName}
           </Typography>
-        </AttendeePopover>
-        {isOrganizer && (
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            {t('event.organizer')}
-          </Typography>
-        )}
-        {caption && (
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            {caption}
-          </Typography>
-        )}
+          {isOrganizer && (
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {t('event.organizer')}
+            </Typography>
+          )}
+          {caption && (
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {caption}
+            </Typography>
+          )}
+        </Box>
       </Box>
-    </Box>
+    </AttendeePopover>
   )
 }
 
