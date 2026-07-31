@@ -1,17 +1,10 @@
 import { useAppSelector } from '@common/app/hooks'
 import Intents from 'cozy-interapp'
 import { useCallback, useRef, useState } from 'react'
-import { exchangeToken, fetchIntentJSON } from '../TdriveDao'
 import { useI18n } from 'twake-i18n'
+import { TdriveFile } from '../types'
+import { exchangeToken, fetchIntentJSON } from '../TdriveDao'
 import { useTdriveUserContext } from './useTdriveUserContext'
-
-export interface TdriveFile {
-  id: string
-  name: string
-  url: string
-  type: 'sharingLink' | 'downloadLink'
-  mimeType: string | null
-}
 
 interface UseTdrivePickerReturn {
   isOpen: boolean
@@ -32,7 +25,7 @@ function convertSingleResult(doc: Record<string, unknown>): TdriveFile | null {
 
   const id = str(doc.id) ?? str(doc._id) ?? str(doc.file_id)
   const name = str(doc.name) ?? str(doc.filename) ?? 'Unnamed'
-  const url = str(doc.url) ?? str(doc.sharingLink) ?? str(doc.downloadLink)
+  const url = str(doc.url) ?? str(doc.sharingLink)
 
   if (!id || !url) return null
 
@@ -40,10 +33,7 @@ function convertSingleResult(doc: Record<string, unknown>): TdriveFile | null {
     id,
     name,
     url,
-    type:
-      str(doc.sharingLink) !== undefined || doc.type === 'sharingLink'
-        ? 'sharingLink'
-        : 'downloadLink',
+    type: 'sharingLink',
     mimeType: str(doc.mimeType) ?? null
   }
 }
