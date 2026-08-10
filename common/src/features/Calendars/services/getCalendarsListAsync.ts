@@ -1,3 +1,4 @@
+import { type RootState } from '@common/app/store'
 import { fetchCalendars } from '@common/features/Calendars/CalendarDAO'
 import { CalendarData } from '@common/features/Calendars/types/CalendarData'
 import { RejectedError } from '@common/features/Calendars/types/RejectedError'
@@ -15,22 +16,34 @@ import { getAccessiblePair } from '@common/utils/getAccessiblePair'
 import { createTheme } from '@mui/material/styles'
 import { ReducerCreators } from '@reduxjs/toolkit'
 import { CalendarState } from '../CalendarSlice'
-import { extractResourceOwnerIds, getOwnerOrResourceData } from './helpers'
+import { getOwnerOrResourceData } from './helpers'
 
 const theme = createTheme()
 
-export const getCalendarsListThunk = (create: ReducerCreators<CalendarState>) =>
+export const getCalendarsListThunk = (
+  create: ReducerCreators<CalendarState>
+): ReturnType<
+  typeof create.asyncThunk<
+    { importedCalendars: Record<string, Calendar>; errors: string },
+    void,
+    { rejectValue: RejectedError }
+  >
+> =>
   create.asyncThunk<
     { importedCalendars: Record<string, Calendar>; errors: string },
     void,
     { rejectValue: RejectedError }
   >(
     async (_, { rejectWithValue, getState }) => {
-      const state = getState()
+      const state = getState() as RootState
       const existingCalendars = state.calendars.list || {}
       const existingUser = { id: state.user?.userData?.openpaasId || undefined }
       try {
         const user = existingUser.id ? existingUser : await fetchCurrentUser()
+        if (!user.id) {
+          return rejectWithValue(toRejectedError('User not found'))
+        }
+
         const calendars = await fetchCalendars(user.id)
         const rawCalendars = calendars._embedded['dav:calendar']
 
@@ -84,7 +97,7 @@ export const getCalendarsListThunk = (create: ReducerCreators<CalendarState>) =>
         // Remove calendars that no longer exist
         Object.keys(state.list).forEach(id => {
           if (!action.payload.importedCalendars[id]) {
-            delete state.list[id]
+            Reflect.deleteProperty(state.list, id)
           }
         })
       },
@@ -104,7 +117,6 @@ async function fetchCalendarsOwnerData(
   normalizedCalendars: Array<{ cal: CalendarData; ownerId: string }>,
   errors: string[]
 ): Promise<Map<string, OpenPaasUserData>> {
-  const resourceOwnerIds = extractResourceOwnerIds(normalizedCalendars)
   const uniqueOwnerIds = Array.from(
     new Set(normalizedCalendars.map(({ ownerId }) => ownerId).filter(Boolean))
   )
@@ -113,17 +125,11 @@ async function fetchCalendarsOwnerData(
   const OWNER_BATCH_SIZE = 20
 
   const mapOwnerData = async (ownerId: string): Promise<void> => {
-    const isResource = resourceOwnerIds.has(ownerId)
     try {
-      const data = await getOwnerOrResourceData(ownerId, isResource)
+      const data = await getOwnerOrResourceData(ownerId)
       ownerDataMap.set(ownerId, data)
     } catch (error) {
-      console.error(
-        `Failed to fetch ${
-          isResource ? 'resource' : 'user'
-        } details for ${ownerId}:`,
-        error
-      )
+      console.error(`Failed to fetch details for ${ownerId}:`, error)
       ownerDataMap.set(ownerId, {
         id: ownerId,
         firstname: '',

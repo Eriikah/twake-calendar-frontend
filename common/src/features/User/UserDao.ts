@@ -1,4 +1,5 @@
 import { api } from '@common/utils/apiUtils'
+import { fetchEntityById } from './EntityDAO'
 import { OpenPaasUserData } from './type/OpenPaasUserData'
 import { ModuleConfiguration } from './userDataTypes'
 import { SearchResponseItem } from '@common/types/SearchResponseItem'
@@ -26,8 +27,11 @@ export async function fetchUserByEmail(
 }
 
 export async function fetchUserById(id: string): Promise<OpenPaasUserData> {
-  const user = await api.get(`api/users/${id}`).json()
-  return user as OpenPaasUserData
+  const entity = await fetchEntityById(id)
+  if (!entity.user) {
+    throw new Error(`User entity not found for id ${id}`)
+  }
+  return entity.user
 }
 
 export async function searchPeople(

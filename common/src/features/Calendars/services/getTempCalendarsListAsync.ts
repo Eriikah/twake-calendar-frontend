@@ -14,67 +14,14 @@ import { getOwnerOrResourceData } from './helpers'
 import { CalDavLink } from '@common/features/Calendars/types/CalendarApiTypes'
 import { defaultColors } from '@common/utils/defaultColors'
 
-export const getTempCalendarsListThunk = (
-  create: ReducerCreators<CalendarState>
-) =>
-  create.asyncThunk<
-    Record<string, Calendar>,
-    User,
-    { rejectValue: RejectedError }
-  >(
-    async (tempUser, { rejectWithValue }) => {
-      try {
-        const openpaasId = getValidOpenPaasId(tempUser)
-        const calendars = await fetchCalendars(openpaasId, 'sharedPublic=true&')
-        const rawCalendars = getRawCalendars(calendars, tempUser)
-
-        const importedCalendars: Record<string, Calendar> = {}
-        for (const cal of rawCalendars) {
-          const tempCal = await processTempCalendar(cal, tempUser)
-          importedCalendars[tempCal.id] = tempCal
-        }
-
-        return importedCalendars
-      } catch (err) {
-        const error = err as { response?: { status?: number } }
-        return rejectWithValue({
-          message: formatReduxError(err),
-          status: error.response?.status
-        })
-      }
-    },
-    {
-      pending: state => {
-        state.pending = true
-      },
-      fulfilled: (state, action) => {
-        state.pending = false
-        Object.keys(action.payload).forEach(
-          id => (state.templist[id] = action.payload[id])
-        )
-      },
-      rejected: (state, action) => {
-        state.pending = false
-        if (
-          action.payload?.message?.includes('aborted') ||
-          action.error.name === 'AbortError'
-        ) {
-          return
-        }
-        state.error =
-          action.payload?.message ||
-          action.error.message ||
-          'Failed to load temporary calendars'
-      }
-    }
-  )
+function getUserDisplayName(user: User): string {
+  return user.displayName || user.email || 'User'
+}
 
 function getValidOpenPaasId(tempUser: User): string {
   if (!tempUser.openpaasId) {
-    const username = tempUser.displayName || tempUser.email || 'User'
-    throw new Error(
-      `TRANSLATION:calendar.userDoesNotHaveValidId|name=${encodeURIComponent(username)}`
-    )
+    const name = encodeURIComponent(getUserDisplayName(tempUser))
+    throw new Error(`TRANSLATION:calendar.userDoesNotHaveValidId|name=${name}`)
   }
   return tempUser.openpaasId
 }
@@ -85,19 +32,17 @@ function getRawCalendars(
 ): CalendarData[] {
   const rawCalendars = calendars._embedded?.['dav:calendar']
   if (!rawCalendars || rawCalendars.length === 0) {
-    const userName = tempUser.displayName || tempUser.email || 'User'
-    const encodedName = encodeURIComponent(userName)
+    const name = encodeURIComponent(getUserDisplayName(tempUser))
     throw new Error(
-      `TRANSLATION:calendar.userDoesNotHavePublicCalendars|name=${encodedName}`
+      `TRANSLATION:calendar.userDoesNotHavePublicCalendars|name=${name}`
     )
   }
   return rawCalendars
 }
 
 function getCalendarSource(cal: CalendarData): string {
-  const source = cal['calendarserver:source']
-    ? cal['calendarserver:source']._links.self?.href
-    : cal._links.self?.href
+  const source =
+    cal['calendarserver:source']?._links.self?.href ?? cal._links.self?.href
   if (!source) {
     throw new Error('No source for calendar')
   }
@@ -120,10 +65,8 @@ async function processTempCalendar(
   if (!id) {
     throw new Error('Invalid calendar source')
   }
-  const isResource = tempUser.objectType === 'resource'
   const ownerData = await getOwnerOrResourceData(
-    CalDavLink.getFirstIdFromHref(source) ?? '',
-    isResource
+    CalDavLink.getFirstIdFromHref(source) ?? ''
   )
 
   return {
@@ -132,9 +75,78 @@ async function processTempCalendar(
     link: cal._links.self?.href ?? '',
     owner: ownerData,
     description: cal['caldav:description'] ?? '',
-    delegated: !!cal['calendarserver:delegatedsource'],
+    delegated: Boolean(cal['calendarserver:delegatedsource']),
     color: getCalendarColor(tempUser),
     visibility: getCalendarVisibility(cal['acl'] ?? []),
     events: {}
   }
 }
+
+function isAbortError(payloadMessage?: string, errorName?: string): boolean {
+  return (
+    payloadMessage?.includes('aborted') === true || errorName === 'AbortError'
+  )
+}
+
+function getErrorMessage(
+  payloadMessage?: string,
+  errorMessage?: string
+): string {
+  return payloadMessage || errorMessage || 'Failed to load temporary calendars'
+}
+
+export const getTempCalendarsListThunk = (
+  create: ReducerCreators<CalendarState>
+): ReturnType<
+  typeof create.asyncThunk<
+    Record<string, Calendar>,
+    User,
+    { rejectValue: RejectedError }
+  >
+> =>
+  create.asyncThunk<
+    Record<string, Calendar>,
+    User,
+    { rejectValue: RejectedError }
+  >(
+    async (tempUser, { rejectWithValue }) => {
+      try {
+        const openpaasId = getValidOpenPaasId(tempUser)
+        const calendars = await fetchCalendars(openpaasId, 'sharedPublic=true&')
+        const rawCalendars = getRawCalendars(calendars, tempUser)
+
+        const importedList = await Promise.all(
+          rawCalendars.map(cal => processTempCalendar(cal, tempUser))
+        )
+
+        return Object.fromEntries(importedList.map(cal => [cal.id, cal]))
+      } catch (err) {
+        const error = err as { response?: { status?: number } }
+        return rejectWithValue({
+          message: formatReduxError(err),
+          status: error.response?.status
+        })
+      }
+    },
+    {
+      pending: state => {
+        state.pending = true
+      },
+      fulfilled: (state, action) => {
+        state.pending = false
+        Object.keys(action.payload).forEach(
+          id => (state.templist[id] = action.payload[id])
+        )
+      },
+      rejected: (state, action) => {
+        state.pending = false
+        if (isAbortError(action.payload?.message, action.error.name)) {
+          return
+        }
+        state.error = getErrorMessage(
+          action.payload?.message,
+          action.error.message
+        )
+      }
+    }
+  )

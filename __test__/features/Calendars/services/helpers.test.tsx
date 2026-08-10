@@ -1,20 +1,19 @@
 import {
-  extractResourceOwnerIds,
   fetchOwnerData,
-  fetchOwnerOfResource
+  fetchOwnerOfResource,
+  getOwnerOrResourceData
 } from '@common/features/Calendars/services/helpers'
+import { fetchEntityById } from '@common/features/User/EntityDAO'
 import { fetchResourceById } from '@common/features/User/ResourceDAO'
 import { fetchUserById } from '@common/features/User/UserDao'
 
 jest.mock('@common/features/User/UserDao')
 jest.mock('@common/features/User/ResourceDAO')
+jest.mock('@common/features/User/EntityDAO')
 
-const mockedFetchUserById = fetchUserById as jest.MockedFunction<
-  typeof fetchUserById
->
-const mockedFetchResourceById = fetchResourceById as jest.MockedFunction<
-  typeof fetchResourceById
->
+const mockedFetchUserById = fetchUserById
+const mockedFetchResourceById = fetchResourceById
+const mockedFetchEntityById = fetchEntityById
 
 describe('helpers', () => {
   beforeEach(() => {
@@ -94,56 +93,37 @@ describe('helpers', () => {
     })
   })
 
-  describe('extractResourceOwnerIds', () => {
-    it('should return resource owner IDs from cal.invite', () => {
-      const mockCalendars = [
-        {
-          cal: {
-            invite: [
-              { href: 'principals/resources/res1', access: 1 },
-              { href: 'principals/users/user1', access: 2 }
-            ]
-          },
-          ownerId: 'owner-res1'
-        },
-        {
-          cal: {
-            invite: [{ href: 'principals/users/user2', access: 1 }]
-          },
-          ownerId: 'owner-user2'
-        }
-      ] as any
+  describe('getOwnerOrResourceData', () => {
+    it('should return user data when fetchEntityById returns user root key', async () => {
+      const mockUser = {
+        id: 'u-1',
+        firstname: 'Jane',
+        emails: ['jane@test.com']
+      } as any
+      mockedFetchEntityById.mockResolvedValueOnce({ user: mockUser })
 
-      const result = extractResourceOwnerIds(mockCalendars)
-      expect(result).toEqual(new Set(['owner-res1']))
+      const result = await getOwnerOrResourceData('u-1')
+      expect(result).toEqual(mockUser)
     })
 
-    it('should return resource owner IDs from calendarserver:source invite', () => {
-      const mockCalendars = [
-        {
-          cal: {
-            'calendarserver:source': {
-              invite: [{ href: 'principals/resources/res2', access: 1 }]
-            }
-          },
-          ownerId: 'owner-res2'
-        }
-      ] as any
+    it('should return resource data when fetchEntityById returns resource root key', async () => {
+      const mockResource = {
+        _id: 'r-1',
+        name: 'Conference Room',
+        creator: 'u-creator'
+      } as any
+      const mockCreator = {
+        id: 'u-creator',
+        firstname: 'Admin',
+        emails: ['admin@test.com']
+      } as any
 
-      const result = extractResourceOwnerIds(mockCalendars)
-      expect(result).toEqual(new Set(['owner-res2']))
-    })
+      mockedFetchEntityById.mockResolvedValueOnce({ resource: mockResource })
+      mockedFetchUserById.mockResolvedValueOnce(mockCreator)
 
-    it('should return empty set if no resource owner IDs are found', () => {
-      const mockCalendars = [
-        {
-          cal: {},
-          ownerId: 'owner-none'
-        }
-      ] as any
-
-      const result = extractResourceOwnerIds(mockCalendars)
-      expect(result).toEqual(new Set())
+      const result = await getOwnerOrResourceData('r-1')
+      expect(result.resource).toBe(true)
+      expect(result.id).toBe('u-creator')
     })
   })
 })

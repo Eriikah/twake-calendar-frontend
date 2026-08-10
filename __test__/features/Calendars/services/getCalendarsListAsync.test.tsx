@@ -198,10 +198,7 @@ describe('getCalendarsList', () => {
     const result = await thunk(dispatch, getState, undefined)
 
     const payload = result.payload as any
-    expect(mockedGetOwnerOrResourceData).toHaveBeenCalledWith(
-      'error-123',
-      false
-    )
+    expect(mockedGetOwnerOrResourceData).toHaveBeenCalledWith('error-123')
     expect(payload.importedCalendars['cal-1'].owner).toEqual({
       firstname: '',
       id: 'error-123',
@@ -241,10 +238,7 @@ describe('getCalendarsList', () => {
     const result = await thunk(dispatch, getState, undefined)
 
     const payload = result.payload as any
-    expect(mockedGetOwnerOrResourceData).toHaveBeenCalledWith(
-      'resource-123',
-      true
-    )
+    expect(mockedGetOwnerOrResourceData).toHaveBeenCalledWith('resource-123')
     expect(payload.importedCalendars['cal-1'].owner).toEqual({
       firstname: 'Creator',
       lastname: 'User',
