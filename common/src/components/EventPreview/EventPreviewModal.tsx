@@ -137,7 +137,8 @@ const EventPreviewModal: React.FC<{
         style={{ overflow: 'auto' }}
         contentSx={{ overflowX: 'hidden', overflowY: 'auto' }}
         titleSx={{ backgroundColor: '#FCFCFC' }}
-        title={header}
+        title=""
+        headerRightAction={header}
         actions={actions}
       >
         {/* Title & date row */}
