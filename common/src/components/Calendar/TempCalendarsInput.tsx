@@ -42,7 +42,7 @@ export const TempCalendarsInput: React.FC<{
     <Tooltip title={t('tooltip.availabilityPlaceholder')}>
       <span style={{ display: 'block' }}>
         <PeopleSearch
-          objectTypes={['user', 'resource']}
+          objectTypes={['user', 'resource', 'team-calendar']}
           selectedUsers={tempUsers}
           onChange={handleUserChange}
           onToggleEventPreview={handleToggleEventPreview}

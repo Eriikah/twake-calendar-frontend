@@ -25,9 +25,9 @@ export const MobileTempSearchInput: React.FC<MobileTempSearchInputProps> = ({
 
   return (
     <Tooltip title={t('tooltip.availabilityPlaceholder')}>
-      <span style={{ display: 'block' }}>
+      <span style={{ display: 'block', width: '100%' }}>
         <PeopleSearch
-          objectTypes={['user', 'resource']}
+          objectTypes={['user', 'resource', 'team-calendar']}
           selectedUsers={tempUsers}
           onChange={handleChange}
           onToggleEventPreview={handleToggleEventPreview}
