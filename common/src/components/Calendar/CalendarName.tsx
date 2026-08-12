@@ -19,8 +19,12 @@ export const CalendarName: React.FC<{ calendar: Calendar }> = ({
   const ownerDisplayName = makeDisplayName(calendar) ?? ''
   const isOwnCalendar = userData.openpaasId === ownerId
   const isResource = calendar.owner?.resource
+  const isTeamCalendar = calendar.owner?.teamCalendar
   const showCaption =
-    calendar.name !== '#default' && !isOwnCalendar && !isResource
+    calendar.name !== '#default' &&
+    !isOwnCalendar &&
+    !isResource &&
+    !isTeamCalendar
 
   return (
     <Box

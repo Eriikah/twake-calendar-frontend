@@ -4,13 +4,16 @@ export function getSearchInCalendars(
   searchIn: string,
   allIds: string[],
   personalIds: string[],
-  sharedIds: string[]
+  sharedIds: string[],
+  teamIds: string[]
 ): string[] {
   if (!searchIn) return allIds
 
   if (searchIn === 'my-calendars') return personalIds
 
   if (searchIn === 'shared-calendars') return sharedIds
+
+  if (searchIn === 'team-calendars') return teamIds
 
   return [searchIn]
 }
@@ -20,7 +23,8 @@ export function buildQuery(
   filters: SearchFilters,
   allIds: string[],
   personalIds: string[],
-  sharedIds: string[]
+  sharedIds: string[],
+  teamCalendarIds: string[]
 ):
   | {
       search: string
@@ -52,7 +56,8 @@ export function buildQuery(
         filters.searchIn,
         allIds,
         personalIds,
-        sharedIds
+        sharedIds,
+        teamCalendarIds
       )
     }
   }

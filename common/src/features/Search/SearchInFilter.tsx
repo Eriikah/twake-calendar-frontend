@@ -1,14 +1,15 @@
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
-import { selectCalendars } from '@common/app/selectors/selectCalendars'
 import { CalendarItemList } from '@common/components/Calendar/CalendarItemList'
 import { CalendarName } from '@common/components/Calendar/CalendarName'
-import { useFilterSearch } from '@common/components/Menubar/useMobileSearch'
+import {
+  useCalendars,
+  useFilterSearch
+} from '@common/components/Menubar/useMobileSearch'
 import {
   MobileSelector,
   MobileSelectorHandle
 } from '@common/components/MobileSelector'
 import { SearchFilters, setFilters } from '@common/features/Search/SearchSlice'
-import { extractEventBaseUuid } from '@common/utils/extractEventBaseUuid'
 import {
   Box,
   Divider,
@@ -34,15 +35,7 @@ export const SearchInFilter: React.FC<Props> = ({ mode }) => {
   const inputSize = useResponsiveInputSize()
   const dispatch = useAppDispatch()
   const searchParams = useAppSelector(state => state.searchResult.searchParams)
-  const calendars = useAppSelector(selectCalendars)
-  const userId = useAppSelector(state => state.user.userData?.openpaasId)
-  const personalCalendars = userId
-    ? calendars.filter(c => extractEventBaseUuid(c.id) === userId)
-    : []
-
-  const sharedCalendars = userId
-    ? calendars.filter(c => extractEventBaseUuid(c.id) !== userId)
-    : []
+  const { personalCalendars, sharedCalendars, teamCalendars } = useCalendars()
 
   const selectorRef = useRef<MobileSelectorHandle>(null)
   const mobileSearch = useFilterSearch('organizers', () => {})
@@ -63,6 +56,7 @@ export const SearchInFilter: React.FC<Props> = ({ mode }) => {
         filters={searchParams.filters}
         personalCalendars={personalCalendars}
         sharedCalendars={sharedCalendars}
+        teamCalendars={teamCalendars}
         t={t}
         handleSelect={v => void handleSelect(v)}
       />
@@ -107,6 +101,14 @@ export const SearchInFilter: React.FC<Props> = ({ mode }) => {
           {t('search.filter.sharedCalendars')}
         </MenuItem>
         {CalendarItemList(sharedCalendars)}
+        <Divider />
+        <MenuItem
+          value="team-calendars"
+          sx={{ color: 'text.secondary', fontSize: '12px' }}
+        >
+          {t('search.filter.teamCalendars')}
+        </MenuItem>
+        {CalendarItemList(teamCalendars)}
       </Select>
     </Box>
   )
@@ -129,6 +131,10 @@ const getDisplayLabel = (
     return t('search.filter.sharedCalendars')
   }
 
+  if (filters.searchIn === 'team-calendars') {
+    return t('search.filter.teamCalendars')
+  }
+
   const selected = personalCalendars.find(c => c.id === filters.searchIn)
   return selected ? <CalendarName calendar={selected} /> : t('search.searchIn')
 }
@@ -138,6 +144,7 @@ const CalendarMobileSelector: React.FC<{
   filters: SearchFilters
   personalCalendars: Calendar[]
   sharedCalendars: Calendar[]
+  teamCalendars: Calendar[]
   t: (key: string) => string
   handleSelect: (value: string) => void
 }> = ({
@@ -145,10 +152,15 @@ const CalendarMobileSelector: React.FC<{
   filters,
   personalCalendars,
   sharedCalendars,
+  teamCalendars,
   t,
   handleSelect
 }) => {
-  const allCalendar = [...personalCalendars, ...sharedCalendars]
+  const allCalendar = [
+    ...personalCalendars,
+    ...sharedCalendars,
+    ...teamCalendars
+  ]
   return (
     <MobileSelector
       ref={selectorRef}
@@ -185,6 +197,22 @@ const CalendarMobileSelector: React.FC<{
           <ListItemText primary={t('search.filter.sharedCalendars')} />
         </ListItemButton>
         {sharedCalendars.map(c => (
+          <ListItemButton
+            key={c.id}
+            selected={filters.searchIn === c.id}
+            onClick={() => handleSelect(c.id)}
+          >
+            <CalendarName calendar={c} />
+          </ListItemButton>
+        ))}
+        <Divider />
+        <ListItemButton
+          selected={filters.searchIn === 'team-calendars'}
+          onClick={() => handleSelect('team-calendars')}
+        >
+          <ListItemText primary={t('search.filter.teamCalendars')} />
+        </ListItemButton>
+        {teamCalendars.map(c => (
           <ListItemButton
             key={c.id}
             selected={filters.searchIn === c.id}

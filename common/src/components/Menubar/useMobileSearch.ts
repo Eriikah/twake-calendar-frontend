@@ -79,11 +79,13 @@ interface CalendarsResult {
   calendars: Calendar[]
   personalCalendars: Calendar[]
   sharedCalendars: Calendar[]
+  teamCalendars: Calendar[]
 }
 
-function useCalendars(): CalendarsResult {
+export function useCalendars(): CalendarsResult {
   const calendars = useAppSelector(selectCalendars)
   const userId = useAppSelector(state => state.user.userData?.openpaasId)
+
   const personalCalendars = useMemo(
     (): Calendar[] =>
       userId
@@ -94,11 +96,24 @@ function useCalendars(): CalendarsResult {
   const sharedCalendars = useMemo(
     (): Calendar[] =>
       userId
-        ? calendars.filter(c => extractEventBaseUuid(c.id) !== userId)
+        ? calendars.filter(
+            c => extractEventBaseUuid(c.id) !== userId && !c.owner?.teamCalendar
+          )
         : [],
     [calendars, userId]
   )
-  return { calendars, personalCalendars, sharedCalendars }
+
+  const teamCalendars = useMemo(
+    (): Calendar[] =>
+      userId
+        ? calendars.filter(
+            c => extractEventBaseUuid(c.id) !== userId && c.owner?.teamCalendar
+          )
+        : [],
+    [calendars, userId]
+  )
+
+  return { calendars, personalCalendars, sharedCalendars, teamCalendars }
 }
 
 function useSearchAction(
@@ -106,6 +121,7 @@ function useSearchAction(
   calendarIds: string[],
   personalCalendarIds: string[],
   sharedCalendarsIds: string[],
+  teamCalendarsIds: string[],
   setDialogOpen: (b: boolean) => void
 ): (searchQuery: string, currentFilters: SearchFilters) => Promise<void> {
   return useCallback(
@@ -118,7 +134,8 @@ function useSearchAction(
         currentFilters,
         calendarIds,
         personalCalendarIds,
-        sharedCalendarsIds
+        sharedCalendarsIds,
+        teamCalendarsIds
       )
       if (!query) return
       dispatch(setSearchQuery(query.search))
@@ -131,6 +148,7 @@ function useSearchAction(
       calendarIds,
       personalCalendarIds,
       sharedCalendarsIds,
+      teamCalendarsIds,
       setDialogOpen
     ]
   )
@@ -231,7 +249,8 @@ export function useFilterSearch(
   const searchParams = useAppSelector(state => state.searchResult.searchParams)
   const filters = searchParams.filters
   const currentSearch = searchParams.search
-  const { calendars, personalCalendars, sharedCalendars } = useCalendars()
+  const { calendars, personalCalendars, sharedCalendars, teamCalendars } =
+    useCalendars()
   const {
     inputQuery,
     setInputQuery,
@@ -252,6 +271,7 @@ export function useFilterSearch(
     calendars.map(c => c.id),
     personalCalendars.map(c => c.id),
     sharedCalendars.map(c => c.id),
+    teamCalendars.map(c => c.id),
     setDialogOpen
   )
   const handleSearchChange = useSearchChangeHandler(
