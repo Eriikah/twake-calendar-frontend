@@ -590,6 +590,22 @@ const CalendarSelection: React.FC<{
           defaultExpanded
         />
 
+        <CalendarAccordion
+          header={{
+            title: t('calendar.team')
+          }}
+          calendars={teamCalendars}
+          selectedCalendars={selectedCalendars}
+          handleToggle={handleCalendarToggle}
+          setOpen={(id: string) => {
+            setAnchorElCal(document.body)
+            setSelectedCalId(id)
+          }}
+          defaultExpanded
+          isTeam
+          hideOwner
+        />
+
         {!window.HIDE_RESOURCES && (
           <CalendarAccordion
             header={{
@@ -611,22 +627,6 @@ const CalendarSelection: React.FC<{
             hideOwner={true}
           />
         )}
-
-        <CalendarAccordion
-          header={{
-            title: t('calendar.team')
-          }}
-          calendars={teamCalendars}
-          selectedCalendars={selectedCalendars}
-          handleToggle={handleCalendarToggle}
-          setOpen={(id: string) => {
-            setAnchorElCal(document.body)
-            setSelectedCalId(id)
-          }}
-          defaultExpanded
-          isTeam
-          hideOwner
-        />
       </div>
       <CalendarPopover
         open={Boolean(anchorElCal)}
