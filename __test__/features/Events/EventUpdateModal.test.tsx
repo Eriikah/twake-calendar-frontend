@@ -32,10 +32,10 @@ describe('EventUpdateModal Timezone Handling', () => {
         sid: 'test-sid',
         openpaasId: '667037022b752d0026472254'
       },
-      organiserData: {
+      organiserData: new userOrganiser({
         cn: 'test',
         cal_address: 'test@test.com'
-      }
+      })
     },
     calendars: {
       list: {
@@ -295,10 +295,10 @@ describe('EventUpdateModal Recurring to Non-Recurring Conversion', () => {
         sid: 'test-sid',
         openpaasId: '667037022b752d0026472254'
       },
-      organiserData: {
+      organiserData: new userOrganiser({
         cn: 'test',
         cal_address: 'test@test.com'
-      }
+      })
     },
     calendars: {
       list: {

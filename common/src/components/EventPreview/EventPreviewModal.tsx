@@ -67,7 +67,8 @@ const EventPreviewModal: React.FC<{
 
   useEffect(
     () => {
-      if (open && (!event || !calendar)) {
+      const isMissingEventOrCalendar = !event || !calendar
+      if (open && isMissingEventOrCalendar) {
         onClose({}, 'backdropClick')
       }
     }, // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -76,17 +77,18 @@ const EventPreviewModal: React.FC<{
 
   if (!user || !event || !calendar) return null
 
-  const isAdminOfResource = Boolean(
-    calendar.owner?.resource &&
+  const isResourceAdmin = Boolean(
     user.openpaasId &&
     calendar.owner?.administrators?.some(admin => admin.id === user.openpaasId)
   )
+  const isAdminOfResource = Boolean(calendar.owner?.resource && isResourceAdmin)
 
   const isAttendee = Boolean(
     event.attendee?.find(p => p.cal_address === user.email)
   )
 
-  const hasActionsBorderTop = (isAttendee && isOwn) || isAdminOfResource
+  const isOwnAttendee = isAttendee && isOwn
+  const hasActionsBorderTop = isOwnAttendee || isAdminOfResource
 
   const editInOrganizerCalendarTooltip = organizerWritableCalendar
     ? t('eventPreview.editInOrganizerCalendar', {
@@ -122,6 +124,9 @@ const EventPreviewModal: React.FC<{
       setOpenEditModePopup={setOpenEditModePopup}
     />
   )
+
+  const canModifyCalendar = isOwn || isWriteDelegated
+  const hasMultipleAttendees = (event?.attendee?.length ?? 0) > 1
 
   return (
     <>
@@ -164,19 +169,17 @@ const EventPreviewModal: React.FC<{
           calendarid={calendarid}
           setCalendarid={handleCalendarMove}
           userPersonalCalendars={
-            !isOwn && !isWriteDelegated ? [calendar] : userPersonalCalendars
+            !canModifyCalendar ? [calendar] : userPersonalCalendars
           }
           showMore={false}
-          disabled={!isOwn && !isWriteDelegated}
+          disabled={!canModifyCalendar}
         />
       </ResponsiveDialog>
 
       {/* Action menu (more vert) */}
       <EventPreviewActionMenu
         anchorEl={toggleActionMenu}
-        isEditable={
-          (isOwn || isWriteDelegated) && (event?.attendee?.length ?? 0) > 1
-        }
+        isEditable={canModifyCalendar && hasMultipleAttendees}
         event={event}
         userEmail={user.email}
         onClose={() => setToggleActionMenu(null)}

@@ -116,14 +116,26 @@ export function useCalendars(): CalendarsResult {
   return { calendars, personalCalendars, sharedCalendars, teamCalendars }
 }
 
-function useSearchAction(
-  dispatch: AppDispatch,
-  calendarIds: string[],
-  personalCalendarIds: string[],
-  sharedCalendarsIds: string[],
-  teamCalendarsIds: string[],
+interface UseSearchActionProps {
+  dispatch: AppDispatch
+  calendarIds: string[]
+  personalCalendarIds: string[]
+  sharedCalendarsIds: string[]
+  teamCalendarsIds: string[]
   setDialogOpen: (b: boolean) => void
-): (searchQuery: string, currentFilters: SearchFilters) => Promise<void> {
+}
+
+function useSearchAction({
+  dispatch,
+  calendarIds,
+  personalCalendarIds,
+  sharedCalendarsIds,
+  teamCalendarsIds,
+  setDialogOpen
+}: UseSearchActionProps): (
+  searchQuery: string,
+  currentFilters: SearchFilters
+) => Promise<void> {
   return useCallback(
     async (
       searchQuery: string,
@@ -266,14 +278,14 @@ export function useFilterSearch(
     setSearchState
   }
 
-  const handleSearch = useSearchAction(
+  const handleSearch = useSearchAction({
     dispatch,
-    calendars.map(c => c.id),
-    personalCalendars.map(c => c.id),
-    sharedCalendars.map(c => c.id),
-    teamCalendars.map(c => c.id),
+    calendarIds: calendars.map(c => c.id),
+    personalCalendarIds: personalCalendars.map(c => c.id),
+    sharedCalendarsIds: sharedCalendars.map(c => c.id),
+    teamCalendarsIds: teamCalendars.map(c => c.id),
     setDialogOpen
-  )
+  })
   const handleSearchChange = useSearchChangeHandler(
     setDialogOpen,
     setSearchState

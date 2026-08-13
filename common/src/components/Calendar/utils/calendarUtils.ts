@@ -168,7 +168,7 @@ function buildConvertedEvent({
     userAddress
   )
 
-  const isOrganiser = isEventOrganiser(event, effectiveEmail)
+  const isOrganiser = isEventOrganiser(event, effectiveEmail, calendar)
   const isPersonalEvent = extractEventBaseUuid(event.calId) === userId
 
   const convertedEvent: ConvertedEvent = {

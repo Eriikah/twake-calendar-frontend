@@ -2,6 +2,7 @@ import { AppDispatch } from '@common/app/store'
 import { Calendar } from '@common/types/CalendarTypes'
 import { CalendarEvent } from '@common/types/EventsTypes'
 import { EventFormValues } from '@common/components/Event/EventFormFields.types'
+import { userOrganiser } from '@common/features/User/userDataTypes'
 import { EventFormContext } from '@common/utils/eventFormTempStorage'
 
 export interface UpdateHelperContext {
@@ -32,6 +33,7 @@ export interface PerformUpdateActionParams {
   targetCalendar: Calendar
   event: CalendarEvent
   values: EventFormValues
+  organizer?: userOrganiser
   masterEvent?: CalendarEvent | null
   baseUID: string
   getSeriesInstances: () => Record<string, CalendarEvent>
@@ -44,6 +46,7 @@ export interface PerformUpdateActionParams {
 export interface PrepareUpdateDataParams {
   event: CalendarEvent
   values: EventFormValues
+  organizer?: userOrganiser
   calList: Record<string, Calendar>
   showMore: boolean
   calId: string
@@ -62,6 +65,7 @@ export interface HandleUpdateSubmitParams extends PrepareUpdateDataParams {
 export interface PrepareUpdatedEventParams {
   event: CalendarEvent
   values: EventFormValues
+  organizer?: userOrganiser
   startISO: string
   endISO: string
   timeChanged: boolean

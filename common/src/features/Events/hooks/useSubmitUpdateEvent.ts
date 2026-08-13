@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { CalendarEvent } from '@common/types/EventsTypes'
 import { EventFormValues } from '@common/components/Event/EventFormFields.types'
+import { userOrganiser } from '@common/features/User/userDataTypes'
 import { handleUpdateSubmit } from './submitUpdateHelpers/performUpdateAction'
 import { useI18n } from 'twake-i18n'
 
@@ -24,17 +25,24 @@ export const useSubmitUpdateEvent = ({
   showMore,
   onClose
 }: UseSubmitUpdateEventProps): {
-  handleSubmit: (values: EventFormValues) => Promise<void>
+  handleSubmit: (
+    values: EventFormValues,
+    organizer?: userOrganiser
+  ) => Promise<void>
 } => {
   const { t } = useI18n()
   const dispatch = useAppDispatch()
   const calList = useAppSelector(state => state.calendars.list)
 
   const handleSubmit = useCallback(
-    async (values: EventFormValues): Promise<void> => {
+    async (
+      values: EventFormValues,
+      organizer?: userOrganiser
+    ): Promise<void> => {
       await handleUpdateSubmit({
         event,
         values,
+        organizer,
         calList,
         showMore,
         calId,

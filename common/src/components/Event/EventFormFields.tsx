@@ -21,6 +21,7 @@ import React, {
   useState
 } from 'react'
 import { useI18n } from 'twake-i18n'
+import { userOrganiser } from '@common/features/User/userDataTypes'
 import { AddDescButton } from './AddDescButton'
 import { EventFormFieldsExpanded } from './components/EventFormFieldsExpanded'
 import { FieldWithLabel } from './components/FieldWithLabel'
@@ -32,6 +33,7 @@ import {
 import { CalendarSelectField } from './fields/CalendarSelectField'
 import { EventDateTimeField } from './fields/EventDateTimeField'
 import LocationField from './fields/LocationField'
+import { OrganizerSelectField } from './fields/OrganizerSelectField'
 import { TitleField } from './fields/TitleField'
 import { VideoConferenceField } from './fields/VideoConferenceField'
 import { TdriveButton } from '@common/features/Tdrive/components/TdriveButton'
@@ -53,6 +55,7 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
       isSpecific = false,
       eventId,
       userPersonalCalendars,
+      event,
       onSubmit,
       onCancel,
       tempStorageKey,
@@ -122,12 +125,50 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
       },
       [onValidationChange]
     )
+    const selectedCalendar = calList?.[formValues.calendarid]
+    const isTeamCalendar = Boolean(selectedCalendar?.owner?.teamCalendar)
+
     const { organizer } = useEventOrganizer({
       calendarid: formValues.calendarid,
       eventId,
       calList,
       userOrganizer
     })
+
+    const eventOrganizer = event?.organizer
+
+    const initialOrganizer = useMemo(() => {
+      if (eventOrganizer) {
+        return new userOrganiser({
+          cal_address: eventOrganizer.cal_address,
+          cn: eventOrganizer.cn
+        })
+      }
+      return userOrganizer
+    }, [eventOrganizer, userOrganizer])
+
+    const [selectedOrganizer, setSelectedOrganizer] = useState(initialOrganizer)
+    const [prevCalendarId, setPrevCalendarId] = useState(formValues.calendarid)
+    const [prevUserOrganizer, setPrevUserOrganizer] = useState(userOrganizer)
+
+    useEffect(() => {
+      const initOrganizerData = (): void => {
+        if (prevCalendarId !== formValues.calendarid) {
+          setPrevCalendarId(formValues.calendarid)
+          setSelectedOrganizer(userOrganizer)
+        } else if (prevUserOrganizer !== userOrganizer && !eventOrganizer) {
+          setPrevUserOrganizer(userOrganizer)
+          setSelectedOrganizer(userOrganizer)
+        }
+      }
+      initOrganizerData()
+    }, [
+      formValues.calendarid,
+      prevCalendarId,
+      prevUserOrganizer,
+      eventOrganizer,
+      userOrganizer
+    ])
 
     useEffect(() => {
       onCalendarChange?.(formValues.calendarid)
@@ -136,8 +177,8 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
     // Keep organizer in a ref so submit() can read it synchronously
     const organizerRef = useRef(organizer)
     useEffect(() => {
-      organizerRef.current = organizer
-    }, [organizer])
+      organizerRef.current = isTeamCalendar ? selectedOrganizer : organizer
+    }, [isTeamCalendar, organizer, selectedOrganizer])
 
     // Use a ref to store the LATEST formValues so the imperative handlers
     // always have the current state without needing to be re-bound
@@ -280,6 +321,17 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
           disabled={typeOfAction === 'solo'}
           onCalendarChange={onCalendarChange}
         />
+
+        {isTeamCalendar && selectedCalendar && (
+          <OrganizerSelectField
+            calendar={selectedCalendar}
+            value={selectedOrganizer}
+            onChange={setSelectedOrganizer}
+            userOrganizer={userOrganizer}
+            showMore={showMore}
+            disabled={typeOfAction === 'solo'}
+          />
+        )}
 
         <EventFormFieldsExpanded
           alarms={v.alarms}

@@ -10,7 +10,12 @@ import { CalendarEvent } from '@common/types/EventsTypes'
 import { RepetitionObject } from '@common/types/Repetition'
 import { extractEventBaseUuid } from '@common/utils/extractEventBaseUuid'
 import { addVideoConferenceToDescription } from '@common/utils/videoConferenceUtils'
-import { PrepareUpdateDataParams, PrepareUpdateDataResult } from './types'
+import { rewriteAttendeesForOrganizerChange } from '@common/features/Events/updateEventHelpers/moveEventBetweenCalendars'
+import {
+  PrepareUpdateDataParams,
+  PrepareUpdateDataResult,
+  PrepareUpdatedEventParams
+} from './types'
 
 export function getAlarmAttendees(
   values: EventFormValues,
@@ -91,9 +96,25 @@ function getEventAttachments<T>(attachments?: T[]): T[] | undefined {
   return attachments && attachments.length > 0 ? attachments : undefined
 }
 
+function computeFinalAttendees(
+  baseAttendees: userAttendee[],
+  organizer: PrepareUpdatedEventParams['organizer'],
+  existingOrganizer: CalendarEvent['organizer']
+): userAttendee[] {
+  if (organizer && organizer.cal_address !== existingOrganizer?.cal_address) {
+    return rewriteAttendeesForOrganizerChange(
+      baseAttendees,
+      existingOrganizer,
+      organizer
+    )
+  }
+  return baseAttendees
+}
+
 export function prepareUpdatedEvent({
   event,
   values,
+  organizer,
   startISO,
   endISO,
   timeChanged,
@@ -101,18 +122,18 @@ export function prepareUpdatedEvent({
   calId,
   newCalId,
   t
-}: {
-  event: CalendarEvent
-  values: EventFormValues
-  startISO: string
-  endISO: string
-  timeChanged: boolean
-  targetCalendar: Calendar
-  calId: string
-  newCalId: string
-  t?: (key: string) => string
-}): CalendarEvent {
+}: PrepareUpdatedEventParams): CalendarEvent {
   const currentCalId = newCalId || calId
+  const finalOrganizer = organizer ?? event.organizer
+
+  const baseAttendees =
+    updateAttendeesAfterTimeChange(event, timeChanged, values.attendees)
+      .attendee ?? []
+  const finalAttendees = computeFinalAttendees(
+    baseAttendees,
+    organizer,
+    event.organizer
+  )
 
   const newEvent: CalendarEvent = {
     ...updateAttendeesAfterTimeChange(event, timeChanged, values.attendees),
@@ -130,7 +151,8 @@ export function prepareUpdatedEvent({
       timezone: values.timezone
     }),
     class: values.eventClass,
-    organizer: event.organizer,
+    organizer: finalOrganizer,
+    attendee: finalAttendees,
     timezone: values.timezone,
     transp: values.busy,
     sequence: getNextSequence(event.sequence),
@@ -169,6 +191,7 @@ function mapResourcesToAttendees(
 export function prepareUpdateData({
   event,
   values,
+  organizer,
   calList,
   showMore,
   calId,
@@ -199,6 +222,7 @@ export function prepareUpdateData({
   const newEvent = prepareUpdatedEvent({
     event,
     values,
+    organizer,
     startISO,
     endISO,
     timeChanged,

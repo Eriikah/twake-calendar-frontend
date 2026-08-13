@@ -61,6 +61,9 @@ function resolveOrganizerForCalendar(
   calendar: Calendar,
   originalOrganizer: CalendarEvent['organizer']
 ): CalendarEvent['organizer'] {
+  if (calendar.owner?.teamCalendar && originalOrganizer) {
+    return originalOrganizer
+  }
   const ownerEmail = calendar.owner?.emails?.[0]
   if (!ownerEmail) {
     return originalOrganizer
@@ -77,7 +80,7 @@ function resolveOrganizerForCalendar(
   })
 }
 
-function rewriteAttendeesForOrganizerChange(
+export function rewriteAttendeesForOrganizerChange(
   attendees: userAttendee[],
   oldOrganizer?: userOrganiser,
   newOrganizer?: userOrganiser

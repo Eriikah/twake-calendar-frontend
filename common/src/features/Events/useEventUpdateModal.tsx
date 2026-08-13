@@ -13,6 +13,7 @@ import { Calendar } from '@common/types/CalendarTypes'
 import { useUserPersonalCalendars } from '@common/features/Calendars/hooks/useUserPersonalCalendars'
 import { CalendarEvent } from '@common/types/EventsTypes'
 import { Valarms } from '@common/types/Valarms'
+import { userOrganiser } from '@common/features/User/userDataTypes'
 import { EventUpdateModalProps } from './EventUpdateModal'
 import { useMasterEvent } from './hooks/useMasterEvent'
 import { useSubmitUpdateEvent } from './hooks/useSubmitUpdateEvent'
@@ -27,7 +28,10 @@ export function useEventUpdateModal(
   effectiveEvent: CalendarEvent | undefined | null
   initialValues: ReturnType<typeof useBuildInitialValues>
   handleClose: () => void
-  handleSubmit: (values: EventFormValues) => Promise<void>
+  handleSubmit: (
+    values: EventFormValues,
+    organizer?: userOrganiser
+  ) => Promise<void>
   handleExpandToggle: () => void
   handleSave: () => Promise<void>
   tempContext: EventFormContext
@@ -72,7 +76,7 @@ export function useEventUpdateModal(
     setShowMore(false)
   }, [onClose, onCloseAll])
 
-  const { handleSubmit } = useSubmitUpdateEvent({
+  const { handleSubmit: submitUpdate } = useSubmitUpdateEvent({
     event,
     calId,
     eventId,
@@ -82,41 +86,48 @@ export function useEventUpdateModal(
     onClose: handleClose
   })
 
+  const handleSubmit = useCallback(
+    async (
+      values: EventFormValues,
+      organizer?: userOrganiser
+    ): Promise<void> => {
+      // Get the original event to preserve personal alarms
+      const originalEvent = effectiveEvent || event
+      const originalAlarms = originalEvent?.alarms
+
+      const isMultiUser = (values.attendees?.length ?? 0) > 1
+
+      let mergedAlarms: Valarms
+      if (isMultiUser && originalAlarms) {
+        // Multi-user event: edit global alarms only, preserve personal alarms
+        // from other users that aren't shown in the form
+        const globalAlarmsFromForm = Valarms.fromList(
+          values.alarms.getGlobalAlarms()
+        )
+        mergedAlarms =
+          globalAlarmsFromForm.withPersonalAlarmsFrom(originalAlarms)
+      } else {
+        // Single-user event: use form alarms directly
+        mergedAlarms = values.alarms
+      }
+
+      const valuesWithMergedAlarms = {
+        ...values,
+        alarms: mergedAlarms
+      }
+
+      await submitUpdate(valuesWithMergedAlarms, organizer)
+    },
+    [effectiveEvent, event, submitUpdate]
+  )
+
   const tempContext: EventFormContext = { eventId, calId, typeOfAction }
 
   const handleExpandToggle = (): void => setShowMore(s => !s)
 
   const handleSave = useCallback(async () => {
-    // Get form values
-    const values = formRef.current?.getValues()
-    if (!values) return
-
-    // Get the original event to preserve personal alarms
-    const originalEvent = effectiveEvent || event
-    const originalAlarms = originalEvent?.alarms
-
-    const isMultiUser = (values.attendees?.length ?? 0) > 1
-
-    let mergedAlarms: Valarms
-    if (isMultiUser && originalAlarms) {
-      // Multi-user event: edit global alarms only, preserve personal alarms
-      // from other users that aren't shown in the form
-      const globalAlarmsFromForm = Valarms.fromList(
-        values.alarms.getGlobalAlarms()
-      )
-      mergedAlarms = globalAlarmsFromForm.withPersonalAlarmsFrom(originalAlarms)
-    } else {
-      // Single-user event: use form alarms directly
-      mergedAlarms = values.alarms
-    }
-
-    const valuesWithMergedAlarms = {
-      ...values,
-      alarms: mergedAlarms
-    }
-
-    await handleSubmit(valuesWithMergedAlarms)
-  }, [formRef, handleSubmit, effectiveEvent, event])
+    await formRef.current?.submit()
+  }, [formRef])
 
   return {
     userPersonalCalendars,

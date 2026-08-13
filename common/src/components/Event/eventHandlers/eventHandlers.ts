@@ -55,7 +55,7 @@ function updateEventAttendees(
   }
 
   const eventHasNoAttendees = !event?.attendee || event.attendee.length === 0
-  const isOrganizer = isEventOrganiser(event, user.email)
+  const isOrganizer = isEventOrganiser(event, user.email, calendar)
   if (eventHasNoAttendees) {
     const userdata = new userAttendee({
       cal_address: user.email,

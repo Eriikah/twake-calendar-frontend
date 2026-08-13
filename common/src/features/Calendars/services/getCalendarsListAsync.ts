@@ -197,12 +197,22 @@ function buildFetchedCalendars(
           inviteStatus: number
         }>
       ).filter((inv): inv is CalendarInvite => [2, 3, 5].includes(inv.access))
+
+      const owner: OpenPaasUserData = ownerData.teamCalendar
+        ? {
+            ...ownerData,
+            emails: invite.map(inv =>
+              inv.href.replace('mailto:', '').toLowerCase()
+            )
+          }
+        : ownerData
+
       if (!fetchedCalendars[id] || delegated) {
         fetchedCalendars[id] = {
           id,
           name: cal['dav:name'] ?? '',
           link: link ?? '',
-          owner: ownerData,
+          owner,
           description,
           delegated,
           color,

@@ -3,6 +3,43 @@ import { Calendar } from '@common/types/CalendarTypes'
 import { makeDisplayName } from '@common/utils/makeDisplayName'
 import { useMemo } from 'react'
 
+/**
+ * Calculates the event organizer based on delegated calendar status.
+ */
+function getDelegatedOrganizer(
+  selectedCalendar: Calendar | undefined,
+  userOrganizer: userOrganiser
+): userOrganiser {
+  if (!selectedCalendar?.delegated || !selectedCalendar?.owner) {
+    return userOrganizer
+  }
+
+  const { owner } = selectedCalendar
+  const calAddress = owner.emails?.[0] ?? ''
+  const displayName = makeDisplayName(selectedCalendar) ?? calAddress
+
+  return new userOrganiser({
+    cn: displayName,
+    cal_address: calAddress
+  })
+}
+
+/**
+ * Determines if the current organizer is the organizer of the specified event.
+ */
+function checkIsOrganizer(
+  selectedCalendar: Calendar | undefined,
+  eventId: string | null | undefined,
+  organizerAddress?: string
+): boolean {
+  if (!eventId || !selectedCalendar || !organizerAddress) return false
+
+  const eventOrganizerAddress =
+    selectedCalendar.events?.[eventId]?.organizer?.cal_address
+
+  return eventOrganizerAddress === organizerAddress
+}
+
 // Update event organizer accordingly to selected calendar's delegated status
 export function useEventOrganizer({
   calendarid,
@@ -24,26 +61,15 @@ export function useEventOrganizer({
     [calList, calendarid]
   )
 
-  const organizer = useMemo(() => {
-    if (selectedCalendar?.delegated && selectedCalendar?.owner) {
-      return new userOrganiser({
-        cn:
-          makeDisplayName(selectedCalendar) ??
-          selectedCalendar.owner.emails?.[0] ??
-          '',
-        cal_address: selectedCalendar.owner.emails?.[0] ?? ''
-      })
-    }
-    return userOrganizer
-  }, [selectedCalendar, userOrganizer])
+  const organizer = useMemo(
+    () => getDelegatedOrganizer(selectedCalendar, userOrganizer),
+    [selectedCalendar, userOrganizer]
+  )
 
-  const isOrganizer = useMemo(() => {
-    if (!eventId) return false
-    return (
-      selectedCalendar?.events[eventId]?.organizer?.cal_address ===
-      organizer?.cal_address
-    )
-  }, [selectedCalendar, eventId, organizer?.cal_address])
+  const isOrganizer = useMemo(
+    () => checkIsOrganizer(selectedCalendar, eventId, organizer?.cal_address),
+    [selectedCalendar, eventId, organizer?.cal_address]
+  )
 
   return { organizer, selectedCalendar, isOrganizer }
 }

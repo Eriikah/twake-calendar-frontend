@@ -8,14 +8,14 @@ import {
 import { createEventContext } from '@common/features/Events/createEventContext'
 import { moveEventBetweenCalendars } from '@common/features/Events/updateEventHelpers/moveEventBetweenCalendars'
 import { ToUserData } from '@common/features/User/type/OpenPaasUserData'
-import { userData } from '@common/features/User/userDataTypes'
+import { userData, userOrganiser } from '@common/features/User/userDataTypes'
 import { Calendar } from '@common/types/CalendarTypes'
 import { CalendarEvent, ContextualizedEvent } from '@common/types/EventsTypes'
 import { assertThunkSuccess } from '@common/utils/assertThunkSuccess'
 import { getEffectiveEmail } from '@common/utils/getEffectiveEmail'
 import { isEventOrganiser } from '@common/utils/isEventOrganiser'
 import { browserDefaultTimeZone } from '@common/utils/timezone'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useEventUpdateModalReopen } from './useEventUpdateModalReopen'
 
 interface StoredEventReopenData {
@@ -94,6 +94,15 @@ export function useEventPreviewState(
 
   const [calendarid, setCalendarid] = useState<string>(calendar?.id ?? '')
 
+  const currentUserOrganizer = useMemo(
+    () =>
+      new userOrganiser({
+        cal_address: `mailto:${user?.email ?? ''}`,
+        cn: user.name || user?.email || ''
+      }),
+    [user]
+  )
+
   // Modal visibility
   const [openUpdateModal, setOpenUpdateModal] = useState<boolean>(false)
   const [openSettingsUpdateModal, setOpenSettingsUpdateModal] =
@@ -134,7 +143,7 @@ export function useEventPreviewState(
     ? getEffectiveEmail(calendar, isWriteDelegated, user.email)
     : ''
   const isOrganizer = event?.organizer
-    ? isEventOrganiser(event, effectiveEmail)
+    ? isEventOrganiser(event, effectiveEmail, calendar)
     : isOwn
   const isNotPrivate =
     event?.class !== 'PRIVATE' && event?.class !== 'CONFIDENTIAL'
@@ -158,8 +167,12 @@ export function useEventPreviewState(
   const contextualizedEvent =
     event && calendar && user ? createEventContext(event, calendar, user) : null
 
+  const isTeamCalendar = Boolean(calendar?.owner?.teamCalendar)
+
   const attendanceUser =
-    isWriteDelegated && calendar?.owner ? ToUserData(calendar.owner) : user
+    isWriteDelegated && calendar?.owner && !isTeamCalendar
+      ? ToUserData(calendar.owner)
+      : user
 
   // Resolve typeOfAction for EventUpdateModal (state or sessionStorage fallback)
   const resolvedTypeOfAction = ((): 'solo' | 'all' | undefined => {
@@ -190,7 +203,7 @@ export function useEventPreviewState(
       cal.id?.split('/')[0] === user.openpaasId ||
       (cal.delegated &&
         cal.access?.write &&
-        isEventOrganiser(event, effectiveEmail))
+        isEventOrganiser(event, effectiveEmail, cal))
   )
 
   // Action handlers
@@ -258,18 +271,24 @@ export function useEventPreviewState(
     setOpenDuplicateModal(true)
   }
 
-  const handleCalendarMove = (calendarid: string): void => {
-    if (!event || calendarid === calId) return
+  const handleCalendarMove = (targetCalId: string): void => {
+    if (!event || targetCalId === calId) return
+    const targetCalendar = calendars.list[targetCalId]
+    const isTargetTeamCalendar = Boolean(targetCalendar?.owner?.teamCalendar)
+    const movePayload = isTargetTeamCalendar
+      ? { ...event, organizer: currentUserOrganizer }
+      : event
+
     void Promise.resolve(
       moveEventBetweenCalendars({
         dispatch,
         calList: calendars.list,
-        newEvent: event,
+        newEvent: movePayload,
         oldCalId: calId,
-        newCalId: calendarid
+        newCalId: targetCalId
       })
     )
-      .then(() => setCalendarid(calendarid))
+      .then(() => setCalendarid(targetCalId))
       .catch(error => {
         console.error('Failed to move event:', error)
         dispatch(setCalendarError(`Failed to move event: ${error}`))

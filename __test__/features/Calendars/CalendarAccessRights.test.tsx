@@ -419,7 +419,9 @@ describe('AccessTab – conditional rendering of CalendarAccessRights', () => {
       }
     )
 
-    expect(screen.queryByPlaceholderText('peopleSearch.label')).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('peopleSearch.label')
+    ).not.toBeInTheDocument()
     expect(
       screen.getByText('calendarPopover.access.accessRights')
     ).toBeInTheDocument()

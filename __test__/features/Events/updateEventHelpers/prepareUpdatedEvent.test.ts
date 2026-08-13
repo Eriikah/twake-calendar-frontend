@@ -1,4 +1,10 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { prepareUpdatedEvent } from '@common/features/Events/hooks/submitUpdateHelpers/utils'
+
+jest.mock('p-map', () => jest.fn())
 import { userAttendee } from '@common/features/User/models/attendee'
 import { Calendar } from '@common/types/CalendarTypes'
 import { CalendarEvent } from '@common/types/EventsTypes'

@@ -38,10 +38,10 @@ describe("EventUpdateModal - Recurring Event 'Edit All' Handling", () => {
         sid: 'test-sid',
         openpaasId: '667037022b752d0026472254'
       },
-      organiserData: {
+      organiserData: new userOrganiser({
         cn: 'test',
         cal_address: 'test@test.com'
-      }
+      })
     },
     calendars: {
       list: {
@@ -455,7 +455,7 @@ describe("EventUpdateModal - Recurring Event 'Edit All' Handling", () => {
         }
       }
 
-      jest
+      const mockFetchEvent = jest
         .spyOn(EventDao, 'fetchEvent')
         .mockResolvedValue(
           [
@@ -566,6 +566,10 @@ describe("EventUpdateModal - Recurring Event 'Edit All' Handling", () => {
         />,
         stateWithSeries
       )
+
+      await waitFor(() => {
+        expect(mockFetchEvent).toHaveBeenCalled()
+      })
 
       await waitFor(() => {
         expect(screen.getByDisplayValue('Daily Standup')).toBeInTheDocument()

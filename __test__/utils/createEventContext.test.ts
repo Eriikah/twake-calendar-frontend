@@ -3,6 +3,7 @@ import { Calendar } from '@common/types/CalendarTypes'
 import { CalendarEvent } from '@common/types/EventsTypes'
 import { userData } from '@common/features/User/userDataTypes'
 import { userAttendee } from '@common/features/User/models/attendee'
+import { VObjectProperty } from '@common/features/Calendars/types/CalendarData'
 
 const makeUser = (email: string): userData => ({
   email,
@@ -74,7 +75,11 @@ describe('createEventContext', () => {
     const calendar = makeCalendar({
       id: 'user2/cal1',
       delegated: true,
-      owner: { emails: ['owner@example.com'], firstname: 'Owner' }
+      owner: {
+        emails: ['owner@example.com'],
+        firstname: 'Owner',
+        id: ''
+      }
     })
     const user = makeUser('alice@example.com') // logged-in user, not the owner
 
@@ -117,6 +122,121 @@ describe('createEventContext', () => {
       const event = makeEvent({ calId: 'user2/cal1' })
       const ctx = createEventContext(event, calendar, user)
       expect(ctx.event).toBe(event)
+    })
+  })
+
+  describe('team calendar', () => {
+    const teamCalendar = makeCalendar({
+      owner: {
+        teamCalendar: true,
+        emails: ['alice@example.com', 'bob@example.com']
+      } as any
+    })
+
+    it('sets isOwn to true if calendar.owner.emails contains user.email', () => {
+      const user = makeUser('alice@example.com')
+      const ctx = createEventContext(makeEvent(), teamCalendar, user)
+      expect(ctx.isOwn).toBe(true)
+    })
+
+    it('sets isOwn to false if calendar.owner.emails does not contain user.email', () => {
+      const user = makeUser('charlie@example.com')
+      const ctx = createEventContext(makeEvent(), teamCalendar, user)
+      expect(ctx.isOwn).toBe(false)
+    })
+
+    it('sets isOrganizer to true if calendar.owner.emails contains event.organizer.cal_address', () => {
+      const user = makeUser('charlie@example.com')
+      const event = makeEvent({
+        organizer: {
+          cal_address: 'bob@example.com',
+          cn: '',
+          asMailto: function (): string {
+            throw new Error('Function not implemented.')
+          },
+          asJcal: function (): VObjectProperty {
+            throw new Error('Function not implemented.')
+          }
+        }
+      })
+      const ctx = createEventContext(event, teamCalendar, user)
+      expect(ctx.isOrganizer).toBe(true)
+    })
+
+    it('sets isOrganizer to false if calendar.owner.emails does not contain event.organizer.cal_address', () => {
+      const user = makeUser('charlie@example.com')
+      const event = makeEvent({
+        organizer: {
+          cal_address: 'dave@example.com',
+          cn: '',
+          asMailto: function (): string {
+            throw new Error('Function not implemented.')
+          },
+          asJcal: function (): VObjectProperty {
+            throw new Error('Function not implemented.')
+          }
+        }
+      })
+      const ctx = createEventContext(event, teamCalendar, user)
+      expect(ctx.isOrganizer).toBe(false)
+    })
+
+    it('finds currentUserAttendee by logged-in user email even if team calendar is delegated', () => {
+      const delegatedTeamCalendar = makeCalendar({
+        delegated: true,
+        owner: {
+          teamCalendar: true,
+          emails: ['team@example.com']
+        } as any
+      })
+      const user = makeUser('charlie@example.com')
+      const event = makeEvent({
+        attendee: [
+          {
+            cal_address: 'team@example.com',
+            partstat: 'ACCEPTED',
+            role: 'CHAIR',
+            cutype: 'INDIVIDUAL',
+            rsvp: 'TRUE',
+            cn: '',
+            withPartStat: function (): userAttendee {
+              throw new Error('Function not implemented.')
+            },
+            withRsvp: function (): userAttendee {
+              throw new Error('Function not implemented.')
+            },
+            asMailto: function (): string {
+              throw new Error('Function not implemented.')
+            },
+            asJcal: function (): VObjectProperty {
+              throw new Error('Function not implemented.')
+            }
+          },
+          {
+            cal_address: 'charlie@example.com',
+            partstat: 'TENTATIVE',
+            role: 'CHAIR',
+            cutype: 'INDIVIDUAL',
+            rsvp: 'TRUE',
+            cn: '',
+            withPartStat: function (): userAttendee {
+              throw new Error('Function not implemented.')
+            },
+            withRsvp: function (): userAttendee {
+              throw new Error('Function not implemented.')
+            },
+            asMailto: function (): string {
+              throw new Error('Function not implemented.')
+            },
+            asJcal: function (): VObjectProperty {
+              throw new Error('Function not implemented.')
+            }
+          }
+        ]
+      })
+      const ctx = createEventContext(event, delegatedTeamCalendar, user)
+      expect(ctx.currentUserAttendee?.cal_address).toBe('charlie@example.com')
+      expect(ctx.currentUserAttendee?.partstat).toBe('TENTATIVE')
     })
   })
 })

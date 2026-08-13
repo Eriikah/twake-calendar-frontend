@@ -36,3 +36,5 @@ export type CalendarInvite = {
 }
 
 export type AccessRight = 2 | 3 | 5 // VIEW = 2, EDITOR = 3, ADMIN = 5
+
+export const WRITE_ACCESS_LEVELS = [3, 5]

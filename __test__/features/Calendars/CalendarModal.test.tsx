@@ -226,7 +226,9 @@ describe('CalendarPopover (editing mode)', () => {
     expect(accessTab).toBeInTheDocument()
 
     fireEvent.click(accessTab)
-    expect(screen.queryByPlaceholderText('peopleSearch.label')).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('peopleSearch.label')
+    ).not.toBeInTheDocument()
     expect(
       screen.getByText('calendarPopover.access.accessRights')
     ).toBeInTheDocument()
