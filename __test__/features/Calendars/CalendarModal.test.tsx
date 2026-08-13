@@ -204,7 +204,7 @@ describe('CalendarPopover (editing mode)', () => {
     await waitFor(() => expect(mockOnClose).toHaveBeenCalled())
   })
 
-  it('hides access tab when modifying a team calendar', () => {
+  it('shows access tab when modifying a team calendar, but hides input to invite user', () => {
     const teamCalendar: Calendar = {
       ...existingCalendar,
       owner: { firstname: 'Engineering Team', emails: [], teamCalendar: true }
@@ -222,14 +222,14 @@ describe('CalendarPopover (editing mode)', () => {
     expect(
       screen.getByText('calendarPopover.tabs.settings')
     ).toBeInTheDocument()
+    const accessTab = screen.getByText('calendarPopover.tabs.access')
+    expect(accessTab).toBeInTheDocument()
+
+    fireEvent.click(accessTab)
+    expect(screen.queryByPlaceholderText('peopleSearch.label')).not.toBeInTheDocument()
     expect(
-      screen.queryByText('calendarPopover.tabs.access')
-    ).not.toBeInTheDocument()
-    expect(screen.queryByLabelText(/Name/i)).not.toBeInTheDocument()
-    expect(screen.getByText('Work Calendar')).toBeInTheDocument()
-    expect(
-      screen.queryByText('event.form.addDescription')
-    ).not.toBeInTheDocument()
+      screen.getByText('calendarPopover.access.accessRights')
+    ).toBeInTheDocument()
   })
 })
 

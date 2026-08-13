@@ -52,7 +52,7 @@ function UserAccessRow({
   accessRightOptions: { value: AccessRight; label: string }[]
   onRemove: (email: string) => void
   onChangeRight: (email: string, right: AccessRight) => void
-}) {
+}): JSX.Element {
   return (
     <Box
       key={user.email}
@@ -119,7 +119,7 @@ export function CalendarAccessRights({
   value: usersWithAccess,
   onChange,
   onInvitesLoaded
-}: CalendarAccessRightsProps) {
+}: CalendarAccessRightsProps): JSX.Element {
   const { t } = useI18n()
   const userData = useAppSelector(state => state.user.userData)
   const isPersonalCalendar = userData?.openpaasId === calendar.id.split('/')[0]
@@ -129,7 +129,9 @@ export function CalendarAccessRights({
     return invitedEmail === currentUserEmail && invite.access === 5
   })
 
-  const canEdit = isPersonalCalendar || isDelegatedWithAdministration
+  const isTeamCalendar = Boolean(calendar.owner?.teamCalendar)
+  const canEdit =
+    (isPersonalCalendar || isDelegatedWithAdministration) && !isTeamCalendar
 
   const ownerEmail =
     calendar.owner?.preferredEmail ?? calendar.owner?.emails?.[0] ?? ''
@@ -155,7 +157,7 @@ export function CalendarAccessRights({
       }
     })
     observer.observe(containerRef.current)
-    return () => observer.disconnect()
+    return (): void => observer.disconnect()
   }, [])
 
   const handleLoadUsers = useCallback(
@@ -196,7 +198,7 @@ export function CalendarAccessRights({
 
     let cancelled = false
 
-    async function loadInvitedUsers() {
+    async function loadInvitedUsers(): Promise<void> {
       setInvitesLoading(true)
       try {
         const usersInCal = (calendar.invite
@@ -232,8 +234,8 @@ export function CalendarAccessRights({
       }
     }
 
-    loadInvitedUsers()
-    return () => {
+    void loadInvitedUsers()
+    return (): void => {
       cancelled = true
     }
   }, [
@@ -251,7 +253,7 @@ export function CalendarAccessRights({
 
     let cancelled = false
 
-    async function loadAdmins() {
+    async function loadAdmins(): Promise<void> {
       try {
         setAdminLoading(true)
         const resourceAdminsWithoutOwner = resourceAdmins
@@ -273,13 +275,13 @@ export function CalendarAccessRights({
       }
     }
 
-    loadAdmins()
-    return () => {
+    void loadAdmins()
+    return (): void => {
       cancelled = true
     }
   }, [calendar.owner, handleLoadUsers, setResourceAdmins])
 
-  const handleUserSelect = (_event: unknown, users: User[]) => {
+  const handleUserSelect = (_event: unknown, users: User[]): void => {
     const updated: UserWithAccess[] = users.map(user => {
       const existing = usersWithAccess.find(
         u => normalizeEmail(u.email) === normalizeEmail(user.email)
@@ -289,7 +291,7 @@ export function CalendarAccessRights({
     onChange(updated)
   }
 
-  const handleRemoveUser = (email: string) => {
+  const handleRemoveUser = (email: string): void => {
     onChange(
       usersWithAccess.filter(
         u => normalizeEmail(u.email) !== normalizeEmail(email)
@@ -297,7 +299,7 @@ export function CalendarAccessRights({
     )
   }
 
-  const handleChangeUserRight = (email: string, right: AccessRight) => {
+  const handleChangeUserRight = (email: string, right: AccessRight): void => {
     onChange(
       usersWithAccess.map(u =>
         normalizeEmail(u.email) === normalizeEmail(email)
@@ -360,7 +362,7 @@ export function CalendarAccessRights({
                 autoFocus
                 placeholder={t('peopleSearch.label')}
                 value={query}
-                inputRef={el => {
+                inputRef={(el: HTMLInputElement | null) => {
                   const ref = params.slotProps.input?.ref
                   if (typeof ref === 'function') {
                     ref(el)
@@ -407,58 +409,60 @@ export function CalendarAccessRights({
       )}
 
       <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Box
-          key={ownerEmail}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            px: 1,
-            py: 0.5,
-            borderRadius: '8px',
-            '&:hover': { backgroundColor: 'action.hover' }
-          }}
-        >
+        {!isTeamCalendar && (
           <Box
+            key={ownerEmail}
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 1.5,
-              minWidth: 0
+              justifyContent: 'space-between',
+              px: 1,
+              py: 0.5,
+              borderRadius: '8px',
+              '&:hover': { backgroundColor: 'action.hover' }
             }}
           >
-            <Avatar
-              {...stringAvatar(ownerName)}
-              sx={{ width: 28, height: 28, fontSize: '0.875rem' }}
-            />
             <Box
               sx={{
-                minWidth: 0,
                 display: 'flex',
-                flexDirection: 'column',
-                gap: 0
+                alignItems: 'center',
+                gap: 1.5,
+                minWidth: 0
               }}
             >
-              <Typography noWrap>{ownerName}</Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                {ownerEmail}
+              <Avatar
+                {...stringAvatar(ownerName)}
+                sx={{ width: 28, height: 28, fontSize: '0.875rem' }}
+              />
+              <Box
+                sx={{
+                  minWidth: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 0
+                }}
+              >
+                <Typography noWrap>{ownerName}</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  {ownerEmail}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                flexShrink: 0
+              }}
+            >
+              <Typography variant="caption">
+                {t('calendarPopover.access.owner')}
               </Typography>
             </Box>
           </Box>
-
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.5,
-              flexShrink: 0
-            }}
-          >
-            <Typography variant="caption">
-              {t('calendarPopover.access.owner')}
-            </Typography>
-          </Box>
-        </Box>
+        )}
 
         {adminLoading ? (
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>

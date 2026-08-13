@@ -399,6 +399,34 @@ describe('AccessTab – conditional rendering of CalendarAccessRights', () => {
       screen.getByText('calendarPopover.access.grantAccessRights')
     ).toBeInTheDocument()
   })
+
+  it('hides input to invite user for team calendar', () => {
+    const teamCalendar: Calendar = {
+      ...baseCalendar,
+      owner: { firstname: 'Engineering Team', emails: [], teamCalendar: true }
+    }
+
+    renderWithProviders(
+      <AccessTab
+        calendar={teamCalendar}
+        usersWithAccess={[]}
+        onUsersWithAccessChange={noop}
+        onInvitesLoaded={noop}
+      />,
+      {
+        ...userState,
+        calendars: { list: { 'user1/cal1': teamCalendar } }
+      }
+    )
+
+    expect(screen.queryByPlaceholderText('peopleSearch.label')).not.toBeInTheDocument()
+    expect(
+      screen.getByText('calendarPopover.access.accessRights')
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('calendarPopover.access.owner')
+    ).not.toBeInTheDocument()
+  })
 })
 
 const existingCalendar: Calendar = {
