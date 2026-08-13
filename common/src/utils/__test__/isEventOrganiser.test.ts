@@ -47,4 +47,24 @@ describe('isEventOrganiser', () => {
       true
     )
   })
+
+  it('should ignore mailto prefix and perform case-insensitive comparisons', () => {
+    const event = {
+      organizer: { cal_address: 'mailto:USER@example.com' }
+    } as CalendarEvent
+    expect(isEventOrganiser(event, 'user@example.com')).toBe(true)
+    expect(isEventOrganiser(event, 'mailto:user@example.com')).toBe(true)
+
+    const calendar = {
+      owner: { teamCalendar: true, emails: ['mailto:organizer@example.com'] }
+    } as unknown as Calendar
+
+    const teamEvent = {
+      organizer: { cal_address: 'organizer@example.com' }
+    } as CalendarEvent
+
+    expect(isEventOrganiser(teamEvent, 'different@example.com', calendar)).toBe(
+      true
+    )
+  })
 })

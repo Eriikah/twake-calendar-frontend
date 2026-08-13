@@ -1,6 +1,7 @@
 import { Calendar } from '@common/types/CalendarTypes'
 import { userData } from '@common/features/User/userDataTypes'
 import { CalendarEvent, ContextualizedEvent } from '@common/types/EventsTypes'
+import { normalizeIdentity } from '@common/utils/normalizeIdentity'
 
 interface CheckIsOrganizerOptions {
   event: CalendarEvent
@@ -18,17 +19,23 @@ function checkIsOrganizer({
   attendeeEmail
 }: CheckIsOrganizerOptions): boolean {
   if (isTeamCalendar) {
-    const organizerEmail = event.organizer?.cal_address?.toLowerCase()
+    const organizerEmail = event.organizer?.cal_address
     if (!organizerEmail) {
       return isOwn
     }
+    const normalizedOrganizer = normalizeIdentity(organizerEmail)
     return Boolean(
-      ownerEmails.some(email => email.toLowerCase() === organizerEmail)
+      ownerEmails.some(
+        email => normalizeIdentity(email) === normalizedOrganizer
+      )
     )
   }
 
   if (event.organizer) {
-    return attendeeEmail === event.organizer.cal_address
+    return (
+      normalizeIdentity(attendeeEmail) ===
+      normalizeIdentity(event.organizer.cal_address)
+    )
   }
 
   return isOwn

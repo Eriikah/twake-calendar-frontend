@@ -2,6 +2,7 @@ import { User } from '@common/components/Attendees/types'
 import { VObjectProperty } from '@common/features/Calendars/types/CalendarData'
 import { userOrganiser } from '../userDataTypes'
 import { Resource } from '@common/components/Attendees/ResourceSearch'
+import { stripMailto } from '@common/utils/normalizeIdentity'
 
 export type AttendeeRole = 'CHAIR' | 'REQ-PARTICIPANT' | 'OPT-PARTICIPANT'
 export type CuType = 'INDIVIDUAL' | 'GROUP' | 'RESOURCE'
@@ -89,7 +90,7 @@ export class userAttendee implements UserAttendeeData {
   }
 
   asMailto(): string {
-    return `mailto:${this.cal_address.replace(/^mailto:/i, '')}`
+    return `mailto:${stripMailto(this.cal_address)}`
   }
 
   asJcal(): VObjectProperty {

@@ -387,7 +387,7 @@ describe('CalendarSelection', () => {
     expect(screen.queryByText('calendar.team')).not.toBeInTheDocument()
   })
 
-  it('renders team calendar section and disables delete/unsubscribe for team calendar', () => {
+  it('renders team calendar section and selects the team calendar', () => {
     const teamCalendarsMock = {
       ...calendarsMock,
       'team1/cal1': {

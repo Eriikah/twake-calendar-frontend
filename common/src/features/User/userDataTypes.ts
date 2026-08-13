@@ -1,4 +1,5 @@
 import { VObjectProperty } from '@common/features/Calendars/types/CalendarData'
+import { stripMailto } from '@common/utils/normalizeIdentity'
 
 export interface userData {
   email: string
@@ -36,7 +37,7 @@ export class userOrganiser {
   }
 
   asMailto(): string {
-    return `mailto:${this.cal_address.replace(/^mailto:/i, '')}`
+    return `mailto:${stripMailto(this.cal_address)}`
   }
 
   asJcal(): VObjectProperty {

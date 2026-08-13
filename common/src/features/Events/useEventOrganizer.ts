@@ -2,6 +2,7 @@ import { userOrganiser } from '@common/features/User/userDataTypes'
 import { Calendar } from '@common/types/CalendarTypes'
 import { makeDisplayName } from '@common/utils/makeDisplayName'
 import { useMemo } from 'react'
+import { normalizeIdentity } from '@common/utils/normalizeIdentity'
 
 /**
  * Calculates the event organizer based on delegated calendar status.
@@ -37,7 +38,10 @@ function checkIsOrganizer(
   const eventOrganizerAddress =
     selectedCalendar.events?.[eventId]?.organizer?.cal_address
 
-  return eventOrganizerAddress === organizerAddress
+  return (
+    normalizeIdentity(eventOrganizerAddress) ===
+    normalizeIdentity(organizerAddress)
+  )
 }
 
 // Update event organizer accordingly to selected calendar's delegated status

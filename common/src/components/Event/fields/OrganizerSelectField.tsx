@@ -88,6 +88,7 @@ export const OrganizerSelectField: React.FC<OrganizerSelectFieldProps> = ({
     let isCancelled = false
 
     async function loadWriteAccessUsers(): Promise<void> {
+      setOrganizers([userOrganizer])
       const initialEmail = getCleanEmail(userOrganizer.cal_address)
       const knownEmails = new Set<string>([initialEmail])
       const list: userOrganiser[] = [userOrganizer]
