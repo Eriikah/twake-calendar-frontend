@@ -71,7 +71,7 @@ export const AttendanceValidation: React.FC<AttendanceValidationProps> = ({
         size="medium"
         sx={{
           borderRadius: '50px',
-          '&.Mui-disabled': shouldShowActive
+          '&.Mui-disabled': isThisLoading
             ? {
                 backgroundColor: (theme: Theme): string =>
                   theme.palette[buttonColor].main,
@@ -83,7 +83,7 @@ export const AttendanceValidation: React.FC<AttendanceValidationProps> = ({
             : {}
         }}
         onClick={() => void handleClick(rsvpValue, linkUrl)}
-        disabled={!!clickedValue || !linkUrl}
+        disabled={!!clickedValue || !linkUrl || isCurrentlyActive}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {isThisLoading && <CircularProgress size={20} color="inherit" />}
