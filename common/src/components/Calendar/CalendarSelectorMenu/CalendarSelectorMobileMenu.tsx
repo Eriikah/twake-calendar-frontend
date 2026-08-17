@@ -22,6 +22,7 @@ interface CalendarSelectorMobileMenuProps {
   isDefault: boolean
   isPersonal: boolean
   isVisible?: boolean
+  isTeam?: boolean
 }
 
 export const CalendarSelectorMobileMenu: React.FC<
@@ -35,7 +36,8 @@ export const CalendarSelectorMobileMenu: React.FC<
   onPrint,
   isDefault,
   isPersonal,
-  isVisible
+  isVisible,
+  isTeam
 }) => {
   const { t } = useI18n()
 
@@ -78,7 +80,7 @@ export const CalendarSelectorMobileMenu: React.FC<
             <ListItemText primary={t('print.action')} />
           </ListItemButton>
         )}
-        {!isDefault && (
+        {!isDefault && !isTeam && (
           <ListItemButton
             onClick={() => {
               onDelete()

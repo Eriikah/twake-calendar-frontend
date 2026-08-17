@@ -50,6 +50,16 @@ export async function getOwnerOrResourceData(
         resource: true
       }
     }
+    if (entity.teamCalendar) {
+      return {
+        id: entity.teamCalendar._id || entity.teamCalendar.id || ownerId,
+        firstname:
+          entity.teamCalendar.name || entity.teamCalendar.title || 'Team',
+        lastname: '',
+        emails: [],
+        teamCalendar: true
+      }
+    }
     if (entity.user) {
       return entity.user
     }

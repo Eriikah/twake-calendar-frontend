@@ -181,6 +181,7 @@ const CalendarAccordion: React.FC<{
   defaultExpanded?: boolean
   setOpen: (id: string) => void
   hideOwner?: boolean
+  isTeam?: boolean
 }> = ({
   header,
   calendars,
@@ -190,7 +191,8 @@ const CalendarAccordion: React.FC<{
   onAddClick,
   defaultExpanded = false,
   setOpen,
-  hideOwner
+  hideOwner,
+  isTeam
 }) => {
   const allCalendars = useAppSelector(state => state.calendars.list)
   const { t } = useI18n()
@@ -208,6 +210,7 @@ const CalendarAccordion: React.FC<{
           calendars={allCalendars}
           id={id}
           isPersonal={header.title === t('calendar.personal')}
+          isTeam={isTeam}
           selectedCalendars={selectedCalendars}
           handleCalendarToggle={handleToggle}
           setOpen={() => setOpen(id)}
@@ -407,11 +410,25 @@ type CalendarBuckets = {
   delegated: string[]
   shared: string[]
   resources: string[]
+  teams: string[]
+}
+
+const getCalendarCategory = (
+  cal: Calendar | undefined,
+  id: string,
+  userId: string
+): keyof CalendarBuckets => {
+  if (extractEventBaseUuid(id) === userId) return 'personal'
+  const owner = cal?.owner
+  if (owner?.resource) return 'resources'
+  if (owner?.teamCalendar) return 'teams'
+  if (cal?.delegated) return 'delegated'
+  return 'shared'
 }
 
 /**
  * Splits calendar ids into mutually exclusive buckets in a single pass,
- * replacing four separate `.filter()` calls that each re-derived the
+ * replacing separate `.filter()` calls that each re-derived the
  * same ownership checks.
  */
 const categorizeCalendars = (
@@ -422,19 +439,15 @@ const categorizeCalendars = (
     personal: [],
     delegated: [],
     shared: [],
-    resources: []
+    resources: [],
+    teams: []
   }
 
-  Object.keys(calendars || {}).forEach(id => {
-    if (extractEventBaseUuid(id) === userId) {
-      buckets.personal.push(id)
-    } else if (calendars[id]?.owner?.resource) {
-      buckets.resources.push(id)
-    } else if (calendars[id]?.delegated) {
-      buckets.delegated.push(id)
-    } else {
-      buckets.shared.push(id)
-    }
+  if (!calendars) return buckets
+
+  Object.entries(calendars).forEach(([id, cal]) => {
+    const category = getCalendarCategory(cal, id, userId)
+    buckets[category].push(id)
   })
 
   return buckets
@@ -453,7 +466,8 @@ const CalendarSelection: React.FC<{
     personal: personalCalendars,
     delegated: delegatedCalendars,
     shared: sharedCalendars,
-    resources: resourceCalendars
+    resources: resourceCalendars,
+    teams: teamCalendars
   } = useMemo(() => categorizeCalendars(calendars, userId), [calendars, userId])
 
   const handleCalendarToggle = (name: string): void => {
@@ -483,12 +497,12 @@ const CalendarSelection: React.FC<{
   // Fetch booking links on mount
   useEffect(() => {
     if (bookingLinkEnabled) {
-      dispatch(listBookingLinks())
+      void dispatch(listBookingLinks())
     }
   }, [dispatch, bookingLinkEnabled])
 
   const handleDeleteBookingLink = (link: BookingLink): void => {
-    dispatch(deleteBookingLink(link.publicId))
+    void dispatch(deleteBookingLink(link.publicId))
   }
 
   const handleEditBookingLink = (link: BookingLink): void => {
@@ -597,6 +611,22 @@ const CalendarSelection: React.FC<{
             hideOwner={true}
           />
         )}
+
+        <CalendarAccordion
+          header={{
+            title: t('calendar.team')
+          }}
+          calendars={teamCalendars}
+          selectedCalendars={selectedCalendars}
+          handleToggle={handleCalendarToggle}
+          setOpen={(id: string) => {
+            setAnchorElCal(document.body)
+            setSelectedCalId(id)
+          }}
+          defaultExpanded
+          isTeam
+          hideOwner
+        />
       </div>
       <CalendarPopover
         open={Boolean(anchorElCal)}
@@ -661,6 +691,7 @@ const CalendarSelector: React.FC<{
   calendars: Record<string, Calendar>
   id: string
   isPersonal: boolean
+  isTeam?: boolean
   selectedCalendars: string[]
   handleCalendarToggle: (name: string) => void
   setOpen: () => void
@@ -669,6 +700,7 @@ const CalendarSelector: React.FC<{
   calendars,
   id,
   isPersonal,
+  isTeam,
   selectedCalendars,
   handleCalendarToggle,
   setOpen,
@@ -834,6 +866,7 @@ const CalendarSelector: React.FC<{
         isDefault={isDefault}
         isPersonal={isPersonal}
         isVisible={selectedCalendars.includes(id)}
+        isTeam={isTeam}
       />
 
       <PrintScheduleModal

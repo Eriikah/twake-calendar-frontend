@@ -203,6 +203,34 @@ describe('CalendarPopover (editing mode)', () => {
     )
     await waitFor(() => expect(mockOnClose).toHaveBeenCalled())
   })
+
+  it('hides access tab when modifying a team calendar', () => {
+    const teamCalendar: Calendar = {
+      ...existingCalendar,
+      owner: { firstname: 'Engineering Team', emails: [], teamCalendar: true }
+    }
+
+    renderWithProviders(
+      <CalendarPopover
+        open={true}
+        onClose={mockOnClose}
+        calendar={teamCalendar}
+      />,
+      { user: baseUser }
+    )
+
+    expect(
+      screen.getByText('calendarPopover.tabs.settings')
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('calendarPopover.tabs.access')
+    ).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/Name/i)).not.toBeInTheDocument()
+    expect(screen.getByText('Work Calendar')).toBeInTheDocument()
+    expect(
+      screen.queryByText('event.form.addDescription')
+    ).not.toBeInTheDocument()
+  })
 })
 
 describe('CalendarPopover - Tabs Scenarios', () => {
@@ -357,7 +385,7 @@ describe('CalendarPopover - Tabs Scenarios', () => {
       fireEvent.click(copyButton)
     }
 
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+    expect(navigator.clipboard.writeText as jest.Mock).toHaveBeenCalledWith(
       'https://cal.example.org/calendars/user1/cal1'
     )
 

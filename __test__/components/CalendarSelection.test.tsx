@@ -375,4 +375,45 @@ describe('CalendarSelection', () => {
     // personal calendar should NOT show a caption
     expect(screen.queryByText('alice')).not.toBeInTheDocument()
   })
+
+  it('hides team calendar section when user is not in a team calendar', () => {
+    renderWithProviders(
+      <CalendarSelection
+        selectedCalendars={[]}
+        setSelectedCalendars={jest.fn()}
+      />,
+      { user: baseUser, calendars: { list: calendarsMock, pending: false } }
+    )
+    expect(screen.queryByText('calendar.team')).not.toBeInTheDocument()
+  })
+
+  it('renders team calendar section and disables delete/unsubscribe for team calendar', () => {
+    const teamCalendarsMock = {
+      ...calendarsMock,
+      'team1/cal1': {
+        name: 'Engineering Team',
+        id: 'team1/cal1',
+        color: '#FFFF00',
+        owner: {
+          firstname: 'Dev Team',
+          lastname: '',
+          emails: [],
+          teamCalendar: true
+        }
+      }
+    }
+
+    renderWithProviders(
+      <CalendarSelection
+        selectedCalendars={['team1/cal1']}
+        setSelectedCalendars={jest.fn()}
+      />,
+      { user: baseUser, calendars: { list: teamCalendarsMock, pending: false } }
+    )
+
+    expect(screen.getByText('calendar.team')).toBeInTheDocument()
+    expect(
+      screen.getByRole('checkbox', { name: 'Engineering Team' })
+    ).toBeChecked()
+  })
 })

@@ -7,8 +7,8 @@ import { MouseEvent } from 'react'
 import { useI18n } from 'twake-i18n'
 
 interface AttachmentFieldProps {
-  attachments: Attachment[]
-  setAttachments: (attachments: Attachment[]) => void
+  attachments?: Attachment[]
+  setAttachments?: (attachments: Attachment[]) => void
 }
 
 export const AttachmentField: React.FC<AttachmentFieldProps> = ({
@@ -22,8 +22,8 @@ export const AttachmentField: React.FC<AttachmentFieldProps> = ({
   ): void => {
     e.preventDefault()
     e.stopPropagation()
-    const newAttachments = attachments.filter((_, i) => i !== index)
-    setAttachments(newAttachments)
+    const newAttachments = (attachments || []).filter((_, i) => i !== index)
+    setAttachments?.(newAttachments)
   }
 
   if (!attachments || attachments.length === 0) {

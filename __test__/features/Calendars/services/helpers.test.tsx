@@ -125,5 +125,21 @@ describe('helpers', () => {
       expect(result.resource).toBe(true)
       expect(result.id).toBe('u-creator')
     })
+
+    it('should return team calendar owner data when fetchEntityById returns teamCalendar root key', async () => {
+      const mockTeamCalendar = {
+        _id: 't-1',
+        name: 'Dev Team Calendar'
+      } as any
+
+      mockedFetchEntityById.mockResolvedValueOnce({
+        teamCalendar: mockTeamCalendar
+      })
+
+      const result = await getOwnerOrResourceData('t-1')
+      expect(result.teamCalendar).toBe(true)
+      expect(result.id).toBe('t-1')
+      expect(result.firstname).toBe('Dev Team Calendar')
+    })
   })
 })

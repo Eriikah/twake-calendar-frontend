@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Divider, Menu, MenuItem } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 
@@ -14,6 +14,7 @@ interface CalendarSelectorDesktopMenuProps {
   isDefault: boolean
   isPersonal: boolean
   isVisible?: boolean
+  isTeam?: boolean
 }
 
 export const CalendarSelectorDesktopMenu: React.FC<
@@ -29,9 +30,15 @@ export const CalendarSelectorDesktopMenu: React.FC<
   onPrint,
   isDefault,
   isPersonal,
-  isVisible
+  isVisible,
+  isTeam
 }) => {
   const { t } = useI18n()
+
+  const isEnableDelete = useMemo(
+    () => !isDefault && !isTeam,
+    [isDefault, isTeam]
+  )
 
   return (
     <Menu id={id} anchorEl={anchorEl} open={open} onClose={onClose}>
@@ -65,16 +72,18 @@ export const CalendarSelectorDesktopMenu: React.FC<
           {t('print.action')}
         </MenuItem>
       )}
-      {!isDefault && <Divider />}
-      {!isDefault && (
-        <MenuItem
-          onClick={() => {
-            onDelete()
-            onClose()
-          }}
-        >
-          {isPersonal ? t('actions.delete') : t('actions.remove')}
-        </MenuItem>
+      {isEnableDelete && (
+        <>
+          <Divider />
+          <MenuItem
+            onClick={() => {
+              onDelete()
+              onClose()
+            }}
+          >
+            {isPersonal ? t('actions.delete') : t('actions.remove')}
+          </MenuItem>
+        </>
       )}
     </Menu>
   )

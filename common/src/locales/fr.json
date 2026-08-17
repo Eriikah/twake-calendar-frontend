@@ -27,6 +27,7 @@
       "sharedWarning": "Vous allez perdre l’accès à ses événements. Vous pourrez toujours le rajouter plus tard."
     },
     "resources": "Ressources",
+    "team": "Calendriers d'équipe",
     "browseResources": "Parcourir les ressources",
     "searchTimezone": "Rechercher un fuseau horaire...",
     "bookingLinks": "Liens de réservation"
@@ -96,7 +97,8 @@
     },
     "settings": {
       "calendarName": "Nom du calendrier",
-      "resourceName": "Nom de la ressource"
+      "resourceName": "Nom de la ressource",
+      "teamCalendarName": "Nom du calendrier d'équipe"
     },
     "access": {
       "grantAccessRights": "Accorder des droits d'accès",

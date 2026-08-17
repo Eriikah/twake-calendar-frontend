@@ -27,6 +27,7 @@
       "sharedWarning": "You will lose access to its events. You will still be able to add it back later."
     },
     "resources": "Resources",
+    "team": "Team calendars",
     "browseResources": "Browse resources",
     "searchTimezone": "Search timezone...",
     "bookingLinks": "Booking links"
@@ -96,7 +97,8 @@
     },
     "settings": {
       "calendarName": "Calendar name",
-      "resourceName": "Resource name"
+      "resourceName": "Resource name",
+      "teamCalendarName": "Team calendar name"
     },
     "access": {
       "grantAccessRights": "Grant Access rights",

@@ -306,7 +306,7 @@ function CalendarPopover({
                 : t('calendarPopover.tabs.addNew')
             }
           />
-          {calendar && (
+          {calendar && !calendar.owner?.teamCalendar && (
             <Tab value="access" label={t('calendarPopover.tabs.access')} />
           )}
           {isOwn && (

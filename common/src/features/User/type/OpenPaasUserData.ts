@@ -14,6 +14,7 @@ export interface OpenPaasUserData {
   }
   emails: string[]
   resource?: boolean
+  teamCalendar?: boolean
   administrators?: {
     _id: string
     id: string

@@ -15,6 +15,7 @@ interface CalendarSelectorMenuProps {
   isDefault: boolean
   isPersonal: boolean
   isVisible?: boolean
+  isTeam?: boolean
 }
 
 export const CalendarSelectorMenu: React.FC<CalendarSelectorMenuProps> = ({
@@ -28,7 +29,8 @@ export const CalendarSelectorMenu: React.FC<CalendarSelectorMenuProps> = ({
   onPrint,
   isDefault,
   isPersonal,
-  isVisible
+  isVisible,
+  isTeam
 }) => {
   const { isTooSmall: isMobile } = useScreenSizeDetection()
 
@@ -46,6 +48,7 @@ export const CalendarSelectorMenu: React.FC<CalendarSelectorMenuProps> = ({
         isDefault={isDefault}
         isPersonal={isPersonal}
         isVisible={isVisible}
+        isTeam={isTeam}
       />
     )
   }
@@ -61,6 +64,7 @@ export const CalendarSelectorMenu: React.FC<CalendarSelectorMenuProps> = ({
       isDefault={isDefault}
       isPersonal={isPersonal}
       isVisible={isVisible}
+      isTeam={isTeam}
     />
   )
 }

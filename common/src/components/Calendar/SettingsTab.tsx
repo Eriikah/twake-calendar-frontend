@@ -12,6 +12,7 @@ import {
 } from '@linagora/twake-mui'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined'
+import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined'
 import PublicIcon from '@mui/icons-material/Public'
 import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from 'twake-i18n'
@@ -42,7 +43,7 @@ export function SettingsTab({
   setVisibility: (visibility: 'public' | 'private') => void
   calendar?: Calendar
   autoFocusName?: boolean
-}) {
+}): JSX.Element {
   const { t } = useI18n()
   const inputSize = useResponsiveInputSize()
   const [toggleDesc, setToggleDesc] = useState(Boolean(description))
@@ -55,6 +56,11 @@ export function SettingsTab({
   const isResource = useMemo(
     () => calendar?.owner?.resource,
     [calendar?.owner?.resource]
+  )
+
+  const isTeam = useMemo(
+    () => Boolean(calendar?.owner?.teamCalendar),
+    [calendar?.owner?.teamCalendar]
   )
 
   useEffect(() => {
@@ -70,21 +76,23 @@ export function SettingsTab({
       <Box sx={{ mt: 0 }}>
         <Typography
           variant="h6"
-          sx={{ margin: 0, marginBottom: isResource ? '16px' : 0 }}
+          sx={{ margin: 0, marginBottom: isResource || isTeam ? '16px' : 0 }}
         >
           {t(
-            isResource
-              ? 'calendarPopover.settings.resourceName'
-              : 'calendarPopover.settings.calendarName'
+            isTeam
+              ? 'calendarPopover.settings.teamCalendarName'
+              : isResource
+                ? 'calendarPopover.settings.resourceName'
+                : 'calendarPopover.settings.calendarName'
           )}
         </Typography>
         <Box sx={{ marginTop: '6px' }}>
-          {isResource ? (
+          {isResource || isTeam ? (
             <InfoRow
               alignItems="flex-start"
               icon={
                 <Box sx={infoIconSx}>
-                  <LayersOutlinedIcon />
+                  {isTeam ? <GroupsOutlinedIcon /> : <LayersOutlinedIcon />}
                 </Box>
               }
               text={name}
@@ -99,6 +107,7 @@ export function SettingsTab({
               autoFocus={autoFocusName}
               placeholder={t('common.name')}
               value={name}
+              disabled={!isOwn}
               onChange={e => setName(e.target.value)}
               size={inputSize}
               slotProps={{
@@ -118,7 +127,7 @@ export function SettingsTab({
       </Box>
 
       {/* Form group 2: Description */}
-      {!isResource && (
+      {!isResource && !isTeam && (
         <Box sx={{ mt: 2 }}>
           <AddDescButton
             showDescription={toggleDesc}

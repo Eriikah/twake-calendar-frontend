@@ -27,6 +27,7 @@
       "sharedWarning": "Bạn sẽ mất quyền truy cập các sự kiện của lịch. Bạn vẫn có thể thêm lại sau."
     },
     "resources": "Tài nguyên",
+    "team": "Lịch nhóm",
     "browseResources": "Tìm kiếm tài nguyên",
     "searchTimezone": "Tìm kiếm múi giờ...",
     "bookingLinks": "Liên kết đặt lịch"
@@ -96,7 +97,8 @@
     },
     "settings": {
       "calendarName": "Tên lịch",
-      "resourceName": "Tên tài nguyên"
+      "resourceName": "Tên tài nguyên",
+      "teamCalendarName": "Tên lịch nhóm"
     },
     "access": {
       "grantAccessRights": "Cấp quyền truy cập",

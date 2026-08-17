@@ -27,6 +27,7 @@
       "sharedWarning": "Вы потеряете доступ. Позже можно добавить снова."
     },
     "resources": "Ресурсы",
+    "team": "Календари команды",
     "browseResources": "Просмотреть ресурсы",
     "searchTimezone": "Поиск часового пояса...",
     "bookingLinks": "Ссылки для бронирования"
@@ -96,7 +97,8 @@
     },
     "settings": {
       "calendarName": "Название календаря",
-      "resourceName": "Название ресурса"
+      "resourceName": "Название ресурса",
+      "teamCalendarName": "Название календаря команды"
     },
     "access": {
       "grantAccessRights": "Предоставить права доступа",
