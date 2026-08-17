@@ -7,6 +7,7 @@ export interface TeamCalendarData {
   name?: string
   title?: string
   description?: string
+  displayName?: string
 }
 
 export interface EntityResponse {

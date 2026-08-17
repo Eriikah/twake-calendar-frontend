@@ -53,7 +53,7 @@ export async function getOwnerOrResourceData(
     if (entity.teamCalendar) {
       return {
         id: entity.teamCalendar.id,
-        firstname: entity.teamCalendar.name,
+        firstname: entity.teamCalendar.displayName,
         lastname: '',
         emails: [],
         teamCalendar: true

@@ -129,7 +129,7 @@ describe('helpers', () => {
     it('should return team calendar owner data when fetchEntityById returns teamCalendar root key', async () => {
       const mockTeamCalendar = {
         id: 't-1',
-        name: 'Dev Team Calendar'
+        displayName: 'Dev Team Calendar'
       } as any
 
       mockedFetchEntityById.mockResolvedValueOnce({

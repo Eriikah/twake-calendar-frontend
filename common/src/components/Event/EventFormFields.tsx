@@ -33,7 +33,6 @@ import {
 import { CalendarSelectField } from './fields/CalendarSelectField'
 import { EventDateTimeField } from './fields/EventDateTimeField'
 import LocationField from './fields/LocationField'
-import { OrganizerSelectField } from './fields/OrganizerSelectField'
 import { TitleField } from './fields/TitleField'
 import { VideoConferenceField } from './fields/VideoConferenceField'
 import { TdriveButton } from '@common/features/Tdrive/components/TdriveButton'
@@ -322,17 +321,6 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
           onCalendarChange={onCalendarChange}
         />
 
-        {isTeamCalendar && selectedCalendar && (
-          <OrganizerSelectField
-            calendar={selectedCalendar}
-            value={selectedOrganizer}
-            onChange={setSelectedOrganizer}
-            userOrganizer={userOrganizer}
-            showMore={showMore}
-            disabled={typeOfAction === 'solo'}
-          />
-        )}
-
         <EventFormFieldsExpanded
           alarms={v.alarms}
           setAlarms={setAlarms}
@@ -343,6 +331,12 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
           showMore={showMore}
           selectedResources={v.selectedResources}
           setSelectedResources={setSelectedResources}
+          userOrganizer={userOrganizer}
+          selectedCalendar={selectedCalendar}
+          isTeamCalendar={isTeamCalendar}
+          isDisableOrganizerSelection={typeOfAction === 'solo'}
+          setSelectedOrganizer={setSelectedOrganizer}
+          selectedOrganizer={selectedOrganizer}
         />
       </React.Fragment>
     )

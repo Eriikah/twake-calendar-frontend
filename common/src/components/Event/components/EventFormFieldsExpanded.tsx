@@ -9,6 +9,9 @@ import {
 import { Valarms } from '@common/types/Valarms'
 import { EventFormFieldsSpecific } from './EventFormFieldsSpecific'
 import { FieldWithLabel } from './FieldWithLabel'
+import { OrganizerSelectField } from '../fields/OrganizerSelectField'
+import { Calendar } from '@common/types/CalendarTypes'
+import { userOrganiser } from '@common/features/User/userDataTypes'
 
 interface EventFormFieldsExpandedProps {
   alarms: Valarms
@@ -20,6 +23,12 @@ interface EventFormFieldsExpandedProps {
   showMore: boolean
   selectedResources: Resource[]
   setSelectedResources: (resources: Resource[]) => void
+  userOrganizer: userOrganiser
+  selectedCalendar: Calendar
+  isTeamCalendar: boolean
+  isDisableOrganizerSelection: boolean
+  setSelectedOrganizer: (organizer: userOrganiser) => void
+  selectedOrganizer: userOrganiser
 }
 
 export const EventFormFieldsExpanded: React.FC<
@@ -31,9 +40,15 @@ export const EventFormFieldsExpanded: React.FC<
   setBusy,
   eventClass,
   setEventClass,
+  selectedOrganizer,
+  setSelectedOrganizer,
   showMore,
   selectedResources,
-  setSelectedResources
+  setSelectedResources,
+  userOrganizer,
+  selectedCalendar,
+  isTeamCalendar,
+  isDisableOrganizerSelection
 }) => {
   const { t } = useI18n()
   const { isTooSmall: isMobile } = useScreenSizeDetection()
@@ -42,6 +57,17 @@ export const EventFormFieldsExpanded: React.FC<
 
   return (
     <>
+      {isTeamCalendar && selectedCalendar && (
+        <OrganizerSelectField
+          calendar={selectedCalendar}
+          value={selectedOrganizer}
+          onChange={setSelectedOrganizer}
+          userOrganizer={userOrganizer}
+          showMore={showMore}
+          disabled={isDisableOrganizerSelection}
+        />
+      )}
+
       {!window.HIDE_RESOURCES && (
         <FieldWithLabel
           label={t('event.form.resource')}
