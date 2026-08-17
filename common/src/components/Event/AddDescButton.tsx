@@ -1,5 +1,4 @@
 import { useResponsiveInputSize } from '@common/hooks/useResponsiveInputSize'
-import { Attachment } from '@common/types/Attachment'
 import { useScreenSizeDetection } from '@common/useScreenSizeDetection'
 import { Box, TextField } from '@linagora/twake-mui'
 import { Notes as NotesIcon } from '@mui/icons-material'
@@ -7,24 +6,19 @@ import React from 'react'
 import { useI18n } from 'twake-i18n'
 import { FieldWithLabel } from './components/FieldWithLabel'
 import { SectionPreviewRow } from './components/SectionPreviewRow'
-import { AttachmentField } from './fields/AttachmentField'
 
 export function AddDescButton({
   showDescription,
   setShowDescription,
   showMore,
   description,
-  setDescription,
-  attachments,
-  setAttachments
+  setDescription
 }: {
   showDescription: boolean
   setShowDescription: (b: boolean) => void
   showMore: boolean
   description: string
   setDescription: (d: string) => void
-  attachments: Attachment[]
-  setAttachments: (attachments: Attachment[]) => void
 }): JSX.Element {
   const { t } = useI18n()
   const { isTooSmall: isMobile } = useScreenSizeDetection()
@@ -72,10 +66,6 @@ export function AddDescButton({
             }
           }}
         />
-        <AttachmentField
-          attachments={attachments}
-          setAttachments={setAttachments}
-        />
       </Box>
     </FieldWithLabel>
   )
@@ -87,20 +77,14 @@ export function AddDescButton({
   return (
     <>
       {!showDescription && (
-        <>
-          <FieldWithLabel label="" isExpanded={showMore}>
-            <SectionPreviewRow
-              icon={<NotesIcon />}
-              onClick={() => setShowDescription(true)}
-            >
-              {t('event.form.addDescription')}
-            </SectionPreviewRow>
-          </FieldWithLabel>
-          <AttachmentField
-            attachments={attachments}
-            setAttachments={setAttachments}
-          />
-        </>
+        <FieldWithLabel label="" isExpanded={showMore}>
+          <SectionPreviewRow
+            icon={<NotesIcon />}
+            onClick={() => setShowDescription(true)}
+          >
+            {t('event.form.addDescription')}
+          </SectionPreviewRow>
+        </FieldWithLabel>
       )}
       {showDescription && descriptionField}
     </>

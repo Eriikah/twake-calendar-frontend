@@ -75,7 +75,7 @@ export async function createIntent(
       permissions: ['GET'],
       actions: [
         {
-          sharingLink: { label: 'Add as link' }
+          sharingLink: { label: 'Add as Attachment' }
         }
       ]
     }

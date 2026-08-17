@@ -65,6 +65,9 @@
     "back": "Quay lại",
     "show": "Hiển thị"
   },
+  "tdrive": {
+    "addAsAttachment": "Thêm làm tệp đính kèm"
+  },
   "search": {
     "searchIn": "Tìm kiếm trong",
     "filter": {
@@ -190,6 +193,7 @@
       "tdriveFiles": "Tệp",
       "tdrivePickerTitle": "Chọn tệp từ Tdrive",
       "tdriveLoadingError": "Không thể tải Tdrive. Vui lòng thử lại.",
+      "tdrivePickerError": "Không thể mở trình chọn tệp. Vui lòng thử lại.",
       "location": "Địa điểm",
       "locationPlaceholder": "Thêm địa điểm",
       "calendar": "Lịch",

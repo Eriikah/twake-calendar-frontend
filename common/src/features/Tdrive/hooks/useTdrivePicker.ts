@@ -1,15 +1,10 @@
 import { useAppSelector } from '@common/app/hooks'
 import Intents from 'cozy-interapp'
 import { useCallback, useRef, useState } from 'react'
+import { useI18n } from 'twake-i18n'
+import { TdriveFile } from '../types'
 import { exchangeToken, fetchIntentJSON } from '../TdriveDao'
 import { useTdriveUserContext } from './useTdriveUserContext'
-
-export interface TdriveFile {
-  id: string
-  name: string
-  url: string
-  type: 'sharingLink' | 'downloadLink'
-}
 
 interface UseTdrivePickerReturn {
   isOpen: boolean
@@ -21,43 +16,16 @@ interface UseTdrivePickerReturn {
 }
 
 interface UseTdrivePickerProps {
-  onFileSelected: (file: TdriveFile) => void
+  onFilesSelected: (files: TdriveFile[]) => void
 }
 
-function extractString(
-  doc: Record<string, unknown>,
-  keys: string[]
-): string | undefined {
-  for (const key of keys) {
-    const value = doc[key]
-    if (typeof value === 'string' && value.length > 0) {
-      return value
-    }
-  }
-  return undefined
-}
+function convertSingleResult(doc: Record<string, unknown>): TdriveFile | null {
+  const str = (v: unknown): string | undefined =>
+    typeof v === 'string' && v.length > 0 ? v : undefined
 
-function getFileType(
-  doc: Record<string, unknown>
-): 'sharingLink' | 'downloadLink' {
-  const sharingLink = doc.sharingLink
-  if (
-    (typeof sharingLink === 'string' && sharingLink.length > 0) ||
-    doc.type === 'sharingLink'
-  ) {
-    return 'sharingLink'
-  }
-  return 'downloadLink'
-}
-
-function convertIntentResultToFile(result: unknown): TdriveFile | null {
-  if (!result || typeof result !== 'object') return null
-
-  const doc = result as Record<string, unknown>
-
-  const id = extractString(doc, ['id', '_id', 'file_id'])
-  const name = extractString(doc, ['name', 'filename']) ?? 'Unnamed'
-  const url = extractString(doc, ['url', 'sharingLink', 'downloadLink'])
+  const id = str(doc.id) ?? str(doc._id) ?? str(doc.file_id)
+  const name = str(doc.name) ?? str(doc.filename) ?? 'Unnamed'
+  const url = str(doc.url) ?? str(doc.sharingLink)
 
   if (!id || !url) return null
 
@@ -65,8 +33,22 @@ function convertIntentResultToFile(result: unknown): TdriveFile | null {
     id,
     name,
     url,
-    type: getFileType(doc)
+    type: 'sharingLink',
+    mimeType: str(doc.mimeType) ?? null
   }
+}
+
+function convertIntentResultToFiles(result: unknown): TdriveFile[] {
+  if (!result || typeof result !== 'object') return []
+
+  if (Array.isArray(result)) {
+    return result
+      .map(doc => convertSingleResult(doc as Record<string, unknown>))
+      .filter((f): f is TdriveFile => f !== null)
+  }
+
+  const single = convertSingleResult(result as Record<string, unknown>)
+  return single ? [single] : []
 }
 
 interface StartTdrivePickerOptions {
@@ -76,6 +58,7 @@ interface StartTdrivePickerOptions {
   readyCallbackRef: React.MutableRefObject<(() => void) | null>
   cancellationRef: { cancelled: boolean }
   intentRef: React.MutableRefObject<{ stop?: () => void } | null>
+  t: (key: string) => string
 }
 
 async function startTdrivePicker({
@@ -84,15 +67,16 @@ async function startTdrivePicker({
   containerRef,
   readyCallbackRef,
   cancellationRef,
-  intentRef
+  intentRef,
+  t
 }: StartTdrivePickerOptions): Promise<{
-  file: TdriveFile | null
+  files: TdriveFile[]
   intent: { stop?: () => void }
 }> {
   const tokenResponse = await exchangeToken(tdriveBaseUrl, idToken)
 
   if (cancellationRef.cancelled) {
-    return { file: null, intent: {} }
+    return { files: [], intent: {} }
   }
 
   const intents = new Intents({
@@ -105,7 +89,12 @@ async function startTdrivePicker({
   const intent = intents.create(
     'PICK',
     'io.cozy.files',
-    { actions: [{ sharingLink: { label: 'Add as link' } }] },
+    {
+      theme: { type: 'light' },
+      multiple: true,
+      sharingLink: { label: t('tdrive.addAsAttachment') },
+      downloadLink: null
+    },
     ['GET']
   )
 
@@ -125,16 +114,17 @@ async function startTdrivePicker({
   })
 
   if (cancellationRef.cancelled) {
-    return { file: null, intent }
+    return { files: [], intent }
   }
 
-  const file = convertIntentResultToFile(result)
-  return { file, intent }
+  const files = convertIntentResultToFiles(result)
+  return { files, intent }
 }
 
 export function useTdrivePicker({
-  onFileSelected
+  onFilesSelected
 }: UseTdrivePickerProps): UseTdrivePickerReturn {
+  const { t } = useI18n()
   const [isOpen, setIsOpen] = useState(false)
   const [openPickerError, setOpenPickerError] = useState<string | null>(null)
 
@@ -172,19 +162,20 @@ export function useTdrivePicker({
     setIsOpen(true)
 
     try {
-      const { file } = await startTdrivePicker({
+      const { files } = await startTdrivePicker({
         tdriveBaseUrl,
         idToken,
         containerRef,
         readyCallbackRef,
         cancellationRef,
-        intentRef
+        intentRef,
+        t
       })
 
       if (cancellationRef.cancelled) return
 
-      if (file) {
-        onFileSelected(file)
+      if (files.length > 0) {
+        onFilesSelected(files)
       }
     } catch (error) {
       if (cancellationRef.cancelled) return
@@ -197,7 +188,7 @@ export function useTdrivePicker({
         setIsOpen(false)
       }
     }
-  }, [isOpen, tdriveBaseUrl, idToken, onFileSelected])
+  }, [isOpen, tdriveBaseUrl, idToken, onFilesSelected, t])
 
   const closePicker = useCallback(() => {
     if (activeCancellationRef.current) {

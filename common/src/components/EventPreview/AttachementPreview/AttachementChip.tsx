@@ -28,7 +28,7 @@ export const AttachementChip: React.FC<{
   const name = hasExtension ? filename.slice(0, lastDot) : filename
   const extension = hasExtension ? filename.slice(lastDot) : ''
   const fileIcon = (
-    <Icon icon={getFileTypeIcon(filename, attachment.fmttype)} size={24} />
+    <Icon icon={getFileTypeIcon(filename, attachment.fmttype)} size={20} />
   )
 
   const safeHref = React.useMemo(() => {

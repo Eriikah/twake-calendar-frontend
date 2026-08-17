@@ -65,6 +65,9 @@
     "back": "Назад",
     "show": "Показать"
   },
+  "tdrive": {
+    "addAsAttachment": "Добавить как вложение"
+  },
   "search": {
     "searchIn": "Поиск в",
     "filter": {
@@ -190,6 +193,7 @@
       "tdriveFiles": "Файлы",
       "tdrivePickerTitle": "Выбрать файл из Tdrive",
       "tdriveLoadingError": "Не удалось загрузить Tdrive. Пожалуйста, попробуйте снова.",
+      "tdrivePickerError": "Не удалось открыть выбор файлов. Пожалуйста, попробуйте снова.",
       "location": "Место",
       "locationPlaceholder": "Указать место",
       "calendar": "Календарь",

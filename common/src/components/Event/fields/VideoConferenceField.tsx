@@ -152,7 +152,7 @@ export const VideoConferenceField: React.FC<VideoConferenceFieldProps> = ({
     })
 
   const cameraIcon = (
-    <img src={iconCamera} alt="camera" width={24} height={24} />
+    <img src={iconCamera} alt="camera" width={18} height={18} />
   )
 
   return (

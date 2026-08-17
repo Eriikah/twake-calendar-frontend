@@ -97,7 +97,11 @@ function buildNewEvent({
       attendees: getAlarmAttendees(values, targetCalendar),
       summary: values.title
     }),
-    x_openpass_videoconference: values.meetingLink || undefined
+    x_openpass_videoconference: values.meetingLink || undefined,
+    attach:
+      values.attachments && values.attachments.length > 0
+        ? values.attachments
+        : undefined
   }
 }
 
