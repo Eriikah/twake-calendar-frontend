@@ -183,6 +183,7 @@
       "end": "End",
       "allDay": "All day",
       "repeat": "Repeat",
+      "timezone": "Timezone",
       "timezonePlaceholder": "Select timezone",
       "addGuestsPlaceholder": "Add guests",
       "participants": "Participants",
@@ -535,6 +536,7 @@
     "failed": "Could not generate the printable schedule. Please try again."
   },
   "booking": {
+    "title": "Title",
     "addSlot": "Add slot",
     "removeSlot": "Remove slot",
     "copySlot": "Copy to all",

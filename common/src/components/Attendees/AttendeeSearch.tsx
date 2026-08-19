@@ -132,6 +132,7 @@ export const AttendeeSearch: React.FC<{
   end?: string
   timezone?: string
   eventUid?: string | null
+  enableEmailAutocompleteAndCommit?: boolean
 }> = ({
   attendees,
   setAttendees,
@@ -141,7 +142,8 @@ export const AttendeeSearch: React.FC<{
   start,
   end,
   timezone,
-  eventUid
+  eventUid,
+  enableEmailAutocompleteAndCommit = true
 }) => {
   const {
     selectedUsers,
@@ -165,7 +167,12 @@ export const AttendeeSearch: React.FC<{
     setAddedUsers(value.filter(u => !initialEmails.has(u.email)))
     setAttendees(
       value.map(
-        u => new userAttendee({ cal_address: u.email, cn: u.displayName })
+        u =>
+          new userAttendee({
+            openpaasId: u.openpaasId,
+            cal_address: u.email,
+            cn: u.displayName
+          })
       )
     )
   }
@@ -178,16 +185,16 @@ export const AttendeeSearch: React.FC<{
       disabled={disabled}
       inputSlot={inputSlot}
       placeholder={placeholder}
-      getChipIcon={
-        start && end
-          ? (user): JSX.Element => (
-              <FreeBusyIndicator status={statusMap[user.email] ?? 'unknown'} />
-            )
-          : undefined
+      getChipIcon={(user): JSX.Element =>
+        start && end ? (
+          <FreeBusyIndicator status={statusMap[user.email] ?? 'unknown'} />
+        ) : (
+          <></>
+        )
       }
       onChange={handleOnChange}
       freeSolo
-      enableEmailAutocompleteAndCommit
+      enableEmailAutocompleteAndCommit={enableEmailAutocompleteAndCommit}
     />
   )
 }

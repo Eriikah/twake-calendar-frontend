@@ -183,6 +183,7 @@
       "end": "Kết thúc",
       "allDay": "Cả ngày",
       "repeat": "Lặp lại",
+      "timezone": "Múi giờ",
       "timezonePlaceholder": "Chọn múi giờ",
       "addGuestsPlaceholder": "Thêm khách",
       "participants": "Người tham gia",
@@ -534,6 +535,7 @@
     "failed": "Không thể tạo lịch để in. Vui lòng thử lại."
   },
   "booking": {
+    "title": "Tiêu đề",
     "addSlot": "Thêm khung giờ",
     "removeSlot": "Xóa khung giờ",
     "copySlot": "Sao chép cho tất cả",

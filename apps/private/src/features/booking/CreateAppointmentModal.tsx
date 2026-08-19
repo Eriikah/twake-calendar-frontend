@@ -5,6 +5,12 @@ import { useI18n } from 'twake-i18n'
 import { AppointmentModalForm } from './components/AppointmentModalForm'
 import { useAppointmentForm } from './hooks/useAppointmentForm'
 import { getVisibleBookingLinks } from '@common/utils/storage/getVisibleBookingLinks'
+import {
+  formatResourceIds,
+  formatAlarms,
+  formatExtraAttendees,
+  buildBookingPayload
+} from './utils'
 
 interface CreateAppointmentModalProps {
   open: boolean
@@ -40,7 +46,19 @@ export const CreateAppointmentModal: React.FC<CreateAppointmentModalProps> = ({
     isFormValid,
     userPersonalCalendars,
     availabilityRules,
-    setAvailabilityRules
+    setAvailabilityRules,
+    attendees,
+    setAttendees,
+    location,
+    setLocation,
+    alarms,
+    setAlarms,
+    busy,
+    setBusy,
+    eventClass,
+    setEventClass,
+    selectedResources,
+    setSelectedResources
   } = useAppointmentForm({ isOpen: open })
 
   useEffect(() => {
@@ -58,26 +76,28 @@ export const CreateAppointmentModal: React.FC<CreateAppointmentModalProps> = ({
     try {
       setLoading(true)
       setError(null)
-      const response = await createBookingLink({
+      const resourceIds = formatResourceIds(selectedResources)
+      const alarmList = formatAlarms(alarms)
+      const extraAttendeesList = formatExtraAttendees(attendees)
+
+      const payload = buildBookingPayload({
         name,
-        durationMinutes: duration,
-        calendarUrl: `/calendars/${calendarid}`,
+        duration,
+        calendarid,
         active,
-        autoAccept: false,
-        availabilityRules: availabilityRules
-          .filter(rule => rule.enabled)
-          .flatMap(rule =>
-            rule.slots.map(slot => ({
-              type: 'weekly' as const,
-              dayOfWeek: rule.dayOfWeek,
-              start: slot.start,
-              end: slot.end,
-              timeZone: timezone
-            }))
-          ),
+        availabilityRules,
+        timezone,
         description,
-        color
+        color,
+        location,
+        eventClass,
+        busy,
+        resourceIds,
+        alarmList,
+        extraAttendeesList
       })
+
+      const response = await createBookingLink(payload)
       const currentLinks = getVisibleBookingLinks()
       if (!currentLinks.includes(response.bookingLinkPublicId)) {
         setVisibleBookingLinks([...currentLinks, response.bookingLinkPublicId])
@@ -115,6 +135,18 @@ export const CreateAppointmentModal: React.FC<CreateAppointmentModalProps> = ({
       userPersonalCalendars={userPersonalCalendars}
       availabilityRules={availabilityRules}
       setAvailabilityRules={setAvailabilityRules}
+      attendees={attendees}
+      setAttendees={setAttendees}
+      location={location}
+      setLocation={setLocation}
+      alarms={alarms}
+      setAlarms={setAlarms}
+      busy={busy}
+      setBusy={setBusy}
+      eventClass={eventClass}
+      setEventClass={setEventClass}
+      selectedResources={selectedResources}
+      setSelectedResources={setSelectedResources}
       error={error}
       loading={loading}
       isFormValid={isFormValid}

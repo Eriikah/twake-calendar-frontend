@@ -1,6 +1,7 @@
 export interface TimeSlotSelectFieldProps {
   duration: number | undefined
   setDuration: (duration: number) => void
+  isExpanded?: boolean
 }
 
 export const TIME_SLOT_OPTIONS = [

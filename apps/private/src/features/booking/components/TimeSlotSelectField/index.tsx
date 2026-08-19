@@ -6,13 +6,18 @@ import { useScreenSizeDetection } from '@common/useScreenSizeDetection'
 import { DesktopTimeSlotSelectField } from './DesktopTimeSlotSelectField'
 import { MobileTimeSlotSelectField } from './MobileTimeSlotSelectField'
 
-const TimeSlotSelectForm: React.FC<{ children: React.ReactNode }> = ({
-  children
-}) => {
+const TimeSlotSelectForm: React.FC<{
+  children: React.ReactNode
+  isExpanded?: boolean
+}> = ({ children, isExpanded }) => {
   const { t } = useI18n()
+  const { isTooSmall: isMobile } = useScreenSizeDetection()
 
   return (
-    <FieldWithLabel label={t('booking.chooseTimeSlot')} isExpanded={false}>
+    <FieldWithLabel
+      label={t('booking.chooseTimeSlot')}
+      isExpanded={!!isExpanded && !isMobile}
+    >
       <FormControl fullWidth margin="dense" size="small">
         {children}
       </FormControl>
@@ -22,13 +27,14 @@ const TimeSlotSelectForm: React.FC<{ children: React.ReactNode }> = ({
 
 export const TimeSlotSelectField: React.FC<TimeSlotSelectFieldProps> = ({
   duration,
-  setDuration
+  setDuration,
+  isExpanded
 }) => {
   const { isTooSmall: isMobile } = useScreenSizeDetection()
 
   if (isMobile) {
     return (
-      <TimeSlotSelectForm>
+      <TimeSlotSelectForm isExpanded={isExpanded}>
         <MobileTimeSlotSelectField
           duration={duration}
           setDuration={setDuration}
@@ -38,7 +44,7 @@ export const TimeSlotSelectField: React.FC<TimeSlotSelectFieldProps> = ({
   }
 
   return (
-    <TimeSlotSelectForm>
+    <TimeSlotSelectForm isExpanded={isExpanded}>
       <DesktopTimeSlotSelectField
         duration={duration}
         setDuration={setDuration}

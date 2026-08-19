@@ -6,19 +6,23 @@ import { DEFAULT_SLOT, useRegularHours } from '../../hooks/useRegularHours'
 import { RegularHoursRow } from './RegularHoursRow'
 import { FieldWithLabel } from '@common/components/Event/components/FieldWithLabel'
 import { TwakeLocalizationProvider } from '@common/components/DateTimePicker'
+import { useScreenSizeDetection } from '@common/useScreenSizeDetection'
 
 interface RegularHoursFieldProps {
   availabilityRules?: DayAvailability[]
   setAvailabilityRules?: React.Dispatch<React.SetStateAction<DayAvailability[]>>
   workingDays?: number[]
+  isExpanded?: boolean
 }
 
 export const RegularHoursField: React.FC<RegularHoursFieldProps> = ({
   availabilityRules,
   setAvailabilityRules,
-  workingDays
+  workingDays,
+  isExpanded
 }) => {
   const { t, lang } = useI18n()
+  const { isTooSmall: isMobile } = useScreenSizeDetection()
   const {
     handleToggleDay,
     handleAddSlot,
@@ -38,7 +42,7 @@ export const RegularHoursField: React.FC<RegularHoursFieldProps> = ({
     <FieldWithLabel
       sx={{ mt: 2 }}
       label={t('booking.setRegularHours')}
-      isExpanded={false}
+      isExpanded={!!isExpanded && !isMobile}
     >
       <TwakeLocalizationProvider key={lang}>
         <Stack spacing={2}>

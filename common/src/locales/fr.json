@@ -183,6 +183,7 @@
       "end": "Fin",
       "allDay": "Toute la journée",
       "repeat": "Répéter",
+      "timezone": "Fuseau horaire",
       "timezonePlaceholder": "Sélectionner un fuseau horaire",
       "addGuestsPlaceholder": "Ajouter des invités",
       "participants": "Participants",
@@ -535,6 +536,7 @@
     "failed": "Impossible de générer l'agenda à imprimer. Veuillez réessayer."
   },
   "booking": {
+    "title": "Titre",
     "addSlot": "Ajouter un créneau",
     "removeSlot": "Supprimer le créneau",
     "copySlot": "Copier pour tous",

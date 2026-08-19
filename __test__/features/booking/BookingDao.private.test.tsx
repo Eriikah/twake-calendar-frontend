@@ -56,6 +56,15 @@ describe('Private Booking Link API', () => {
         autoAccept: false,
         name: 'Intro call',
         description: 'Book a 30-minute introduction call',
+        color: '#6B4ECC',
+        location: 'Room 3, Building A',
+        visibility: 'PRIVATE',
+        transparency: 'TRANSPARENT',
+        resources: ['68a1b2c3d4e5f60718293a4b'],
+        alarm: [{ period: '-PT10M', action: 'EMAIL' }],
+        extraAttendees: {
+          and: [{ participant: '67c3a792e4b0884b05ef8af0' }]
+        },
         availabilityRules: [
           {
             type: 'weekly',

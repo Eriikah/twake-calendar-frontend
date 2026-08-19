@@ -370,7 +370,8 @@ describe('EventPopover', () => {
           partstat: 'NEEDS-ACTION',
           rsvp: 'FALSE',
           role: 'REQ-PARTICIPANT',
-          cutype: 'INDIVIDUAL'
+          cutype: 'INDIVIDUAL',
+          openpaasId: 'john@example.com'
         })
       ])
       // No alarm was set in the form, so alarms should be empty

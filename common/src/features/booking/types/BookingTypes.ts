@@ -20,6 +20,19 @@ export interface FixedAvailabilityRule {
 
 export type AvailabilityRule = WeeklyAvailabilityRule | FixedAvailabilityRule
 
+export interface ExtraAttendeeItem {
+  participant: string
+}
+
+export interface ExtraAttendees {
+  and: ExtraAttendeeItem[]
+}
+
+export interface BookingAlarm {
+  period: string
+  action: string
+}
+
 export interface BookingLink {
   publicId: string
   calendarUrl: string
@@ -31,6 +44,12 @@ export interface BookingLink {
   name?: string
   description?: string
   color?: string
+  location?: string
+  visibility?: 'PUBLIC' | 'PRIVATE' | 'CONFIDENTIAL'
+  transparency?: 'OPAQUE' | 'TRANSPARENT'
+  resources?: string[]
+  alarm?: BookingAlarm[]
+  extraAttendees?: ExtraAttendees
 }
 
 export interface Slot {
@@ -42,6 +61,12 @@ export interface BookingSlotsResponse {
   autoAccept: boolean
   name?: string
   description?: string
+  color?: string
+  location?: string
+  visibility?: 'PUBLIC' | 'PRIVATE' | 'CONFIDENTIAL'
+  transparency?: 'OPAQUE' | 'TRANSPARENT'
+  resources?: Array<{ name: string; photoUrl?: string }> | string[]
+  alarm?: BookingAlarm[]
   owner: User
   range: {
     from: string
@@ -79,6 +104,12 @@ export interface CreateBookingLinkRequest {
   description?: string
   timeZone?: string
   color?: string
+  location?: string
+  visibility?: 'PUBLIC' | 'PRIVATE' | 'CONFIDENTIAL'
+  transparency?: 'OPAQUE' | 'TRANSPARENT'
+  resources?: string[]
+  alarm?: BookingAlarm[]
+  extraAttendees?: ExtraAttendees
 }
 
 export interface CreateBookingLinkResponse {
@@ -110,6 +141,12 @@ export interface UpdateBookingLinkRequest {
    * Omit to leave unchanged.
    */
   color?: string | null
+  location?: string | null
+  visibility?: 'PUBLIC' | 'PRIVATE' | 'CONFIDENTIAL' | null
+  transparency?: 'OPAQUE' | 'TRANSPARENT' | null
+  resources?: string[] | null
+  alarm?: BookingAlarm[] | null
+  extraAttendees?: ExtraAttendees | null
 }
 
 export interface CreateBookingResponse {

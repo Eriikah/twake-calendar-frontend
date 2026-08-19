@@ -195,7 +195,7 @@ export const PeopleSearch: React.FC<PeopleSearchProps> = ({
   inputSlot,
   customRenderInput,
   customSlotProps,
-  getChipIcon,
+  getChipIcon = (): JSX.Element => <></>,
   hideOptions,
   showCurrentUser,
   onSearchStateChange,

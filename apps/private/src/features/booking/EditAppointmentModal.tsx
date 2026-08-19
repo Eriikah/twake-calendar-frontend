@@ -5,7 +5,12 @@ import { updateBookingLink } from '@common/features/booking/BookingLinksSlice'
 import { useAppointmentForm } from './hooks/useAppointmentForm'
 import { AppointmentModalForm } from './components/AppointmentModalForm'
 import type { BookingLink } from '@common/features/booking/types/BookingTypes'
-
+import {
+  formatResourceIds,
+  formatAlarms,
+  formatExtraAttendees,
+  buildUpdateBookingPayload
+} from './utils'
 interface EditAppointmentModalProps {
   open: boolean
   onClose: () => void
@@ -43,7 +48,19 @@ export const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
     isFormValid,
     userPersonalCalendars,
     availabilityRules,
-    setAvailabilityRules
+    setAvailabilityRules,
+    attendees,
+    setAttendees,
+    location,
+    setLocation,
+    alarms,
+    setAlarms,
+    busy,
+    setBusy,
+    eventClass,
+    setEventClass,
+    selectedResources,
+    setSelectedResources
   } = useAppointmentForm({ bookingLink, isOpen: open })
 
   const handleActiveToggle = async (newActive: boolean): Promise<void> => {
@@ -78,28 +95,31 @@ export const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
     try {
       setLoading(true)
       setError(null)
+      const resourceIds = formatResourceIds(selectedResources)
+      const alarmList = formatAlarms(alarms)
+      const extraAttendeesList = formatExtraAttendees(attendees)
+
+      const payload = buildUpdateBookingPayload({
+        name,
+        duration,
+        calendarid,
+        active,
+        availabilityRules,
+        timezone,
+        description,
+        color,
+        location,
+        eventClass,
+        busy,
+        resourceIds,
+        alarmList,
+        extraAttendeesList
+      })
+
       await dispatch(
         updateBookingLink({
           publicId: bookingLink.publicId,
-          request: {
-            name,
-            durationMinutes: duration,
-            calendarUrl: `/calendars/${calendarid}`,
-            active,
-            availabilityRules: availabilityRules
-              .filter(rule => rule.enabled)
-              .flatMap(rule =>
-                rule.slots.map(slot => ({
-                  type: 'weekly' as const,
-                  dayOfWeek: rule.dayOfWeek,
-                  start: slot.start,
-                  end: slot.end,
-                  timeZone: timezone
-                }))
-              ),
-            description: description || null,
-            color
-          }
+          request: payload
         })
       ).unwrap()
       onClose()
@@ -137,6 +157,18 @@ export const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
       userPersonalCalendars={userPersonalCalendars}
       availabilityRules={availabilityRules}
       setAvailabilityRules={setAvailabilityRules}
+      attendees={attendees}
+      setAttendees={setAttendees}
+      location={location}
+      setLocation={setLocation}
+      alarms={alarms}
+      setAlarms={setAlarms}
+      busy={busy}
+      setBusy={setBusy}
+      eventClass={eventClass}
+      setEventClass={setEventClass}
+      selectedResources={selectedResources}
+      setSelectedResources={setSelectedResources}
       error={error}
       loading={loading}
       isFormValid={isFormValid}

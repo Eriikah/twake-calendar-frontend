@@ -7,7 +7,7 @@ import type {
 import type { Calendar } from '@common/types/CalendarTypes'
 import { calendarIdFromEventHref } from '@common/features/Calendars/CalendarDAO'
 import { useUserPersonalCalendars } from '@common/features/Calendars/hooks/useUserPersonalCalendars'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   DAY_TO_FC,
   DayAvailability,
@@ -15,6 +15,11 @@ import {
 } from '../components/RegularHoursField/RegularHoursTypes'
 import { defaultColors } from '@common/utils/defaultColors'
 import { DEFAULT_SLOT } from './useRegularHours'
+import { userAttendee } from '@common/features/User/models/attendee'
+import type { Resource } from '@common/components/Attendees/ResourceSearch'
+import { Valarms } from '@common/types/Valarms'
+import { VAlarm } from '@common/types/VAlarm'
+import { useResolveBookingLinkEntities } from './useResolveBookingLinkEntities'
 
 interface UseAppointmentFormOptions {
   bookingLink?: BookingLink
@@ -31,6 +36,12 @@ interface FormState {
   availabilityRules: DayAvailability[]
   color: string
   active: boolean
+  attendees: userAttendee[]
+  location: string
+  alarms: Valarms
+  busy: string
+  eventClass: 'PUBLIC' | 'PRIVATE' | 'CONFIDENTIAL'
+  selectedResources: Resource[]
 }
 
 interface UseAppointmentFormReturn extends FormState {
@@ -43,6 +54,12 @@ interface UseAppointmentFormReturn extends FormState {
   setAvailabilityRules: React.Dispatch<React.SetStateAction<DayAvailability[]>>
   setColor: (value: string) => void
   setActive: (value: boolean) => void
+  setAttendees: (value: userAttendee[]) => void
+  setLocation: (value: string) => void
+  setAlarms: (value: Valarms) => void
+  setBusy: (value: string) => void
+  setEventClass: (value: 'PUBLIC' | 'PRIVATE' | 'CONFIDENTIAL') => void
+  setSelectedResources: (value: Resource[]) => void
   error: string | null
   setError: (value: string | null) => void
   loading: boolean
@@ -59,17 +76,10 @@ const bookingTimezone = (bookingLink: BookingLink): string =>
     (rule: AvailabilityRule) => rule.type === 'weekly'
   )?.timeZone ?? localTimezone()
 
-const formStateFromBookingLink = (
-  bookingLink: BookingLink,
-  calendarColor?: string
-): FormState => ({
-  name: bookingLink.name ?? '',
-  duration: bookingLink.durationMinutes,
-  description: bookingLink.description ?? '',
-  showDescription: Boolean(bookingLink.description),
-  timezone: bookingTimezone(bookingLink),
-  calendarid: calendarIdFromEventHref(bookingLink.calendarUrl),
-  availabilityRules: DAYS.map((day): DayAvailability => {
+const extractAvailabilityRules = (
+  bookingLink: BookingLink
+): DayAvailability[] =>
+  DAYS.map((day): DayAvailability => {
     const rules = bookingLink.availabilityRules?.filter(
       (r: AvailabilityRule): r is WeeklyAvailabilityRule =>
         r.type === 'weekly' && r.dayOfWeek === day
@@ -82,9 +92,58 @@ const formStateFromBookingLink = (
         end: r.end
       })) || [DEFAULT_SLOT]
     }
-  }),
+  })
+
+const extractAttendees = (bookingLink: BookingLink): userAttendee[] =>
+  bookingLink.extraAttendees?.and?.map(
+    p =>
+      new userAttendee({
+        cal_address: p.participant,
+        openpaasId: p.participant,
+        cn: p.participant
+      })
+  ) ?? []
+
+const extractAlarms = (bookingLink: BookingLink): Valarms =>
+  bookingLink.alarm?.length
+    ? Valarms.fromList(
+        bookingLink.alarm.map(
+          a =>
+            new VAlarm({
+              trigger: a.period,
+              action: a.action || 'EMAIL'
+            })
+        )
+      )
+    : new Valarms()
+
+const extractResources = (bookingLink: BookingLink): Resource[] =>
+  bookingLink.resources?.map(id => ({
+    displayName: id,
+    openpaasId: id
+  })) ?? []
+
+const formStateFromBookingLink = (
+  bookingLink: BookingLink,
+  calendarColor?: string
+): FormState => ({
+  name: bookingLink.name ?? '',
+  duration: bookingLink.durationMinutes,
+  description: bookingLink.description ?? '',
+  showDescription: Boolean(bookingLink.description),
+  timezone: bookingTimezone(bookingLink),
+  calendarid: calendarIdFromEventHref(bookingLink.calendarUrl),
+  availabilityRules: extractAvailabilityRules(bookingLink),
   color: bookingLink.color ?? calendarColor ?? defaultColors[4].dark,
-  active: bookingLink.active ?? true
+  active: bookingLink.active ?? true,
+  attendees: extractAttendees(bookingLink),
+  location: bookingLink.location ?? '',
+  alarms: extractAlarms(bookingLink),
+  busy: bookingLink.transparency ?? 'OPAQUE',
+  eventClass:
+    (bookingLink.visibility as 'PUBLIC' | 'PRIVATE' | 'CONFIDENTIAL') ??
+    'PUBLIC',
+  selectedResources: extractResources(bookingLink)
 })
 
 const defaultFormState = (
@@ -109,7 +168,13 @@ const defaultFormState = (
     }
   }),
   color: defaultCalendarColor ?? defaultColors[4].dark,
-  active: true
+  active: true,
+  attendees: [],
+  location: '',
+  alarms: new Valarms(),
+  busy: 'TRANSPARENT',
+  eventClass: 'PUBLIC',
+  selectedResources: []
 })
 
 interface FormSetters {
@@ -122,6 +187,12 @@ interface FormSetters {
   setAvailabilityRules: React.Dispatch<React.SetStateAction<DayAvailability[]>>
   setColor: (value: string) => void
   setActive: (value: boolean) => void
+  setAttendees: (value: userAttendee[]) => void
+  setLocation: (value: string) => void
+  setAlarms: (value: Valarms) => void
+  setBusy: (value: string) => void
+  setEventClass: (value: 'PUBLIC' | 'PRIVATE' | 'CONFIDENTIAL') => void
+  setSelectedResources: (value: Resource[]) => void
 }
 
 const makeSetters = (
@@ -157,16 +228,36 @@ const makeSetters = (
   setColor: (value: string): void =>
     setForm(prev => ({ ...prev, color: value })),
   setActive: (value: boolean): void =>
-    setForm(prev => ({ ...prev, active: value }))
+    setForm(prev => ({ ...prev, active: value })),
+  setAttendees: (value: userAttendee[]): void =>
+    setForm(prev => ({ ...prev, attendees: value })),
+  setLocation: (value: string): void =>
+    setForm(prev => ({ ...prev, location: value })),
+  setAlarms: (value: Valarms): void =>
+    setForm(prev => ({ ...prev, alarms: value })),
+  setBusy: (value: string): void => setForm(prev => ({ ...prev, busy: value })),
+  setEventClass: (value: 'PUBLIC' | 'PRIVATE' | 'CONFIDENTIAL'): void =>
+    setForm(prev => ({ ...prev, eventClass: value })),
+  setSelectedResources: (value: Resource[]): void =>
+    setForm(prev => ({ ...prev, selectedResources: value }))
 })
 
-const computeInitialFormState = (
-  isOpen: boolean,
-  bookingLink: BookingLink | undefined,
-  workingDays: number[] | undefined,
-  firstCalendarId?: string,
-  firstCalendarColor?: string
-): FormState => {
+interface ComputeInitialFormStateOptions {
+  isOpen: boolean
+  bookingLink: BookingLink | undefined
+  workingDays: number[] | undefined
+  userPersonalCalendars: Calendar[]
+}
+
+const computeInitialFormState = ({
+  isOpen,
+  bookingLink,
+  workingDays,
+  userPersonalCalendars
+}: ComputeInitialFormStateOptions): FormState => {
+  const firstCalendarId = userPersonalCalendars[0]?.id
+  const firstCalendarColor = userPersonalCalendars[0]?.color?.light
+
   if (!isOpen) return defaultFormState('', workingDays, firstCalendarColor)
   return bookingLink
     ? formStateFromBookingLink(bookingLink, firstCalendarColor)
@@ -189,13 +280,12 @@ export const useAppointmentForm = ({
 
   const initialForm = useMemo(
     () =>
-      computeInitialFormState(
+      computeInitialFormState({
         isOpen,
         bookingLink,
         workingDays,
-        userPersonalCalendars[0]?.id,
-        userPersonalCalendars[0]?.color?.light
-      ),
+        userPersonalCalendars
+      }),
     [isOpen, bookingLink, userPersonalCalendars, workingDays]
   )
 
@@ -214,6 +304,24 @@ export const useAppointmentForm = ({
     }
     prevIsOpen.current = isOpen
   }, [isOpen, initialForm])
+
+  const handleSetAttendees = useCallback(
+    (attendees: userAttendee[]) => setForm(prev => ({ ...prev, attendees })),
+    []
+  )
+
+  const handleSetSelectedResources = useCallback(
+    (selectedResources: Resource[]) =>
+      setForm(prev => ({ ...prev, selectedResources })),
+    []
+  )
+
+  useResolveBookingLinkEntities({
+    isOpen,
+    bookingLink,
+    setAttendees: handleSetAttendees,
+    setSelectedResources: handleSetSelectedResources
+  })
 
   return {
     ...form,

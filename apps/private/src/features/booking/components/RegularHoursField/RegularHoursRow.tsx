@@ -148,13 +148,14 @@ export const RegularHoursRow: React.FC<RegularHoursRowProps> = ({
   handleCopySlot
 }) => {
   return (
-    <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
           width: 100,
-          mt: 1
+          mt: 1,
+          mr: 1
         }}
       >
         <Switch
