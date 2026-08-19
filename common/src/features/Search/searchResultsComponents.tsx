@@ -1,6 +1,6 @@
 import { stringAvatar } from '@common/components/Event/utils/eventUtils'
 import Tooltip from '@common/components/Tooltip'
-import { removeVideoConferenceFromDescription } from '@common/utils/videoConferenceUtils'
+import { EventDescriptionBuilder } from '@common/utils/EventDescriptionBuilder'
 import {
   alpha,
   Avatar,
@@ -229,7 +229,9 @@ export const RenderLocation: React.FC<{ text?: string }> = ({ text }) => {
 export const RenderDescription: React.FC<{ text?: string }> = ({ text }) => {
   return (
     <RenderText
-      text={removeVideoConferenceFromDescription(text ?? '')}
+      text={new EventDescriptionBuilder(text ?? '')
+        .removeVisio()
+        .buildPlainText()}
       sx={{ flex: '1 1 0%' }}
     />
   )

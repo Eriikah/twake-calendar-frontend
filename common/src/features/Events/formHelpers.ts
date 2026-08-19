@@ -3,7 +3,7 @@ import { formatDateTimeInTimezone } from '@common/components/Event/utils/dateTim
 import { extractEventBaseUuid } from '@common/utils/extractEventBaseUuid'
 import { browserDefaultTimeZone } from '@common/utils/timezone'
 import { TIMEZONES } from '@common/utils/timezone-data'
-import { removeVideoConferenceFromDescription } from '@common/utils/videoConferenceUtils'
+import { EventDescriptionBuilder } from '@common/utils/EventDescriptionBuilder'
 import { userAttendee } from '@common/features/User/models/attendee'
 import { CalendarEvent } from '@common/types/EventsTypes'
 import { RepetitionObject } from '@common/types/Repetition'
@@ -135,9 +135,11 @@ export function populateFormFromEvent(
 
   // Handle repetition - check both current event and base event (for update modal)
   let repetitionSource = event.repetition
-  if (calendarsList && calId && event.uid) {
+  const canFetchBaseEvent = Boolean(calendarsList && calId && event.uid)
+
+  if (canFetchBaseEvent) {
     const baseEventId = extractEventBaseUuid(event.uid)
-    const baseEvent = calendarsList[calId]?.events[baseEventId]
+    const baseEvent = calendarsList?.[calId as string]?.events?.[baseEventId]
     if (baseEvent?.repetition) {
       repetitionSource = baseEvent.repetition
     }
@@ -180,7 +182,9 @@ export function populateFormFromEvent(
 
   // Always strip video conference footer from description for UI form
   if (event.description) {
-    setDescription(removeVideoConferenceFromDescription(event.description))
+    setDescription(
+      new EventDescriptionBuilder(event.description).removeVisio().buildHtml()
+    )
   } else {
     setDescription('')
   }

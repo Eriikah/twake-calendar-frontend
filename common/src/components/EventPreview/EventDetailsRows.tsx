@@ -4,7 +4,6 @@ import { userAttendee } from '@common/features/User/models/attendee'
 import { Attachment } from '@common/types/Attachment'
 import { RepetitionObject } from '@common/types/Repetition'
 import { Valarms } from '@common/types/Valarms'
-import { removeVideoConferenceFromDescription } from '@common/utils/videoConferenceUtils'
 import { Box, Typography, useTheme } from '@linagora/twake-mui'
 import ErrorOutlinedIcon from '@mui/icons-material/ErrorOutlined'
 import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined'
@@ -17,12 +16,14 @@ import React from 'react'
 import { useI18n } from 'twake-i18n'
 import { AttachementPreview } from './AttachementPreview'
 import { infoIconSx } from './EventPreviewDetails'
+import { EventDescriptionBuilder } from '@common/utils/EventDescriptionBuilder'
 import { makeRecurrenceString } from './utils/makeRecurrenceString'
 import { translateAlarmAction, translateDuration } from './utils/parseDuration'
 
 interface BaseEventRowProps {
   icon: React.ReactNode
   text?: string
+  html?: string
   content?: React.ReactNode
   alignItems?: React.CSSProperties['alignItems']
   alignSelf?: React.CSSProperties['alignSelf']
@@ -34,6 +35,7 @@ interface BaseEventRowProps {
 export const BaseEventRow: React.FC<BaseEventRowProps> = ({
   icon,
   text,
+  html,
   content,
   alignItems,
   alignSelf,
@@ -61,6 +63,7 @@ export const BaseEventRow: React.FC<BaseEventRowProps> = ({
         </Box>
       }
       text={text}
+      html={html}
       content={content}
     />
   )
@@ -141,25 +144,23 @@ export const EventDescriptionRow: React.FC<{
   description?: string
   attach?: Attachment[]
 }> = ({ description, attach }) => {
-  const displayedDescription = removeVideoConferenceFromDescription(
-    description ?? ''
-  )
-  const displayableAttach = attach?.filter(attachment =>
-    attachment.hasDisplayableFilename()
-  )
-  const showAttachments =
-    window.ENABLE_EVENT_ATTACHMENTS === true && !!displayableAttach?.length
-  if (!(displayedDescription || showAttachments)) return null
+  const builder = new EventDescriptionBuilder(description ?? '', attach ?? [])
+    .removeVisio()
+    .sanitize()
+    .filterAttachments()
+
+  if (!builder.hasContent()) return null
+
+  const displayableAttach = builder.getAttachments()
 
   return (
     <BaseEventRow
       alignItems="flex-start"
       alignSelf="flex-start"
       icon={<SubjectIcon />}
-      text={displayedDescription}
+      html={builder.buildHtml()}
       content={
-        showAttachments &&
-        displayableAttach && (
+        displayableAttach.length > 0 && (
           <AttachementPreview attachments={displayableAttach} />
         )
       }

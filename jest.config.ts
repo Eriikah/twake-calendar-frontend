@@ -42,7 +42,7 @@ const config: Config = {
           '<rootDir>/fileTransformer.ts'
       },
       transformIgnorePatterns: [
-        '/node_modules/(?!(preact|@fullcalendar|react-calendar|get-user-locale|memoize|mimic-function|@wojtekmaj|ky|cozy-ui|p-map|@linagora/twake-mui|@linagora/twake-icons|mime)/)'
+        '/node_modules/(?!(preact|@fullcalendar|react-calendar|get-user-locale|memoize|mimic-function|@wojtekmaj|ky|cozy-ui|p-map|@linagora/twake-mui|@linagora/twake-icons|mime|html-react-parser|domhandler|htmlparser2|domutils|entities|domelementtype|dom-serializer)/)'
       ],
 
       moduleNameMapper: {
@@ -88,7 +88,7 @@ const config: Config = {
           '<rootDir>/fileTransformer.ts'
       },
       transformIgnorePatterns: [
-        '/node_modules/(?!(preact|@fullcalendar|react-calendar|get-user-locale|memoize|mimic-function|@wojtekmaj|ky|cozy-ui|p-map|@linagora/twake-mui|@linagora/twake-icons|mime)/)'
+        '/node_modules/(?!(preact|@fullcalendar|react-calendar|get-user-locale|memoize|mimic-function|@wojtekmaj|ky|cozy-ui|p-map|@linagora/twake-mui|@linagora/twake-icons|mime|html-react-parser|domhandler|htmlparser2|domutils|entities|domelementtype|dom-serializer)/)'
       ],
 
       moduleNameMapper: {
@@ -127,7 +127,7 @@ const config: Config = {
         '^.+\\.(js|jsx|mjs)$': 'babel-jest'
       },
       transformIgnorePatterns: [
-        '/node_modules/(?!(ky|@linagora/twake-mui|@linagora/twake-icons)/)'
+        '/node_modules/(?!(ky|@linagora/twake-mui|@linagora/twake-icons|html-react-parser|domhandler|htmlparser2|domutils|entities|domelementtype|dom-serializer)/)'
       ],
       setupFilesAfterEnv: ['<rootDir>/common/src/setupTests.ts'],
       moduleNameMapper: {

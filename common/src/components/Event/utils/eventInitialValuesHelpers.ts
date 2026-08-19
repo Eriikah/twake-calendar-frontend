@@ -5,7 +5,7 @@ import { Calendar } from '@common/types/CalendarTypes'
 import { CalendarEvent } from '@common/types/EventsTypes'
 import { Valarms } from '@common/types/Valarms'
 import { resolveTimezone } from '@common/utils/timezone'
-import { removeVideoConferenceFromDescription } from '@common/utils/videoConferenceUtils'
+import { EventDescriptionBuilder } from '@common/utils/EventDescriptionBuilder'
 
 import {
   resolveAttendeesAndResources,
@@ -23,7 +23,7 @@ export { buildDefaultNewEvent, buildFromSelectedRange }
 
 function resolveDescription(event: CalendarEvent): string {
   const description = event.description ?? ''
-  return removeVideoConferenceFromDescription(description)
+  return new EventDescriptionBuilder(description).removeVisio().buildHtml()
 }
 
 export interface BuildFromExistingEventParams {
