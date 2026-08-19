@@ -36,6 +36,7 @@ export interface CalendarEvent {
   passthroughProps?: VObjectProperty[]
   selectedResources?: Resource[]
   attach?: Attachment[]
+  teamCalendarId?: string
 }
 
 export interface ContextualizedEvent {

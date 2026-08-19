@@ -16,6 +16,7 @@ import { useState } from 'react'
 import { useI18n } from 'twake-i18n'
 import { makeAttendeePreview } from '.'
 import { userAttendee } from '@common/features/User/models/attendee'
+import { useTeamOrganizer } from './useTeamOrganizer'
 
 interface EventPreviewAttendeesProps {
   attendees: userAttendee[]
@@ -25,6 +26,8 @@ interface EventPreviewAttendeesProps {
   end?: string
   timezone?: string
   eventUid?: string | null
+  isTeamCalendar?: boolean
+  teamCalendarId?: string
 }
 
 const ATTENDEE_DISPLAY_LIMIT = 3
@@ -36,7 +39,9 @@ export function EventPreviewAttendees({
   start,
   end,
   timezone,
-  eventUid
+  eventUid,
+  isTeamCalendar,
+  teamCalendarId
 }: EventPreviewAttendeesProps): JSX.Element {
   const { t } = useI18n()
   const theme = useTheme()
@@ -78,6 +83,13 @@ export function EventPreviewAttendees({
         ? t('event.freeBusy.busyCalOwner')
         : t('event.freeBusy.busy')
       : undefined
+
+  const {
+    isTeamOverride,
+    displayOrganizer,
+    isOriginalOrganizer,
+    organizerCaption
+  } = useTeamOrganizer({ teamCalendarId, isTeamCalendar, organizer, t })
 
   return (
     <>
@@ -145,13 +157,17 @@ export function EventPreviewAttendees({
                   }
                 }}
               >
-                {organizer &&
+                {displayOrganizer &&
                   renderAttendeeBadge({
-                    a: organizer,
+                    a: displayOrganizer,
                     key: 'org',
                     t,
                     isFull: showAllAttendees,
-                    isOrganizer: true
+                    isOrganizer: isOriginalOrganizer,
+                    isTeamCalendar,
+                    caption: organizerCaption,
+                    isTeamOverride,
+                    originalOrganizer: organizer
                   })}
                 {attendees.map((a, idx) =>
                   renderAttendeeBadge({
@@ -195,13 +211,17 @@ export function EventPreviewAttendees({
       </Box>
 
       {showAllAttendees &&
-        organizer &&
+        displayOrganizer &&
         renderAttendeeBadge({
-          a: organizer,
+          a: displayOrganizer,
           key: 'org',
           t,
           isFull: showAllAttendees,
-          isOrganizer: true
+          isOrganizer: isOriginalOrganizer,
+          isTeamCalendar,
+          caption: organizerCaption,
+          isTeamOverride,
+          originalOrganizer: organizer
         })}
       {showAllAttendees &&
         attendees.map((a, idx) =>

@@ -121,6 +121,8 @@
     "createInAgenda": "Tạo trong lịch của %{owner}",
     "updateEvent": "Cập nhật sự kiện",
     "organizer": "Người tổ chức",
+    "teamOrganizerWithName": "Người tổ chức của nhóm: %{organizerName}",
+    "teamOrganizer": "Người tổ chức của nhóm",
     "untitled": "Không có tiêu đề",
     "noEventsToDisplay": "Không có sự kiện để hiển thị",
     "list": {
@@ -470,6 +472,8 @@
     "displayMode": "Chế độ hiển thị"
   },
   "tooltip": {
+    "teamOrganizer": "%{displayName} đã tổ chức sự kiện này cho nhóm",
+    "eventInTeamCalendar": "Sự kiện này được tổ chức bởi nhóm %{teamName}",
     "download": "Xuất chi tiết sự kiện sang file .ics",
     "createEvent": "Tạo sự kiện mới",
     "createEventWithAttendee": "Tạo sự kiện mới với %{attendee}",

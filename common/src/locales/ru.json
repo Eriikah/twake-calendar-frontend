@@ -121,6 +121,8 @@
     "createInAgenda": "Создать в календаре %{owner}",
     "updateEvent": "Обновить событие",
     "organizer": "Организатор",
+    "teamOrganizerWithName": "Организатор команды: %{organizerName}",
+    "teamOrganizer": "Организатор команды",
     "untitled": "Без названия",
     "noEventsToDisplay": "Нет событий для отображения",
     "list": {
@@ -470,6 +472,8 @@
     "displayMode": "Режим отображения"
   },
   "tooltip": {
+    "teamOrganizer": "%{displayName} организовал это событие для команды",
+    "eventInTeamCalendar": "Это событие было организовано командой %{teamName}",
     "download": "Экспорт деталей события в файл .ics",
     "createEvent": "Создать новое событие",
     "createEventWithAttendee": "Создать новое событие с %{attendee}",

@@ -121,6 +121,8 @@
     "createInAgenda": "Créer dans l'agenda de %{owner}",
     "updateEvent": "Mettre à jour un événement",
     "organizer": "Organisateur",
+    "teamOrganizerWithName": "Organisateur de l'équipe: %{organizerName}",
+    "teamOrganizer": "Organisateur de l'équipe",
     "untitled": "Sans titre",
     "noEventsToDisplay": "Aucun événement à afficher",
     "list": {
@@ -470,6 +472,8 @@
     "displayMode": "Mode d'affichage"
   },
   "tooltip": {
+    "teamOrganizer": "%{displayName} a organisé cet événement pour l'équipe",
+    "eventInTeamCalendar": "Cet événement a été organisé par l'équipe %{teamName}",
     "download": "Exporter les détails de l'événement vers un fichier .ics",
     "createEvent": "Créer un nouvel événement",
     "createEventWithAttendee": "Créer un nouvel événement avec %{attendee}",

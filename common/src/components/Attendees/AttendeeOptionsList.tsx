@@ -1,12 +1,6 @@
-import {
-  Avatar,
-  ListItem,
-  ListItemAvatar,
-  ListItemText
-} from '@linagora/twake-mui'
+import { ListItem, ListItemAvatar, ListItemText } from '@linagora/twake-mui'
 import React, { HTMLAttributes } from 'react'
-import { stringAvatar } from '@common/components/Event/utils/eventUtils'
-import { ResourceIcon } from './ResourceIcon'
+import { AttendeeAvatar } from './AttendeeAvatar'
 import { User } from './types'
 
 export interface AttendeeOptionsListProps extends HTMLAttributes<HTMLLIElement> {
@@ -25,7 +19,9 @@ export const AttendeeOptionsList: React.FC<AttendeeOptionsListProps> = ({
     <>
       {options.map(option => {
         if (selectedUsers.find(u => u.email === option.email)) return null
-        const isResource = option.objectType === 'resource'
+        const isNotShowEmail = ['resource', 'team-calendar'].includes(
+          option.objectType || ''
+        )
         return (
           <ListItem
             key={option.email}
@@ -35,15 +31,11 @@ export const AttendeeOptionsList: React.FC<AttendeeOptionsListProps> = ({
             {...props}
           >
             <ListItemAvatar>
-              {isResource ? (
-                <ResourceIcon avatarUrl={option.avatarUrl} />
-              ) : (
-                <Avatar {...stringAvatar(option.displayName || option.email)} />
-              )}
+              <AttendeeAvatar option={option} />
             </ListItemAvatar>
             <ListItemText
               primary={option.displayName || option.email}
-              secondary={!isResource ? option.email : undefined}
+              secondary={!isNotShowEmail ? option.email : undefined}
               slotProps={{
                 primary: { variant: 'body2' },
                 secondary: { variant: 'caption' }

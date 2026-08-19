@@ -180,6 +180,9 @@ const PROPERTY_PARSERS: Record<
   'x-openpaas-booking-link': (params, value, event) => {
     event.bookingLinkPublicId = safeString(value)
   },
+  'x-openpaas-team-calendar-id': (params, value, event) => {
+    event.teamCalendarId = safeString(value)
+  },
   summary: (params, value, event) => {
     event.title = safeString(value)
   },

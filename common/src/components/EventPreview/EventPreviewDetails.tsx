@@ -23,6 +23,7 @@ export interface EventPreviewDetailsProps {
   isResourceEventPreview?: boolean
   calendarName?: string
   ownerEmail?: string
+  isTeamCalendar?: boolean
 }
 
 export const infoIconSx = (theme: Theme): SxProps<Theme> => ({
@@ -40,10 +41,10 @@ export const EventPreviewDetails: React.FC<EventPreviewDetailsProps> = ({
   isNotPrivate,
   isResourceEventPreview,
   calendarName,
-  ownerEmail
+  ownerEmail,
+  isTeamCalendar
 }) => {
   const { t } = useI18n()
-
   const { resources, eventAttendees, attendees, organizer } =
     useFilterEventAttendees({
       event,
@@ -78,7 +79,8 @@ export const EventPreviewDetails: React.FC<EventPreviewDetailsProps> = ({
           key: 'org',
           t,
           isFull: true,
-          isOrganizer: true
+          isOrganizer: true,
+          isTeamCalendar
         })}
 
       {shouldShowAttendeesSection && (
@@ -90,6 +92,8 @@ export const EventPreviewDetails: React.FC<EventPreviewDetailsProps> = ({
           end={event.end}
           timezone={event.timezone}
           eventUid={event.uid}
+          isTeamCalendar={isTeamCalendar}
+          teamCalendarId={event.teamCalendarId}
         />
       )}
 
