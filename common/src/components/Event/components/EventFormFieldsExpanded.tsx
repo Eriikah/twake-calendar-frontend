@@ -23,12 +23,12 @@ interface EventFormFieldsExpandedProps {
   showMore: boolean
   selectedResources: Resource[]
   setSelectedResources: (resources: Resource[]) => void
-  userOrganizer: userOrganiser
-  selectedCalendar: Calendar
-  isTeamCalendar: boolean
-  isDisableOrganizerSelection: boolean
-  setSelectedOrganizer: (organizer: userOrganiser) => void
-  selectedOrganizer: userOrganiser
+  userOrganizer?: userOrganiser
+  selectedCalendar?: Calendar
+  isTeamCalendar?: boolean
+  isDisableOrganizerSelection?: boolean
+  setSelectedOrganizer?: (organizer: userOrganiser) => void
+  selectedOrganizer?: userOrganiser
 }
 
 export const EventFormFieldsExpanded: React.FC<
@@ -57,16 +57,20 @@ export const EventFormFieldsExpanded: React.FC<
 
   return (
     <>
-      {isTeamCalendar && selectedCalendar && (
-        <OrganizerSelectField
-          calendar={selectedCalendar}
-          value={selectedOrganizer}
-          onChange={setSelectedOrganizer}
-          userOrganizer={userOrganizer}
-          showMore={showMore}
-          disabled={isDisableOrganizerSelection}
-        />
-      )}
+      {isTeamCalendar &&
+        selectedCalendar &&
+        selectedOrganizer &&
+        setSelectedOrganizer &&
+        userOrganizer && (
+          <OrganizerSelectField
+            calendar={selectedCalendar}
+            value={selectedOrganizer}
+            onChange={setSelectedOrganizer}
+            userOrganizer={userOrganizer}
+            showMore={showMore}
+            disabled={isDisableOrganizerSelection}
+          />
+        )}
 
       {!window.HIDE_RESOURCES && (
         <FieldWithLabel

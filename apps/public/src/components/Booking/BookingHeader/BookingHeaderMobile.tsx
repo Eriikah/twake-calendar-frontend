@@ -1,7 +1,12 @@
 import { BookingSlotsResponse } from '@common/features/booking/types/BookingTypes'
 import { Box } from '@linagora/twake-mui'
 import React from 'react'
-import { BookingOwnerAvatar, BookingEventDetails } from './BookingOwnerInfo'
+import {
+  BookingOwnerAvatar,
+  BookingEventDetails,
+  BookingTitle,
+  BookingOwnerName
+} from './BookingOwnerInfo'
 import { BookingMetaInfo } from './BookingMetaInfo'
 
 export const BookingHeaderMobile: React.FC<{
@@ -30,7 +35,17 @@ export const BookingHeaderMobile: React.FC<{
           flexDirection: 'column'
         }}
       >
-        <BookingOwnerAvatar owner={bookingInfo.owner} size="s" />
+        <Box
+          sx={{
+            display: 'flex',
+            gap: '10px',
+            alignItems: 'center'
+          }}
+        >
+          <BookingOwnerAvatar owner={bookingInfo.owner} size="s" />
+          <BookingOwnerName owner={bookingInfo.owner} />
+        </Box>
+        <BookingTitle bookingInfo={bookingInfo} />
         <BookingEventDetails bookingInfo={bookingInfo} />
       </Box>
       <BookingMetaInfo

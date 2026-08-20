@@ -328,6 +328,7 @@
     "workingDaysUpdateError": "Failed to update working days setting"
   },
   "eventPreview": {
+    "extraAttendees": "%{count} extra participants",
     "emailAttendees": "Email attendees",
     "deleteEvent": "Delete event",
     "editEventSpecificSettings": "Edit personal event settings",

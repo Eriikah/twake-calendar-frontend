@@ -56,6 +56,11 @@ export interface Slot {
   start: string // ISO-8601 instant
 }
 
+export interface BookingExtraAttendeeItem {
+  displayName: string
+  email: string
+}
+
 export interface BookingSlotsResponse {
   durationMinutes: number
   autoAccept: boolean
@@ -73,6 +78,9 @@ export interface BookingSlotsResponse {
     to: string
   }
   slots: Slot[]
+  extraAttendees: {
+    and: BookingExtraAttendeeItem[]
+  }
 }
 
 export interface BookingCreator {

@@ -14,6 +14,12 @@ export const BookingHeaderDesktop: React.FC<{
   onTimezoneChange: (tz: string) => void
   referenceDate: Date
 }> = ({ bookingInfo, selectedTimezone, onTimezoneChange, referenceDate }) => {
+  const isShowMoreBookingEvent =
+    bookingInfo.description ||
+    bookingInfo.location ||
+    bookingInfo.resources?.length ||
+    bookingInfo.extraAttendees?.and?.length
+
   return (
     <Box
       sx={{
@@ -27,7 +33,7 @@ export const BookingHeaderDesktop: React.FC<{
       <Box
         sx={{
           display: 'flex',
-          alignItems: 'flex-start',
+          alignItems: isShowMoreBookingEvent ? 'flex-start' : 'center',
           flexDirection: 'row'
         }}
       >
