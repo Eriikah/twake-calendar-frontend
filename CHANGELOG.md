@@ -3,6 +3,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.1.0]
+
+### Added
+
+- Attached TDrive files to events
+- Added support for Team Calendars
+
+### Changed
+
+- Fixed rich text formatting (e.g., bold, italic) in event preview descriptions
+- Expanded booking links to include attendee, location, resource, alert, free/busy, and visibility options
+
 ## [1.0.0] - Unreleased
 
 First release of the Twake Calendar frontend, a Single Page Application allowing users to
