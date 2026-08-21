@@ -40,12 +40,10 @@ const useFetchTeamName = (teamCalendarId?: string): string | undefined => {
 
 export const useTeamOrganizer = ({
   teamCalendarId,
-  isTeamCalendar,
   organizer,
   t
 }: {
   teamCalendarId?: string
-  isTeamCalendar?: boolean
   organizer?: userAttendee
   t: (key: string, options?: Record<string, string>) => string
 }): {
@@ -56,7 +54,7 @@ export const useTeamOrganizer = ({
 } => {
   const teamName = useFetchTeamName(teamCalendarId)
 
-  const isTeamOverride = Boolean(!isTeamCalendar && teamCalendarId)
+  const isTeamOverride = Boolean(teamCalendarId)
   const displayOrganizer = isTeamOverride
     ? ({ ...organizer, cn: teamName } as userAttendee)
     : organizer

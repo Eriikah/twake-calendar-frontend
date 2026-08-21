@@ -89,7 +89,7 @@ export function EventPreviewAttendees({
     displayOrganizer,
     isOriginalOrganizer,
     organizerCaption
-  } = useTeamOrganizer({ teamCalendarId, isTeamCalendar, organizer, t })
+  } = useTeamOrganizer({ teamCalendarId, organizer, t })
 
   return (
     <>
