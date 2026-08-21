@@ -11,6 +11,7 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  MenuList,
   Typography,
   useTheme
 } from '@linagora/twake-mui'
@@ -77,27 +78,29 @@ const UserMenuContent: React.FC<{
           {user?.email}
         </Typography>
       </Box>
-      <MenuItem onClick={onSettingsClick} sx={{ py: 1.5 }}>
-        <SettingsOutlinedIcon
-          sx={{
-            mr: 2,
-            color: alpha(theme.palette.grey[900], 0.48),
-            fontSize: 20
-          }}
-        />
-        {t('menubar.settings') || 'Settings'}
-      </MenuItem>
-      <Divider />
-      <MenuItem onClick={onLogoutClick} sx={{ py: 1.5 }}>
-        <LogoutIcon
-          sx={{
-            mr: 2,
-            color: alpha(theme.palette.grey[900], 0.48),
-            fontSize: 20
-          }}
-        />
-        {t('menubar.logout') || 'Logout'}
-      </MenuItem>
+      <MenuList>
+        <MenuItem onClick={onSettingsClick} sx={{ py: 1.5 }}>
+          <SettingsOutlinedIcon
+            sx={{
+              mr: 2,
+              color: alpha(theme.palette.grey[900], 0.48),
+              fontSize: 20
+            }}
+          />
+          {t('menubar.settings') || 'Settings'}
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={onLogoutClick} sx={{ py: 1.5 }}>
+          <LogoutIcon
+            sx={{
+              mr: 2,
+              color: alpha(theme.palette.grey[900], 0.48),
+              fontSize: 20
+            }}
+          />
+          {t('menubar.logout') || 'Logout'}
+        </MenuItem>
+      </MenuList>
     </>
   )
 }
