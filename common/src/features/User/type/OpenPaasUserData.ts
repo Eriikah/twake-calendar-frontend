@@ -23,6 +23,15 @@ export interface OpenPaasUserData {
   resourceIcon?: string
 }
 
+export function normalizeOpenPaasUser(
+  user: OpenPaasUserData
+): OpenPaasUserData {
+  if (!user.id && user._id) {
+    user.id = user._id
+  }
+  return user
+}
+
 export function ToUserData(
   openpaas: OpenPaasUserData | undefined
 ): userData | undefined {

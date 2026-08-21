@@ -29,9 +29,7 @@ export const formatAlarms = (
   }))
 
 export const formatExtraAttendees = (attendees: userAttendee[]): string[] =>
-  attendees
-    .map(a => a.openpaasId || a.cal_address.replace(/^mailto:/i, ''))
-    .filter(Boolean)
+  attendees.map(a => a.openpaasId || '').filter(Boolean)
 
 export const formatAvailabilityRules = (
   availabilityRules: DayAvailability[],

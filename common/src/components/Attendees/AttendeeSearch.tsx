@@ -8,11 +8,11 @@ import {
 import { User } from './types'
 import { FreeBusyStatus, useAttendeesFreeBusy } from './useFreeBusy'
 
-const attendeeToUser = (a: userAttendee, openpaasId = ''): User => ({
+const attendeeToUser = (a: userAttendee, openpaasId?: string): User => ({
   email: a.cal_address,
   displayName: a.cn ?? '',
   avatarUrl: '',
-  openpaasId
+  openpaasId: a.openpaasId || openpaasId || ''
 })
 
 const hasCalendar = (u: User): boolean =>

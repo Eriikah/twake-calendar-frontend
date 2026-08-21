@@ -328,6 +328,7 @@
     "workingDaysUpdateError": "Не удалось обновить настройку рабочих дней"
   },
   "eventPreview": {
+    "extraAttendees": "%{count} дополнительных участников",
     "emailAttendees": "Написать участникам",
     "deleteEvent": "Удалить",
     "editEventSpecificSettings": "Редактировать персональные настройки события",
