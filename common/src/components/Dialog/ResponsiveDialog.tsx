@@ -281,7 +281,8 @@ function ResponsiveDialog({
       }
 
   const baseContentSx: SxProps<Theme> = {
-    width: '100%'
+    width: '100%',
+    px: isMobile ? 2 : undefined
   }
 
   const contentWrapperSx: SxProps<Theme> = {
@@ -346,7 +347,11 @@ function ResponsiveDialog({
           id={titleId}
           className="draggable-dialog-title"
           sx={
-            [titleSx, isDraggable ? { cursor: 'move' } : {}] as SxProps<Theme>
+            [
+              titleSx,
+              isDraggable ? { cursor: 'move' } : {},
+              isMobile ? { px: 2 } : {}
+            ] as SxProps<Theme>
           }
         >
           <Box
@@ -427,7 +432,8 @@ function ResponsiveDialog({
               borderTop: actionsBorderTop
                 ? (theme: Theme): string => `1px solid ${theme.palette.divider}`
                 : undefined,
-              justifyContent: actionsJustifyContent
+              justifyContent: actionsJustifyContent,
+              px: isMobile ? 2 : undefined
             }}
           >
             {actions}
