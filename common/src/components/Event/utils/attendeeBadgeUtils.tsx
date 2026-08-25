@@ -8,7 +8,7 @@ import { PartStat } from '@common/features/User/models/attendee'
 import Tooltip from '@common/components/Tooltip'
 import GroupsIcon from '@mui/icons-material/Groups'
 import { stringAvatar } from './eventUtils'
-import ErrorOutlineOutlinedIcon from '@mui/icons-material/ErrorOutlineOutlined'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 
 export const classIcon = (
   partStat?: PartStat,
@@ -127,7 +127,7 @@ function renderTeamOrganizerFullBadge({
               teamName: displayName
             })}
           >
-            <ErrorOutlineOutlinedIcon
+            <InfoOutlinedIcon
               sx={{
                 width: '18px',
                 height: '18px',
