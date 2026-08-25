@@ -111,6 +111,16 @@ function computeFinalAttendees(
   return baseAttendees
 }
 
+export function hasNoAttendees(
+  attendees: EventFormValues['attendees'],
+  resources: EventFormValues['selectedResources']
+): boolean {
+  return (
+    (!attendees || attendees.length === 0) &&
+    (!resources || resources.length === 0)
+  )
+}
+
 export function prepareUpdatedEvent({
   event,
   values,
@@ -124,16 +134,23 @@ export function prepareUpdatedEvent({
   t
 }: PrepareUpdatedEventParams): CalendarEvent {
   const currentCalId = newCalId || calId
-  const finalOrganizer = organizer ?? event.organizer
+
+  const isTeamCalendar = Boolean(targetCalendar.owner?.teamCalendar)
+  const noAttendees = hasNoAttendees(values.attendees, values.selectedResources)
+
+  // Don't set organizer for team calendars when there are no attendees
+  // (needed for proper ITIP mail routing)
+  const shouldSetOrganizer = !(isTeamCalendar && noAttendees)
+  const finalOrganizer = shouldSetOrganizer
+    ? (organizer ?? event.organizer)
+    : undefined
 
   const baseAttendees =
     updateAttendeesAfterTimeChange(event, timeChanged, values.attendees)
       .attendee ?? []
-  const finalAttendees = computeFinalAttendees(
-    baseAttendees,
-    organizer,
-    event.organizer
-  )
+  const finalAttendees = shouldSetOrganizer
+    ? computeFinalAttendees(baseAttendees, organizer, event.organizer)
+    : []
 
   const newEvent: CalendarEvent = {
     ...updateAttendeesAfterTimeChange(event, timeChanged, values.attendees),
