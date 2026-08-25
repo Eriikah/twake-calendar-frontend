@@ -218,6 +218,22 @@ const isPositioningEnabled = ({
 }: UseDynamicPositionOptions): boolean =>
   open && !isExpanded && !isMobile && Boolean(dynamicPositioning)
 
+const clearPositionFromDOM = (dialogId?: string): void => {
+  const paperEl = getDialogPaperElement(dialogId)
+  if (!paperEl) return
+  paperEl.style.top = ''
+  paperEl.style.left = ''
+}
+
+const applyPositionToDOM = (pos: DynamicPosition, dialogId?: string): void => {
+  const paperEl = getDialogPaperElement(dialogId)
+  if (!paperEl) return
+  paperEl.style.top = `${pos.top}px`
+  paperEl.style.left = `${pos.left}px`
+  // Clear any drag transform so the clamped position is the true visual position.
+  paperEl.style.transform = ''
+}
+
 const setupResizeObserver = (
   callback: () => void,
   dialogId?: string
@@ -270,6 +286,7 @@ export const useDynamicPosition = (
   useEffect(() => {
     if (!isEnabled) {
       lastValidRectRef.current = null
+      clearPositionFromDOM(dialogId)
       return
     }
 
@@ -300,10 +317,16 @@ export const useDynamicPosition = (
         dialogId
       )
       if (pos) {
+        // In case of repositionning and the dialog size changes, we clear the transform
+        applyPositionToDOM(pos, dialogId)
         setPosition(pos)
         setLastPosition(pos)
       } else {
         rafId = requestAnimationFrame(updatePos)
+      }
+
+      if (!cleanupResizeObserver) {
+        cleanupResizeObserver = setupResizeObserver(updatePos, dialogId)
       }
     }
 
@@ -311,7 +334,6 @@ export const useDynamicPosition = (
       updatePos()
       rafId = requestAnimationFrame(updatePos)
       timerId = setTimeout(updatePos, 50)
-      cleanupResizeObserver = setupResizeObserver(updatePos, dialogId)
     }
 
     startPositioning()

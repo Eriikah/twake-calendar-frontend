@@ -142,6 +142,12 @@ const DraggablePaper = React.forwardRef<HTMLDivElement, PaperProps>(
       const target = e.target as HTMLElement
       if (!target.closest('.draggable-dialog-title')) return
       if (target.closest('button')) return
+
+      // Re-sync pos with reality if useDynamicPosition cleared the transform
+      if (!el.current?.style.transform) {
+        pos.current = { x: 0, y: 0 }
+      }
+
       origin.current = {
         mx: e.clientX - pos.current.x,
         my: e.clientY - pos.current.y
