@@ -166,7 +166,8 @@
       }
     },
     "freeBusy": {
-      "unknown": "Unknown status",
+      "unknown": "We are not able to display agenda",
+      "contact": "We are not able to display agenda",
       "busy": "This person is busy",
       "busyCalOwner": "You have another event at this time",
       "free": "User is free",
