@@ -15,6 +15,7 @@ export const FreeBusyIndicator: React.FC<FreeBusyIndicatorProps> = ({
   const { t } = useI18n()
   if (!['busy', 'unknown', 'contact'].includes(status)) return null
 
+  const label = t(`event.freeBusy.${status}`)
   const StatusIcon =
     status === 'busy' ? AccessTimeFilledIcon : HelpOutlineOutlinedIcon
 
@@ -22,7 +23,7 @@ export const FreeBusyIndicator: React.FC<FreeBusyIndicatorProps> = ({
     <Tooltip
       title={
         <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          {t(`event.freeBusy.${status}`)}
+          {label}
         </span>
       }
       leaveDelay={2000}
@@ -30,7 +31,8 @@ export const FreeBusyIndicator: React.FC<FreeBusyIndicatorProps> = ({
       slotProps={{ tooltip: { sx: { opacity: 1, bgcolor: 'grey.900' } } }}
     >
       <StatusIcon
-        aria-label={t(`event.freeBusy.${status}`)}
+        titleAccess={label}
+        aria-label={label}
         sx={{ color: status === 'busy' ? 'warning.main' : undefined }}
         style={{
           margin: '0 -6px 0 5px',

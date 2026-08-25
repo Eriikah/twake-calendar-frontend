@@ -166,8 +166,8 @@
       }
     },
     "freeBusy": {
-      "unknown": "Không thể hiển thị lịch trình",
-      "contact": "Không thể hiển thị lịch trình",
+      "unknown": "Trạng thái không xác định cho người tham gia từ xa",
+      "contact": "Trạng thái không xác định cho người tham gia từ xa",
       "busy": "Người này hiện đang bận",
       "busyCalOwner": "Bạn có một sự kiện khác vào thời gian này",
       "free": "Người dùng đang rảnh",
