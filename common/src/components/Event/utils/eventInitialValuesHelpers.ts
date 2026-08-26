@@ -23,7 +23,7 @@ export { buildDefaultNewEvent, buildFromSelectedRange }
 
 function resolveDescription(event: CalendarEvent): string {
   const description = event.description ?? ''
-  return new EventDescriptionBuilder(description).removeVisio().buildHtml()
+  return new EventDescriptionBuilder(description).removeFooter().buildHtml()
 }
 
 export interface BuildFromExistingEventParams {

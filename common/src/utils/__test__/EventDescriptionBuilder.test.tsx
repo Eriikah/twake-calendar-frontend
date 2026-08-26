@@ -1,7 +1,10 @@
 /**
  * @jest-environment jsdom
  */
-import { EventDescriptionBuilder } from '../EventDescriptionBuilder'
+import {
+  EventDescriptionBuilder,
+  EVENT_FOOTER_SEPARATOR
+} from '../EventDescriptionBuilder'
 import { Attachment } from '@common/types/Attachment'
 
 // Mock DOMPurify as done in descriptionUtils.test.ts
@@ -22,10 +25,71 @@ describe('EventDescriptionBuilder', () => {
     expect(builder.hasContent()).toBe(false)
   })
 
-  it('should remove visio link', () => {
-    const text = 'Meeting notes\n\nVisio: https://visio.link/123'
-    const builder = new EventDescriptionBuilder(text).removeVisio()
-    expect(builder.buildHtml()).toBe('Meeting notes')
+  describe('removeFooter', () => {
+    it('should remove footer block', () => {
+      const text = `Meeting notes\n\n${EVENT_FOOTER_SEPARATOR}\nJoin Visio: https://visio.link/123\n${EVENT_FOOTER_SEPARATOR}`
+      const builder = new EventDescriptionBuilder(text).removeFooter()
+      expect(builder.buildHtml()).toBe('Meeting notes')
+    })
+
+    it('should leave description unchanged when no footer is present', () => {
+      const text = 'Just a regular meeting description.'
+      const builder = new EventDescriptionBuilder(text).removeFooter()
+      expect(builder.buildHtml()).toBe(text)
+    })
+  })
+
+  describe('withFooter', () => {
+    it('should do nothing if neither meeting link nor attachments are present', () => {
+      const text = 'Meeting notes'
+      const builder = new EventDescriptionBuilder(text).withFooter(null)
+      expect(builder.buildHtml()).toBe(text)
+    })
+
+    it('should append meeting link only', () => {
+      const text = 'Meeting notes'
+      const builder = new EventDescriptionBuilder(text).withFooter(
+        'https://visio.link/123'
+      )
+      expect(builder.buildHtml()).toContain(
+        'Join Visio : https://visio.link/123'
+      )
+      expect(builder.buildHtml()).toContain(EVENT_FOOTER_SEPARATOR)
+    })
+
+    it('should append attachments only', () => {
+      const text = 'Meeting notes'
+      const attach = new Attachment(
+        'https://example.com/file',
+        'type',
+        'file.pdf'
+      )
+      const builder = new EventDescriptionBuilder(text, [attach]).withFooter(
+        null
+      )
+      expect(builder.buildHtml()).toContain('Attachments :')
+      expect(builder.buildHtml()).toContain(
+        '• file.pdf: https://example.com/file'
+      )
+      expect(builder.buildHtml()).toContain(EVENT_FOOTER_SEPARATOR)
+    })
+
+    it('should append both meeting link and attachments', () => {
+      const text = 'Meeting notes'
+      const attach = new Attachment(
+        'https://example.com/file',
+        'type',
+        'file.pdf'
+      )
+      const builder = new EventDescriptionBuilder(text, [attach]).withFooter(
+        'https://visio.link/123'
+      )
+      const html = builder.buildHtml()
+      expect(html).toContain('Join Visio : https://visio.link/123')
+      expect(html).toContain('Attachments :')
+      expect(html).toContain('• file.pdf: https://example.com/file')
+      expect(html).toContain(EVENT_FOOTER_SEPARATOR)
+    })
   })
 
   it('should sanitize HTML', () => {
@@ -55,12 +119,12 @@ describe('EventDescriptionBuilder', () => {
     expect(builder.getAttachments()).toEqual([])
   })
 
-  it('should support fluent chaining', () => {
-    const attach = { hasDisplayableFilename: () => true } as Attachment
-    const text = '<h1>Meeting</h1>\nVisio: https://visio.link/123'
+  it('should chain methods', () => {
+    const attach = new Attachment('url', 'type', 'name')
+    const text = `<h1>Meeting</h1>\n\n${EVENT_FOOTER_SEPARATOR}\nJoin Visio: https://visio.link/123\n${EVENT_FOOTER_SEPARATOR}`
 
     const builder = new EventDescriptionBuilder(text, [attach])
-      .removeVisio()
+      .removeFooter()
       .sanitize()
       .filterAttachments()
 

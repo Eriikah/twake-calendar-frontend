@@ -9,7 +9,7 @@ import { Valarms } from '@common/types/Valarms'
 import { CalendarEvent } from '@common/types/EventsTypes'
 import { RepetitionObject } from '@common/types/Repetition'
 import { extractEventBaseUuid } from '@common/utils/extractEventBaseUuid'
-import { addVideoConferenceToDescription } from '@common/utils/videoConferenceUtils'
+import { EventDescriptionBuilder } from '@common/utils/EventDescriptionBuilder'
 import { rewriteAttendeesForOrganizerChange } from '@common/features/Events/updateEventHelpers/moveEventBetweenCalendars'
 import {
   PrepareUpdateDataParams,
@@ -75,9 +75,9 @@ function getUpdatedDescription(
   values: EventFormValues,
   t?: (key: string) => string
 ): string {
-  return values.meetingLink
-    ? addVideoConferenceToDescription(values.description, values.meetingLink, t)
-    : values.description
+  return new EventDescriptionBuilder(values.description, values.attachments)
+    .withFooter(values.meetingLink || null, t)
+    .buildHtml()
 }
 
 function getNextSequence(sequence?: number): number {

@@ -15,7 +15,7 @@ import {
   saveEventFormDataToTemp,
   showErrorNotification
 } from '@common/utils/eventFormTempStorage'
-import { addVideoConferenceToDescription } from '@common/utils/videoConferenceUtils'
+import { EventDescriptionBuilder } from '@common/utils/EventDescriptionBuilder'
 import { getAlarmAttendees } from '../submitUpdateHelpers/utils'
 import { userOrganiser } from '@common/features/User/userDataTypes'
 
@@ -70,13 +70,12 @@ function buildNewEvent({
     end: endISO,
     allday: values.allday,
     uid: newEventUID,
-    description: values.meetingLink
-      ? addVideoConferenceToDescription(
-          values.description,
-          values.meetingLink,
-          t
-        )
-      : values.description,
+    description: new EventDescriptionBuilder(
+      values.description,
+      values.attachments
+    )
+      .withFooter(values.meetingLink, t)
+      .buildHtml(),
     location: values.location,
     class: values.eventClass,
     repetition: RepetitionObject.fromFormValues(values.repetition, {
