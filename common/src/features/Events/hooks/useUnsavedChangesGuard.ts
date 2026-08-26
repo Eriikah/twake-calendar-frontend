@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { useBlocker } from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 export interface UseUnsavedChangesGuardResult {
   showConfirm: boolean
@@ -8,17 +8,48 @@ export interface UseUnsavedChangesGuardResult {
   requestClose: (proceed: () => void) => void
 }
 
+// This app mounts <HistoryRouter> from redux-first-history/rr6, which is a
+// non-data router. react-router-dom's stable `useBlocker` requires a data
+// router and throws otherwise, so we implement blocking manually with
+// useLocation + a navigate-back trap and let `beforeunload` handle browser
+// closures / refresh.
 export function useUnsavedChangesGuard(
   isEnabled: boolean
 ): UseUnsavedChangesGuardResult {
   const [pendingClose, setPendingClose] = useState<(() => void) | null>(null)
+  const [blockedPath, setBlockedPath] = useState<string | null>(null)
 
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      isEnabled && currentLocation.pathname !== nextLocation.pathname
-  )
+  const location = useLocation()
+  const navigate = useNavigate()
 
-  const showConfirm = blocker.state === 'blocked' || pendingClose !== null
+  const anchorPathRef = useRef<string | null>(null)
+  const bypassRef = useRef(false)
+
+  useEffect(() => {
+    if (isEnabled && anchorPathRef.current === null) {
+      anchorPathRef.current = location.pathname
+    }
+    if (!isEnabled) {
+      anchorPathRef.current = null
+    }
+  }, [isEnabled, location.pathname])
+
+  useEffect(() => {
+    if (!isEnabled) return
+    if (bypassRef.current) {
+      bypassRef.current = false
+      return
+    }
+    const anchor = anchorPathRef.current
+    if (anchor && location.pathname !== anchor && blockedPath === null) {
+      const attempted = location.pathname
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setBlockedPath(attempted)
+      navigate(anchor, { replace: true })
+    }
+  }, [isEnabled, location.pathname, blockedPath, navigate])
+
+  const showConfirm = blockedPath !== null || pendingClose !== null
 
   useEffect(() => {
     if (!isEnabled) return
@@ -33,18 +64,22 @@ export function useUnsavedChangesGuard(
 
   const cancelClose = useCallback((): void => {
     setPendingClose(null)
-    if (blocker.state === 'blocked') blocker.reset()
-  }, [blocker])
+    setBlockedPath(null)
+  }, [])
 
   const confirmClose = useCallback((): void => {
     const pending = pendingClose
+    const target = blockedPath
     setPendingClose(null)
-    if (blocker.state === 'blocked') {
-      blocker.proceed()
+    setBlockedPath(null)
+    if (target) {
+      bypassRef.current = true
+      anchorPathRef.current = null
+      navigate(target)
     } else if (pending) {
       pending()
     }
-  }, [blocker, pendingClose])
+  }, [pendingClose, blockedPath, navigate])
 
   const requestClose = useCallback(
     (proceed: () => void): void => {
