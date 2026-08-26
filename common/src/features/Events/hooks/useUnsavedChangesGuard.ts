@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import {
+  useLocation,
+  useNavigate,
+  type NavigateFunction
+} from 'react-router-dom'
 
 export interface UseUnsavedChangesGuardResult {
   showConfirm: boolean
@@ -13,44 +17,25 @@ export interface UseUnsavedChangesGuardResult {
 // router and throws otherwise, so we implement blocking manually with
 // useLocation + a navigate-back trap and let `beforeunload` handle browser
 // closures / refresh.
-export function useUnsavedChangesGuard(
-  isEnabled: boolean
-): UseUnsavedChangesGuardResult {
-  const [pendingClose, setPendingClose] = useState<(() => void) | null>(null)
-  const [blockedPath, setBlockedPath] = useState<string | null>(null)
 
-  const location = useLocation()
-  const navigate = useNavigate()
-
-  const anchorPathRef = useRef<string | null>(null)
-  const bypassRef = useRef(false)
-
+function useAnchorPath(
+  isEnabled: boolean,
+  currentPath: string
+): React.MutableRefObject<string | null> {
+  const anchorRef = useRef<string | null>(null)
   useEffect(() => {
-    if (isEnabled && anchorPathRef.current === null) {
-      anchorPathRef.current = location.pathname
-    }
     if (!isEnabled) {
-      anchorPathRef.current = null
-    }
-  }, [isEnabled, location.pathname])
-
-  useEffect(() => {
-    if (!isEnabled) return
-    if (bypassRef.current) {
-      bypassRef.current = false
+      anchorRef.current = null
       return
     }
-    const anchor = anchorPathRef.current
-    if (anchor && location.pathname !== anchor && blockedPath === null) {
-      const attempted = location.pathname
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setBlockedPath(attempted)
-      navigate(anchor, { replace: true })
+    if (anchorRef.current === null) {
+      anchorRef.current = currentPath
     }
-  }, [isEnabled, location.pathname, blockedPath, navigate])
+  }, [isEnabled, currentPath])
+  return anchorRef
+}
 
-  const showConfirm = blockedPath !== null || pendingClose !== null
-
+function useBeforeUnloadWarning(isEnabled: boolean): void {
   useEffect(() => {
     if (!isEnabled) return
     const handler = (e: BeforeUnloadEvent): string => {
@@ -61,25 +46,105 @@ export function useUnsavedChangesGuard(
     window.addEventListener('beforeunload', handler)
     return (): void => window.removeEventListener('beforeunload', handler)
   }, [isEnabled])
+}
+
+function shouldTrapUrlChange(
+  isEnabled: boolean,
+  anchor: string | null,
+  currentPath: string,
+  blockedPath: string | null
+): boolean {
+  if (!isEnabled) return false
+  if (anchor === null || blockedPath !== null) return false
+  return anchor !== currentPath
+}
+
+function useUrlChangeTrap(
+  isEnabled: boolean,
+  anchorRef: React.MutableRefObject<string | null>,
+  currentPath: string,
+  blockedPath: string | null,
+  bypassRef: React.MutableRefObject<boolean>,
+  navigate: NavigateFunction,
+  onTrap: (attemptedPath: string) => void
+): void {
+  useEffect(() => {
+    if (bypassRef.current) {
+      bypassRef.current = false
+      return
+    }
+    const anchor = anchorRef.current
+    if (!shouldTrapUrlChange(isEnabled, anchor, currentPath, blockedPath)) {
+      return
+    }
+    onTrap(currentPath)
+    if (anchor !== null) navigate(anchor, { replace: true })
+  }, [
+    isEnabled,
+    anchorRef,
+    currentPath,
+    blockedPath,
+    bypassRef,
+    navigate,
+    onTrap
+  ])
+}
+
+export function useUnsavedChangesGuard(
+  isEnabled: boolean
+): UseUnsavedChangesGuardResult {
+  const [pendingClose, setPendingClose] = useState<(() => void) | null>(null)
+  const [blockedPath, setBlockedPath] = useState<string | null>(null)
+
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const anchorPathRef = useAnchorPath(isEnabled, location.pathname)
+  const bypassRef = useRef(false)
+
+  const trapAttempted = useCallback((attempted: string): void => {
+    setBlockedPath(attempted)
+  }, [])
+
+  useUrlChangeTrap(
+    isEnabled,
+    anchorPathRef,
+    location.pathname,
+    blockedPath,
+    bypassRef,
+    navigate,
+    trapAttempted
+  )
+
+  useBeforeUnloadWarning(isEnabled)
+
+  const showConfirm = blockedPath !== null || pendingClose !== null
 
   const cancelClose = useCallback((): void => {
     setPendingClose(null)
     setBlockedPath(null)
   }, [])
 
+  const confirmNavigation = useCallback(
+    (target: string): void => {
+      bypassRef.current = true
+      anchorPathRef.current = null
+      navigate(target)
+    },
+    [anchorPathRef, navigate]
+  )
+
   const confirmClose = useCallback((): void => {
     const pending = pendingClose
     const target = blockedPath
     setPendingClose(null)
     setBlockedPath(null)
-    if (target) {
-      bypassRef.current = true
-      anchorPathRef.current = null
-      navigate(target)
-    } else if (pending) {
-      pending()
+    if (target !== null) {
+      confirmNavigation(target)
+      return
     }
-  }, [pendingClose, blockedPath, navigate])
+    pending?.()
+  }, [pendingClose, blockedPath, confirmNavigation])
 
   const requestClose = useCallback(
     (proceed: () => void): void => {

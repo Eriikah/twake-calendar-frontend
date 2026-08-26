@@ -13,47 +13,47 @@ const attendeesEqual = (a: userAttendee[], b: userAttendee[]): boolean => {
   return b.every(x => keysA.has(attendeeKey(x)))
 }
 
-const alarmsKey = (v: Valarms | undefined): string => {
-  if (!v) return '[]'
+const safeStringify = (v: unknown): string => {
   try {
-    return JSON.stringify(v.getAlarms?.() ?? [])
-  } catch {
-    return JSON.stringify(v)
-  }
-}
-
-const repetitionKey = (r: unknown): string => {
-  try {
-    return JSON.stringify(r ?? {})
+    return JSON.stringify(v ?? null)
   } catch {
     return ''
   }
 }
 
+const alarmsKey = (v: Valarms | undefined): string => {
+  if (!v) return '[]'
+  const alarms = v.getAlarms?.() ?? v
+  return safeStringify(alarms)
+}
+
+type Check = (
+  current: EventFormValues,
+  initial: Partial<EventFormValues>
+) => boolean
+
+const CHECKS: Check[] = [
+  (c, i): boolean => trim(c.title) !== trim(i.title),
+  (c, i): boolean => trim(c.description) !== trim(i.description),
+  (c, i): boolean => trim(c.location) !== trim(i.location),
+  (c, i): boolean => c.start !== (i.start ?? ''),
+  (c, i): boolean => c.end !== (i.end ?? ''),
+  (c, i): boolean => c.allday !== (i.allday ?? false),
+  (c, i): boolean => c.busy !== (i.busy ?? 'OPAQUE'),
+  (c, i): boolean => c.eventClass !== (i.eventClass ?? c.eventClass),
+  (c, i): boolean => c.timezone !== (i.timezone ?? ''),
+  (c, i): boolean => c.calendarid !== (i.calendarid ?? ''),
+  (c, i): boolean => c.hasVideoConference !== (i.hasVideoConference ?? false),
+  (c, i): boolean => (c.meetingLink ?? null) !== (i.meetingLink ?? null),
+  (c, i): boolean =>
+    safeStringify(c.repetition) !== safeStringify(i.repetition),
+  (c, i): boolean => !attendeesEqual(c.attendees ?? [], i.attendees ?? []),
+  (c, i): boolean => alarmsKey(c.alarms) !== alarmsKey(i.alarms as Valarms)
+]
+
 export function isEventFormDirty(
   current: EventFormValues,
   initial: Partial<EventFormValues>
 ): boolean {
-  if (trim(current.title) !== trim(initial.title)) return true
-  if (trim(current.description) !== trim(initial.description)) return true
-  if (trim(current.location) !== trim(initial.location)) return true
-  if (current.start !== (initial.start ?? '')) return true
-  if (current.end !== (initial.end ?? '')) return true
-  if (current.allday !== (initial.allday ?? false)) return true
-  if (current.busy !== (initial.busy ?? 'OPAQUE')) return true
-  if (current.eventClass !== (initial.eventClass ?? current.eventClass))
-    return true
-  if (current.timezone !== (initial.timezone ?? '')) return true
-  if (current.calendarid !== (initial.calendarid ?? '')) return true
-  if (current.hasVideoConference !== (initial.hasVideoConference ?? false))
-    return true
-  if ((current.meetingLink ?? null) !== (initial.meetingLink ?? null))
-    return true
-  if (repetitionKey(current.repetition) !== repetitionKey(initial.repetition))
-    return true
-  if (!attendeesEqual(current.attendees ?? [], initial.attendees ?? []))
-    return true
-  if (alarmsKey(current.alarms) !== alarmsKey(initial.alarms as Valarms))
-    return true
-  return false
+  return CHECKS.some(check => check(current, initial))
 }
