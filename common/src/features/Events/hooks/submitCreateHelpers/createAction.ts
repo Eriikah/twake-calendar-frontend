@@ -16,7 +16,8 @@ import {
   showErrorNotification
 } from '@common/utils/eventFormTempStorage'
 import { addVideoConferenceToDescription } from '@common/utils/videoConferenceUtils'
-import { getAlarmAttendees, hasNoAttendees } from '../submitUpdateHelpers/utils'
+import { getAlarmAttendees } from '../submitUpdateHelpers/utils'
+import { hasNoAttendees } from '@common/utils/hasNoAttendees'
 import { userOrganiser } from '@common/features/User/userDataTypes'
 
 function buildAttendees({
@@ -61,7 +62,7 @@ export function buildNewEvent({
   })
 
   const isTeamCalendar = Boolean(targetCalendar.owner?.teamCalendar)
-  const noAttendees = hasNoAttendees(values.attendees, values.selectedResources)
+  const noAttendees = hasNoAttendees(values.attendees)
   // Don't set organizer for team calendars when there are no attendees
   // (needed for proper ITIP mail routing)
   const shouldSetOrganizer = !(isTeamCalendar && noAttendees)

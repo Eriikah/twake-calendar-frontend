@@ -16,6 +16,7 @@ import {
   PrepareUpdateDataResult,
   PrepareUpdatedEventParams
 } from './types'
+import { hasNoAttendees } from '@common/utils/hasNoAttendees'
 
 export function getAlarmAttendees(
   values: EventFormValues,
@@ -111,16 +112,6 @@ function computeFinalAttendees(
   return baseAttendees
 }
 
-export function hasNoAttendees(
-  attendees: EventFormValues['attendees'],
-  resources: EventFormValues['selectedResources']
-): boolean {
-  return (
-    (!attendees || attendees.length === 0) &&
-    (!resources || resources.length === 0)
-  )
-}
-
 export function prepareUpdatedEvent({
   event,
   values,
@@ -136,7 +127,7 @@ export function prepareUpdatedEvent({
   const currentCalId = newCalId || calId
 
   const isTeamCalendar = Boolean(targetCalendar.owner?.teamCalendar)
-  const noAttendees = hasNoAttendees(values.attendees, values.selectedResources)
+  const noAttendees = hasNoAttendees(values.attendees)
 
   // Don't set organizer for team calendars when there are no attendees
   // (needed for proper ITIP mail routing)
