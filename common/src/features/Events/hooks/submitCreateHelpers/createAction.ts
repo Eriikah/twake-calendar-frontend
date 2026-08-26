@@ -17,6 +17,7 @@ import {
 } from '@common/utils/eventFormTempStorage'
 import { EventDescriptionBuilder } from '@common/utils/EventDescriptionBuilder'
 import { getAlarmAttendees } from '../submitUpdateHelpers/utils'
+import { hasNoAttendees } from '@common/utils/hasNoAttendees'
 import { userOrganiser } from '@common/features/User/userDataTypes'
 
 function buildAttendees({
@@ -35,7 +36,7 @@ function buildAttendees({
   ]
 }
 
-function buildNewEvent({
+export function buildNewEvent({
   values,
   targetCalendar,
   showMore,
@@ -60,6 +61,12 @@ function buildNewEvent({
     hasEndDateChanged: values.hasEndDateChanged
   })
 
+  const isTeamCalendar = Boolean(targetCalendar.owner?.teamCalendar)
+  const noAttendees = hasNoAttendees(values.attendees)
+  // Don't set organizer for team calendars when there are no attendees
+  // (needed for proper ITIP mail routing)
+  const shouldSetOrganizer = !(isTeamCalendar && noAttendees)
+
   return {
     calId: targetCalendar.id,
     title: values.title,
@@ -82,13 +89,15 @@ function buildNewEvent({
       allday: values.allday,
       timezone: values.timezone
     }),
-    organizer,
+    organizer: shouldSetOrganizer ? organizer : undefined,
     timezone: values.timezone,
-    attendee: buildAttendees({
-      organizer,
-      resources: values.selectedResources,
-      attendees: values.attendees
-    }),
+    attendee: shouldSetOrganizer
+      ? buildAttendees({
+          organizer,
+          resources: values.selectedResources,
+          attendees: values.attendees
+        })
+      : [],
     transp: values.busy,
     sequence: 1,
     color: targetCalendar?.color,

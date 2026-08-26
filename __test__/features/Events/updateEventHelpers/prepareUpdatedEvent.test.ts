@@ -37,6 +37,131 @@ const baseValues = {
 } as any
 
 describe('prepareUpdatedEvent', () => {
+  describe('team calendar organizer handling', () => {
+    it('does NOT set organizer for team calendar when there are no attendees', () => {
+      const teamCalendar = {
+        id: 'team-cal-1',
+        owner: {
+          teamCalendar: true,
+          emails: ['team@example.com']
+        }
+      } as Calendar
+
+      const eventWithOrganizer = {
+        ...baseEvent,
+        organizer: {
+          cn: 'Previous Organizer',
+          cal_address: 'mailto:prev@example.com'
+        }
+      } as CalendarEvent
+
+      const valuesNoAttendees = {
+        ...baseValues,
+        attendees: [],
+        selectedResources: []
+      }
+
+      const updatedEvent = prepareUpdatedEvent({
+        event: eventWithOrganizer,
+        values: valuesNoAttendees,
+        startISO: '2025-01-01T10:00:00.000Z',
+        endISO: '2025-01-01T11:00:00.000Z',
+        timeChanged: false,
+        targetCalendar: teamCalendar,
+        calId: 'team-cal-1',
+        newCalId: 'team-cal-1'
+      })
+
+      expect(updatedEvent.organizer).toBeUndefined()
+      expect(updatedEvent.attendee).toEqual([])
+    })
+
+    it('SETS organizer for team calendar when there ARE attendees', () => {
+      const teamCalendar = {
+        id: 'team-cal-1',
+        owner: {
+          teamCalendar: true,
+          emails: ['team@example.com']
+        }
+      } as Calendar
+
+      const eventWithOrganizer = {
+        ...baseEvent,
+        organizer: {
+          cn: 'Previous Organizer',
+          cal_address: 'mailto:prev@example.com'
+        }
+      } as CalendarEvent
+
+      const valuesWithAttendees = {
+        ...baseValues,
+        attendees: [
+          new userAttendee({
+            cal_address: 'mailto:attendee@example.com',
+            cn: 'Attendee'
+          })
+        ],
+        selectedResources: []
+      }
+
+      const updatedEvent = prepareUpdatedEvent({
+        event: eventWithOrganizer,
+        values: valuesWithAttendees,
+        startISO: '2025-01-01T10:00:00.000Z',
+        endISO: '2025-01-01T11:00:00.000Z',
+        timeChanged: false,
+        targetCalendar: teamCalendar,
+        calId: 'team-cal-1',
+        newCalId: 'team-cal-1'
+      })
+
+      expect(updatedEvent.organizer).toBeDefined()
+      expect(updatedEvent.organizer?.cal_address).toBe(
+        'mailto:prev@example.com'
+      )
+    })
+
+    it('SETS organizer for regular (non-team) calendar even without attendees', () => {
+      const regularCalendar = {
+        id: 'user-cal-1',
+        owner: {
+          teamCalendar: false,
+          emails: ['user@example.com']
+        }
+      } as Calendar
+
+      const eventWithOrganizer = {
+        ...baseEvent,
+        organizer: {
+          cn: 'Previous Organizer',
+          cal_address: 'mailto:prev@example.com'
+        }
+      } as CalendarEvent
+
+      const valuesNoAttendees = {
+        ...baseValues,
+        attendees: [],
+        selectedResources: []
+      }
+
+      const updatedEvent = prepareUpdatedEvent({
+        event: eventWithOrganizer,
+        values: valuesNoAttendees,
+        startISO: '2025-01-01T10:00:00.000Z',
+        endISO: '2025-01-01T11:00:00.000Z',
+        timeChanged: false,
+        targetCalendar: regularCalendar,
+        calId: 'user-cal-1',
+        newCalId: 'user-cal-1'
+      })
+
+      expect(updatedEvent.organizer).toBeDefined()
+      expect(updatedEvent.organizer?.cal_address).toBe(
+        'mailto:prev@example.com'
+      )
+    })
+  })
+
   it('sets alarm attendees and summary at VAlarm construction time', () => {
     const updatedEvent = prepareUpdatedEvent({
       event: baseEvent,
