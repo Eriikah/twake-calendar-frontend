@@ -42,6 +42,7 @@ import { Dayjs } from 'dayjs'
 import { useState } from 'react'
 import { useI18n } from 'twake-i18n'
 import { useVisibleBookingLinks } from '../hooks/useVisibleBookingLinks'
+import { useScreenSizeDetection } from '@common/useScreenSizeDetection'
 
 export interface PrintScheduleModalProps {
   open: boolean
@@ -58,6 +59,7 @@ export const PrintScheduleModal: React.FC<PrintScheduleModalProps> = ({
   selectedCalendars
 }) => {
   const { t, lang } = useI18n()
+  const { isTooSmall: isMobile } = useScreenSizeDetection()
   const dispatch = useAppDispatch()
   const visibleBookingLinks = useVisibleBookingLinks()
   const userId = useAppSelector(state => state.user.userData?.openpaasId) ?? ''
@@ -241,13 +243,16 @@ export const PrintScheduleModal: React.FC<PrintScheduleModalProps> = ({
     }
   }
 
+  const paddingX = isMobile ? 2 : undefined
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center'
+          alignItems: 'center',
+          px: paddingX
         }}
       >
         {t('print.title')}
@@ -255,7 +260,7 @@ export const PrintScheduleModal: React.FC<PrintScheduleModalProps> = ({
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      <DialogContent>
+      <DialogContent sx={{ px: paddingX }}>
         <TwakeLocalizationProvider>
           <Stack spacing={2.5} sx={{ mt: 1 }}>
             <Box>
@@ -388,7 +393,7 @@ export const PrintScheduleModal: React.FC<PrintScheduleModalProps> = ({
           </Stack>
         </TwakeLocalizationProvider>
       </DialogContent>
-      <DialogActions>
+      <DialogActions sx={{ px: paddingX }}>
         <Button onClick={onClose} disabled={loading}>
           {t('common.cancel')}
         </Button>

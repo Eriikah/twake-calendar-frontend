@@ -107,7 +107,7 @@ export default function TempSearchDialog({
         />
       </DialogTitle>
 
-      <DialogContent sx={{ marginTop: 1 }}>
+      <DialogContent sx={{ marginTop: 1, px: 2 }}>
         <AttendeeOptionsList
           options={searchState.options || []}
           onOptionClick={user =>
