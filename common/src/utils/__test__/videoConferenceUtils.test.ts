@@ -1,10 +1,6 @@
 import {
-  VISIO_BLOCK_SEPARATOR,
-  addVideoConferenceToDescription,
-  extractVideoConferenceFromDescription,
   generateMeetingId,
   generateMeetingLink,
-  removeVideoConferenceFromDescription,
   resolveVisioTemplate
 } from '@common/utils/videoConferenceUtils'
 
@@ -126,82 +122,6 @@ describe('videoConferenceUtils', () => {
     it('should resolve missing context values to empty string', () => {
       const template = 'https://{localpart}-visio.{workplaceFqdn}'
       expect(resolveVisioTemplate(template, {})).toBe('https://-visio.')
-    })
-  })
-
-  describe('addVideoConferenceToDescription', () => {
-    it('should add video conference on first line when description is empty', () => {
-      const description = ''
-      const meetingLink = 'https://meet.linagora.com/abc-defg-hij'
-      const result = addVideoConferenceToDescription(description, meetingLink)
-      expect(result).toBe(
-        `${VISIO_BLOCK_SEPARATOR}\nJoin Visio : ${meetingLink}\n\nPlease do not edit this section.\n${VISIO_BLOCK_SEPARATOR}`
-      )
-    })
-
-    it('should add video conference footer to existing description', () => {
-      const description = 'This is a meeting description.'
-      const meetingLink = 'https://meet.linagora.com/abc-defg-hij'
-      const result = addVideoConferenceToDescription(description, meetingLink)
-      expect(result).toBe(
-        `This is a meeting description.\n\n${VISIO_BLOCK_SEPARATOR}\nJoin Visio : ${meetingLink}\n\nPlease do not edit this section.\n${VISIO_BLOCK_SEPARATOR}`
-      )
-    })
-  })
-
-  describe('extractVideoConferenceFromDescription', () => {
-    it('should extract video conference link from description', () => {
-      const description =
-        'Meeting description.\nVisio: https://meet.linagora.com/abc-defg-hij'
-      const result = extractVideoConferenceFromDescription(description)
-      expect(result).toBe('https://meet.linagora.com/abc-defg-hij')
-    })
-
-    it('should return null when no video conference link found', () => {
-      const description = 'Just a regular meeting description.'
-      const result = extractVideoConferenceFromDescription(description)
-      expect(result).toBeNull()
-    })
-
-    it('should return null for empty description', () => {
-      const description = ''
-      const result = extractVideoConferenceFromDescription(description)
-      expect(result).toBeNull()
-    })
-  })
-
-  describe('removeVideoConferenceFromDescription', () => {
-    it('should return empty string when description is only the Visio line', () => {
-      const description = 'Visio: https://meet.linagora.com/abc-defg-hij'
-      const result = removeVideoConferenceFromDescription(description)
-      expect(result).toBe('')
-    })
-
-    it('should remove Visio line when at end of description', () => {
-      const description =
-        'This is a meeting description.\nVisio: https://meet.linagora.com/abc-defg-hij'
-      const result = removeVideoConferenceFromDescription(description)
-      expect(result).toBe('This is a meeting description.')
-    })
-
-    it('should remove Visio line when in middle of description', () => {
-      const description =
-        'Line one\nVisio: https://meet.linagora.com/abc-defg-hij\nLine two'
-      const result = removeVideoConferenceFromDescription(description)
-      expect(result).toBe('Line one\nLine two')
-    })
-
-    it('should leave description unchanged when no Visio line present', () => {
-      const description = 'Just a regular meeting description.'
-      const result = removeVideoConferenceFromDescription(description)
-      expect(result).toBe(description)
-    })
-
-    it('should remove Visio line when at start of description', () => {
-      const description =
-        'Visio: https://meet.linagora.com/abc-defg-hij\nRest of the text'
-      const result = removeVideoConferenceFromDescription(description)
-      expect(result).toBe('Rest of the text')
     })
   })
 })

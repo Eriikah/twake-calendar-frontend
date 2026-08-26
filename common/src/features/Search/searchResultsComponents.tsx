@@ -230,7 +230,7 @@ export const RenderDescription: React.FC<{ text?: string }> = ({ text }) => {
   return (
     <RenderText
       text={new EventDescriptionBuilder(text ?? '')
-        .removeVisio()
+        .removeFooter()
         .buildPlainText()}
       sx={{ flex: '1 1 0%' }}
     />

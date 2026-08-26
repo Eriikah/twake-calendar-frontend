@@ -1,6 +1,8 @@
 import { Attachment } from '@common/types/Attachment'
 import { sanitizeHtml } from './sanitizeUtils'
-import { removeVideoConferenceFromDescription } from './videoConferenceUtils'
+
+export const EVENT_FOOTER_SEPARATOR =
+  '-::~:~::~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~::~:~::-'
 
 export class EventDescriptionBuilder {
   private text: string
@@ -12,14 +14,73 @@ export class EventDescriptionBuilder {
     this.attachments = attachments
   }
 
-  public removeVisio(): this {
-    this.text = removeVideoConferenceFromDescription(this.text)
+  public removeFooter(): this {
+    if (this.text.includes(EVENT_FOOTER_SEPARATOR)) {
+      const escapedSeparator = EVENT_FOOTER_SEPARATOR.replace(
+        /[-/\\^$*+?.()|[\]{}]/g,
+        '\\$&'
+      )
+      const regex = new RegExp(
+        `\\n*${escapedSeparator}[\\s\\S]*?${escapedSeparator}\\n*`,
+        'g'
+      )
+      this.text = this.text.replace(regex, '\n').trimEnd()
+    }
     return this
   }
 
   public sanitize(): this {
     this.text = sanitizeHtml(this.text)
     return this
+  }
+
+  public withFooter(
+    meetingLink: string | null,
+    t?: (key: string) => string
+  ): this {
+    const hasAttachments = this.attachments?.length > 0
+    if (!meetingLink && !hasAttachments) {
+      return this
+    }
+
+    const { joinText, attachmentsText, doNotEditText } =
+      this.getFooterTranslations(t)
+    let addedContent = ''
+
+    if (meetingLink) {
+      addedContent += `${joinText} : ${meetingLink}\n`
+    }
+
+    if (hasAttachments) {
+      addedContent += this.buildAttachmentsText(attachmentsText)
+    }
+
+    const line = `${EVENT_FOOTER_SEPARATOR}\n${addedContent.trimEnd()}\n\n${doNotEditText}\n${EVENT_FOOTER_SEPARATOR}`
+    const trimmed = this.text.trimEnd()
+    this.text = trimmed ? `${trimmed}\n\n${line}` : line
+
+    return this
+  }
+
+  private getFooterTranslations(t?: (key: string) => string): {
+    joinText: string
+    attachmentsText: string
+    doNotEditText: string
+  } {
+    return {
+      joinText: t?.('event.form.joinVisio') || 'Join Visio',
+      attachmentsText: t?.('event.form.attachments') || 'Attachments',
+      doNotEditText:
+        t?.('event.form.doNotEditSection') || 'Please do not edit this section.'
+    }
+  }
+
+  private buildAttachmentsText(attachmentsText: string): string {
+    let content = `\n${attachmentsText} :\n`
+    this.attachments.forEach(attachment => {
+      content += `• ${attachment.x_filename}: ${attachment.uri}\n`
+    })
+    return content
   }
 
   /**
