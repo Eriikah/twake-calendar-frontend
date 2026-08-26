@@ -59,15 +59,26 @@ function shouldTrapUrlChange(
   return anchor !== currentPath
 }
 
-function useUrlChangeTrap(
-  isEnabled: boolean,
-  anchorRef: React.MutableRefObject<string | null>,
-  currentPath: string,
-  blockedPath: string | null,
-  bypassRef: React.MutableRefObject<boolean>,
-  navigate: NavigateFunction,
+interface UrlChangeTrapOptions {
+  isEnabled: boolean
+  anchorRef: React.MutableRefObject<string | null>
+  currentPath: string
+  blockedPath: string | null
+  bypassRef: React.MutableRefObject<boolean>
+  navigate: NavigateFunction
   onTrap: (attemptedPath: string) => void
-): void {
+}
+
+function useUrlChangeTrap(options: UrlChangeTrapOptions): void {
+  const {
+    isEnabled,
+    anchorRef,
+    currentPath,
+    blockedPath,
+    bypassRef,
+    navigate,
+    onTrap
+  } = options
   useEffect(() => {
     if (bypassRef.current) {
       bypassRef.current = false
@@ -106,15 +117,15 @@ export function useUnsavedChangesGuard(
     setBlockedPath(attempted)
   }, [])
 
-  useUrlChangeTrap(
+  useUrlChangeTrap({
     isEnabled,
-    anchorPathRef,
-    location.pathname,
+    anchorRef: anchorPathRef,
+    currentPath: location.pathname,
     blockedPath,
     bypassRef,
     navigate,
-    trapAttempted
-  )
+    onTrap: trapAttempted
+  })
 
   useBeforeUnloadWarning(isEnabled)
 
