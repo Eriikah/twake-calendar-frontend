@@ -431,6 +431,7 @@ describe('Menubar interaction with expanded Dialog', () => {
 
   afterEach(() => {
     document.body.classList.remove('fullscreen-view')
+    delete (window as any).ENABLE_REFRESH_BUTTON
   })
 
   it('has navigation controls element with correct class', () => {
@@ -475,11 +476,11 @@ describe('Menubar interaction with expanded Dialog', () => {
     expect(dateTimeDisplay).toHaveClass('current-date-time')
   })
 
-  it('has refresh button element with correct class', () => {
+  it('has refresh button element with correct class when enabled', () => {
     const mockCalendarRef = { current: null }
     const mockOnRefresh = jest.fn()
     const mockCurrentDate = new Date('2024-04-15')
-
+    window.ENABLE_REFRESH_BUTTON = true
     const { container } = renderWithProviders(
       <Menubar
         calendarRef={mockCalendarRef}
@@ -494,6 +495,25 @@ describe('Menubar interaction with expanded Dialog', () => {
     const refreshButton = container.querySelector('.refresh-button')
     expect(refreshButton).toBeInTheDocument()
     expect(refreshButton).toHaveClass('refresh-button')
+  })
+
+  it('hide refresh button element when disabled', () => {
+    const mockCalendarRef = { current: null }
+    const mockOnRefresh = jest.fn()
+    const mockCurrentDate = new Date('2024-04-15')
+    const { container } = renderWithProviders(
+      <Menubar
+        calendarRef={mockCalendarRef}
+        onRefresh={mockOnRefresh}
+        onToggleSidebar={() => {}}
+        currentDate={mockCurrentDate}
+        currentView={CALENDAR_VIEWS.dayGridMonth}
+      />,
+      preloadedState
+    )
+
+    const refreshButton = container.querySelector('.refresh-button')
+    expect(refreshButton).toBeNull()
   })
 
   it('has view selector element with correct class', () => {
@@ -715,12 +735,10 @@ describe('Menubar interaction with expanded Dialog', () => {
 
     const navigationControls = container.querySelector('.navigation-controls')
     const dateTimeDisplay = container.querySelector('.current-date-time')
-    const refreshButton = container.querySelector('.refresh-button')
     const selectDisplay = container.querySelector('.select-display')
 
     expect(navigationControls).toBeVisible()
     expect(dateTimeDisplay).toBeVisible()
-    expect(refreshButton).toBeVisible()
     expect(selectDisplay).toBeVisible()
   })
 
@@ -728,6 +746,7 @@ describe('Menubar interaction with expanded Dialog', () => {
     const mockCalendarRef = { current: null }
     const mockOnRefresh = jest.fn()
     const mockCurrentDate = new Date('2024-04-15')
+    window.ENABLE_REFRESH_BUTTON = true
 
     const { container } = renderWithProviders(
       <Menubar

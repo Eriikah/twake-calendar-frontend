@@ -77,7 +77,9 @@ export const DesktopMenubar: React.FC<SharedMenubarProps> = ({
           <SearchBar onToggleSearch={setIsSearchExpanded} />
         </div>
 
-        <div className="menu-items">{ResfreshButton({ t, onRefresh })}</div>
+        <div className="menu-items">
+          <ResfreshButton t={t} onRefresh={onRefresh} />
+        </div>
 
         <div className="menu-items">
           <SelectView currentView={currentView} onViewChange={onViewChange} />
