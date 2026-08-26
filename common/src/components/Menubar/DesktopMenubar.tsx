@@ -77,18 +77,7 @@ export const DesktopMenubar: React.FC<SharedMenubarProps> = ({
           <SearchBar onToggleSearch={setIsSearchExpanded} />
         </div>
 
-        <div className="menu-items">
-          <Tooltip title={t('tooltip.refreshCalendar')}>
-            <IconButton
-              className="refresh-button"
-              onClick={onRefresh}
-              aria-label={t('menubar.refresh')}
-              sx={{ mr: 1 }}
-            >
-              <RefreshIcon />
-            </IconButton>
-          </Tooltip>
-        </div>
+        <div className="menu-items">{ResfreshButton({ t, onRefresh })}</div>
 
         <div className="menu-items">
           <SelectView currentView={currentView} onViewChange={onViewChange} />
@@ -136,5 +125,24 @@ export const DesktopMenubar: React.FC<SharedMenubarProps> = ({
         </div>
       </div>
     </header>
+  )
+}
+
+const ResfreshButton: React.FC<{
+  t: (key: string, options?: Record<string, any>) => string
+  onRefresh: () => void
+}> = ({ t, onRefresh }) => {
+  if (!window.ENABLE_REFRESH_BUTTON) return null
+  return (
+    <Tooltip title={t('tooltip.refreshCalendar')}>
+      <IconButton
+        className="refresh-button"
+        onClick={onRefresh}
+        aria-label={t('menubar.refresh')}
+        sx={{ mr: 1 }}
+      >
+        <RefreshIcon />
+      </IconButton>
+    </Tooltip>
   )
 }

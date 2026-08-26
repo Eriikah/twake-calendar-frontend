@@ -55,6 +55,8 @@ declare global {
 
     ENABLE_EVENT_ATTACHMENTS: boolean | undefined
 
+    ENABLE_REFRESH_BUTTON: boolean | undefined
+
     ASK_FOR_TZ_UPDATE: boolean
 
     TOOLTIP_DELAY_MS: number
