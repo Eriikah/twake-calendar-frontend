@@ -1,5 +1,5 @@
 import { Attachment } from '@common/types/Attachment'
-import { getFileTypeIcon, Icon } from '@linagora/twake-icons'
+import { FileTypeFolder, getFileTypeIcon, Icon } from '@linagora/twake-icons'
 import { Box, Link, radius, Tooltip, Typography } from '@linagora/twake-mui'
 import React, { ReactElement } from 'react'
 
@@ -30,7 +30,11 @@ export const AttachementChip: React.FC<{
   const isDirectory = !attachment.fmttype && !hasExtension
   const fileIcon = (
     <Icon
-      icon={getFileTypeIcon(filename, attachment.fmttype, isDirectory)}
+      icon={
+        isDirectory
+          ? FileTypeFolder
+          : getFileTypeIcon(filename, attachment.fmttype)
+      }
       size={20}
     />
   )
