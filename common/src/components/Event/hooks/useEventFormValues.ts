@@ -12,7 +12,8 @@ import {
   restoreEventFormDataFromTemp,
   saveEventFormDataToTemp
 } from '@common/utils/eventFormTempStorage'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { isEventFormDirty } from '@common/utils/isEventFormDirty'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 function isTempDataValidForContext(
   tempData: EventFormTempData | null,
@@ -271,8 +272,14 @@ export function useEventFormValues({
     onAllDayChange
   )
 
+  const isDirty = useMemo(
+    () => isEventFormDirty(formValues, initialValues),
+    [formValues, initialValues]
+  )
+
   return {
     formValues,
+    isDirty,
     setFormValues,
     ...setters
   }

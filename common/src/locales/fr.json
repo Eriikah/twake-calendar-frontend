@@ -270,7 +270,13 @@
     "updateParticipationStatus": "Mettre à jour le statut de participation",
     "thisEvent": "Cet événement",
     "allEvents": "Tous les événements",
-    "deleteRecurrentEvent": "Supprimer l'événement récurrent"
+    "deleteRecurrentEvent": "Supprimer l'événement récurrent",
+    "discardChanges": {
+      "title": "Abandonner les modifications ?",
+      "body": "Vos modifications n'ont pas été enregistrées. Souhaitez-vous vraiment les abandonner ?",
+      "continueEditing": "Continuer l'édition",
+      "discard": "Abandonner"
+    }
   },
   "eventDuplication": {
     "duplicateEvent": "Dupliquer l'événement"

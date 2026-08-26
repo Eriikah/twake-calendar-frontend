@@ -1,14 +1,16 @@
 import { useAppSelector } from '@common/app/hooks'
 import { dialogPaddingStyles } from '@common/theme/dialogPaddingStyles'
+import { ConfirmDiscardChangesDialog } from '@common/components/Dialog/ConfirmDiscardChangesDialog'
 import { ResponsiveDialog } from '@common/components/Dialog'
 import EventFormFields from '@common/components/Event/EventFormFields'
 import { CalendarEvent } from '@common/types/EventsTypes'
 import { useScreenSizeDetection } from '@common/useScreenSizeDetection'
-import React from 'react'
+import React, { useCallback, useState } from 'react'
 import { useI18n } from 'twake-i18n'
 import { EventActions } from './EventActions'
 import { useEventUpdateModal } from './useEventUpdateModal'
 import { useEditableInitialValues } from './hooks/useEditableInitialValues'
+import { useUnsavedChangesGuard } from './hooks/useUnsavedChangesGuard'
 import { CALENDAR_VIEWS } from '@common/components/Calendar/utils/constants'
 
 export interface EventUpdateModalProps {
@@ -37,7 +39,7 @@ const EventUpdateModalInternal: React.FC<
     formRef,
     effectiveEvent,
     initialValues,
-    handleClose,
+    handleClose: performClose,
     handleSubmit,
     handleExpandToggle,
     handleSave,
@@ -45,6 +47,15 @@ const EventUpdateModalInternal: React.FC<
   } = useEventUpdateModal(props)
 
   const editableInitialValues = useEditableInitialValues(initialValues)
+
+  const [isFormDirty, setIsFormDirty] = useState(false)
+  const guard = useUnsavedChangesGuard(open && isFormDirty)
+  const handleClose = useCallback(() => {
+    guard.requestClose(() => {
+      setIsFormDirty(false)
+      performClose()
+    })
+  }, [guard, performClose])
 
   const actions = (
     <EventActions
@@ -56,36 +67,48 @@ const EventUpdateModalInternal: React.FC<
     />
   )
   return (
-    <ResponsiveDialog
-      open={open}
-      onClose={handleClose}
-      title={t('event.updateEvent')}
-      isExpanded={showMore}
-      onExpandToggle={handleExpandToggle}
-      draggable={!showMore}
-      anchorEl={props.anchorEl}
-      dynamicPositioning={currentView !== CALENDAR_VIEWS.listWeek}
-      actions={actions}
-      sx={dialogPaddingStyles(isMobile)}
-      expandText={t('tooltip.moreEventOptions')}
-    >
-      <EventFormFields
-        key={effectiveEvent?.uid || 'no-event'}
-        ref={formRef}
-        initialValues={editableInitialValues}
-        showMore={showMore}
-        isOpen={open}
-        isSpecific={false}
-        typeOfAction={typeOfAction}
-        eventId={event.uid}
-        event={event}
-        userPersonalCalendars={userPersonalCalendars}
-        onSubmit={handleSubmit}
-        onCancel={handleClose}
-        tempStorageKey="update"
-        tempStorageContext={tempContext}
+    <>
+      <ResponsiveDialog
+        open={open}
+        onClose={handleClose}
+        title={t('event.updateEvent')}
+        isExpanded={showMore}
+        onExpandToggle={handleExpandToggle}
+        draggable={!showMore}
+        anchorEl={props.anchorEl}
+        dynamicPositioning={currentView !== CALENDAR_VIEWS.listWeek}
+        actions={actions}
+        sx={dialogPaddingStyles(isMobile)}
+        expandText={t('tooltip.moreEventOptions')}
+      >
+        <EventFormFields
+          key={effectiveEvent?.uid || 'no-event'}
+          ref={formRef}
+          initialValues={editableInitialValues}
+          showMore={showMore}
+          isOpen={open}
+          isSpecific={false}
+          typeOfAction={typeOfAction}
+          eventId={event.uid}
+          event={event}
+          userPersonalCalendars={userPersonalCalendars}
+          onSubmit={handleSubmit}
+          onCancel={handleClose}
+          tempStorageKey="update"
+          tempStorageContext={tempContext}
+          onDirtyChange={setIsFormDirty}
+        />
+      </ResponsiveDialog>
+      <ConfirmDiscardChangesDialog
+        open={guard.showConfirm}
+        onCancel={guard.cancelClose}
+        onConfirm={() => {
+          setIsFormDirty(false)
+          performClose()
+          guard.confirmClose()
+        }}
       />
-    </ResponsiveDialog>
+    </>
   )
 }
 

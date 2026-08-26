@@ -121,12 +121,16 @@ export interface EventFormFieldsProps {
   // Validation notification for parent (e.g. to disable Save button)
   onValidationChange?: (isValid: boolean) => void
 
+  // Dirty notification for parent (e.g. to enable unsaved-changes guard)
+  onDirtyChange?: (isDirty: boolean) => void
+
   // Callback when calendar selection changes
   onCalendarChange?: (newCalendarId: string) => void
 }
 
 export interface UseEventFormValuesReturn {
   formValues: EventFormValues
+  isDirty: boolean
   setFormValues: React.Dispatch<React.SetStateAction<EventFormValues>>
   setTitle: (v: string) => void
   setDescription: (v: string) => void

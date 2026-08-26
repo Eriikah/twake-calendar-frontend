@@ -66,7 +66,8 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
       onEndChange,
       onAllDayChange,
       onCalendarChange,
-      onValidationChange
+      onValidationChange,
+      onDirtyChange
     } = props
 
     const { t } = useI18n()
@@ -89,6 +90,7 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
 
     const {
       formValues,
+      isDirty,
       setTitle,
       setDescription,
       setLocation,
@@ -127,6 +129,11 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
       },
       [onValidationChange]
     )
+
+    useEffect(() => {
+      onDirtyChange?.(isDirty)
+    }, [isDirty, onDirtyChange])
+
     const selectedCalendar = calList?.[formValues.calendarid]
     const isTeamCalendar = Boolean(selectedCalendar?.owner?.teamCalendar)
 
