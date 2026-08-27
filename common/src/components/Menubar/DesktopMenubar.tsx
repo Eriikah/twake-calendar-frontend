@@ -78,16 +78,7 @@ export const DesktopMenubar: React.FC<SharedMenubarProps> = ({
         </div>
 
         <div className="menu-items">
-          <Tooltip title={t('tooltip.refreshCalendar')}>
-            <IconButton
-              className="refresh-button"
-              onClick={onRefresh}
-              aria-label={t('menubar.refresh')}
-              sx={{ mr: 1 }}
-            >
-              <RefreshIcon />
-            </IconButton>
-          </Tooltip>
+          <ResfreshButton t={t} onRefresh={onRefresh} />
         </div>
 
         <div className="menu-items">
@@ -136,5 +127,24 @@ export const DesktopMenubar: React.FC<SharedMenubarProps> = ({
         </div>
       </div>
     </header>
+  )
+}
+
+const ResfreshButton: React.FC<{
+  t: (key: string, options?: Record<string, any>) => string
+  onRefresh: () => void
+}> = ({ t, onRefresh }) => {
+  if (!window.ENABLE_REFRESH_BUTTON) return null
+  return (
+    <Tooltip title={t('tooltip.refreshCalendar')}>
+      <IconButton
+        className="refresh-button"
+        onClick={onRefresh}
+        aria-label={t('menubar.refresh')}
+        sx={{ mr: 1 }}
+      >
+        <RefreshIcon />
+      </IconButton>
+    </Tooltip>
   )
 }

@@ -63,3 +63,4 @@ var TDRIVE_INTENT_URL = "https://{localpart}.example.com"
 // Examples:
 //   'https://{workplaceFqdn}'
 //   'https://{workplaceFqdn.localpart}.{workplaceFqdn.domain}'
+var ENABLE_REFRESH_BUTTON = false 
