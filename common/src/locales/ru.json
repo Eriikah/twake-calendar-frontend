@@ -270,7 +270,13 @@
     "updateParticipationStatus": "Обновить статус участия",
     "thisEvent": "Это событие",
     "allEvents": "Все события",
-    "deleteRecurrentEvent": "Удалить повторяющееся событие"
+    "deleteRecurrentEvent": "Удалить повторяющееся событие",
+    "discardChanges": {
+      "title": "Отменить изменения?",
+      "body": "Ваши изменения не были сохранены. Вы действительно хотите их отменить?",
+      "continueEditing": "Продолжить редактирование",
+      "discard": "Отменить"
+    }
   },
   "eventDuplication": {
     "duplicateEvent": "Дублировать"

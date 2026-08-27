@@ -270,7 +270,13 @@
     "updateParticipationStatus": "Update the participation status",
     "deleteRecurrentEvent": "Delete the recurrent event",
     "thisEvent": "This event",
-    "allEvents": "All the events"
+    "allEvents": "All the events",
+    "discardChanges": {
+      "title": "Discard changes?",
+      "body": "Your changes have not been saved. Do you really want to discard them?",
+      "continueEditing": "Continue editing",
+      "discard": "Discard"
+    }
   },
   "eventDuplication": {
     "duplicateEvent": "Duplicate event"

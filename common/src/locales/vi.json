@@ -270,7 +270,13 @@
     "updateParticipationStatus": "Cập nhật trạng thái tham gia",
     "thisEvent": "Sự kiện này",
     "allEvents": "Tất cả sự kiện",
-    "deleteRecurrentEvent": "Xóa sự kiện lặp lại"
+    "deleteRecurrentEvent": "Xóa sự kiện lặp lại",
+    "discardChanges": {
+      "title": "Hủy các thay đổi?",
+      "body": "Các thay đổi của bạn chưa được lưu. Bạn có thực sự muốn hủy chúng không?",
+      "continueEditing": "Tiếp tục chỉnh sửa",
+      "discard": "Hủy"
+    }
   },
   "eventDuplication": {
     "duplicateEvent": "Nhân bản sự kiện"

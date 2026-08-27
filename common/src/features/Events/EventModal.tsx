@@ -1,4 +1,5 @@
 import { useAppSelector } from '@common/app/hooks'
+import { ConfirmDiscardChangesDialog } from '@common/components/Dialog/ConfirmDiscardChangesDialog'
 import { ResponsiveDialog } from '@common/components/Dialog'
 import EventFormFields from '@common/components/Event/EventFormFields'
 import type { EventFormHandle } from '@common/components/Event/EventFormFields.types'
@@ -13,6 +14,7 @@ import { useCalendarPreviewSync } from '@common/components/Event/hooks/useCalend
 import { EventActions } from './EventActions'
 import { useBuildInitialValues } from '@common/components/Event/hooks/useBuildInitialValues'
 import { useSubmitCreateEvent } from '@common/features/Events/hooks/useSubmitCreateEvent'
+import { useUnsavedChangesGuard } from './hooks/useUnsavedChangesGuard'
 import { CALENDAR_VIEWS } from '@common/components/Calendar/utils/constants'
 
 const EventPopover: React.FC<{
@@ -45,7 +47,10 @@ const EventPopover: React.FC<{
   const [selectedCalendarId, setSelectedCalendarId] = useState<
     string | undefined
   >(undefined)
+  const [isFormDirty, setIsFormDirty] = useState(false)
   const formRef = useRef<EventFormHandle>(null)
+
+  const guard = useUnsavedChangesGuard(open && isFormDirty)
 
   const initialValues = useBuildInitialValues({
     event,
@@ -100,12 +105,17 @@ const EventPopover: React.FC<{
     userPersonalCalendars
   })
 
-  const handleClose = useCallback(() => {
+  const performClose = useCallback(() => {
     clearEventFormTempData('create')
+    setIsFormDirty(false)
     onClose(false)
     setShowMore(false)
     setSelectedCalendarId(undefined)
   }, [onClose])
+
+  const handleClose = useCallback(() => {
+    guard.requestClose(performClose)
+  }, [guard, performClose])
 
   const handleCalendarChange = useCallback(
     (newCalendarId: string) => {
@@ -116,46 +126,57 @@ const EventPopover: React.FC<{
   )
 
   return (
-    <ResponsiveDialog
-      open={open}
-      anchorEl={anchorEl}
-      dynamicPositioning={
-        currentView !== CALENDAR_VIEWS.listWeek && anchorEl !== document.body
-      }
-      onClose={handleClose}
-      title={modalTitle}
-      isExpanded={showMore}
-      onExpandToggle={() => setShowMore(s => !s)}
-      draggable={!showMore}
-      actions={
-        <EventActions
-          showExpandedBtn={!showMore}
-          onClose={handleClose}
-          onSave={async () => {
-            await formRef.current?.submit()
-          }}
-          onExpanded={() => setShowMore(s => !s)}
+    <>
+      <ResponsiveDialog
+        open={open}
+        anchorEl={anchorEl}
+        dynamicPositioning={
+          currentView !== CALENDAR_VIEWS.listWeek && anchorEl !== document.body
+        }
+        onClose={handleClose}
+        title={modalTitle}
+        isExpanded={showMore}
+        onExpandToggle={() => setShowMore(s => !s)}
+        draggable={!showMore}
+        actions={
+          <EventActions
+            showExpandedBtn={!showMore}
+            onClose={handleClose}
+            onSave={async () => {
+              await formRef.current?.submit()
+            }}
+            onExpanded={() => setShowMore(s => !s)}
+          />
+        }
+        expandText={t('tooltip.moreEventOptions')}
+      >
+        <EventFormFields
+          ref={formRef}
+          initialValues={initialValues}
+          showMore={showMore}
+          isOpen={open}
+          typeOfAction={undefined}
+          eventId={event?.uid ?? null}
+          userPersonalCalendars={userPersonalCalendars}
+          onSubmit={handleSubmit}
+          onCancel={handleClose}
+          tempStorageKey="create"
+          onCalendarChange={handleCalendarChange}
+          onStartChange={handleStartChange}
+          onEndChange={handleEndChange}
+          onAllDayChange={handleAllDayChange}
+          onDirtyChange={setIsFormDirty}
         />
-      }
-      expandText={t('tooltip.moreEventOptions')}
-    >
-      <EventFormFields
-        ref={formRef}
-        initialValues={initialValues}
-        showMore={showMore}
-        isOpen={open}
-        typeOfAction={undefined}
-        eventId={event?.uid ?? null}
-        userPersonalCalendars={userPersonalCalendars}
-        onSubmit={handleSubmit}
-        onCancel={handleClose}
-        tempStorageKey="create"
-        onCalendarChange={handleCalendarChange}
-        onStartChange={handleStartChange}
-        onEndChange={handleEndChange}
-        onAllDayChange={handleAllDayChange}
+      </ResponsiveDialog>
+      <ConfirmDiscardChangesDialog
+        open={guard.showConfirm}
+        onCancel={guard.cancelClose}
+        onConfirm={() => {
+          performClose()
+          guard.confirmClose()
+        }}
       />
-    </ResponsiveDialog>
+    </>
   )
 }
 
