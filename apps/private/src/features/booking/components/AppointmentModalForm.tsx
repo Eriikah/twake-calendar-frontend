@@ -1,21 +1,20 @@
-import React, { useState } from 'react'
-import { TextField, Typography, useTheme } from '@linagora/twake-mui'
+import React, { useEffect, useState } from 'react'
+import { Typography } from '@linagora/twake-mui'
 import { ResponsiveDialog } from '@common/components/Dialog'
 import { useI18n } from 'twake-i18n'
 import { TimeSlotSelectField } from './TimeSlotSelectField'
+import { TitleField } from './TitleField'
+import { ColorField } from './ColorField'
 import { AppointmentModalExpandedFields } from './AppointmentModalExpandedFields'
 import { HeaderRightAction } from './HeaderRightAction'
 import { ModalActions } from './ModalActions'
-import { ColorPicker } from '@common/components/Calendar/CalendarColorPicker'
 import type { Calendar } from '@common/types/CalendarTypes'
 import { useScreenSizeDetection } from '@common/useScreenSizeDetection'
 import { RegularHoursField } from './RegularHoursField'
 import { DayAvailability } from './RegularHoursField/RegularHoursTypes'
 import { useAppSelector } from '@common/app/hooks'
-import { getAccessiblePair } from '@common/utils/getAccessiblePair'
 import { useFocusTitleOnOpen } from '@common/components/Event/hooks/useAutoFocusTitle'
 import { userAttendee } from '@common/features/User/models/attendee'
-import { FieldWithLabel } from '@common/components/Event/components/FieldWithLabel'
 import { Resource } from '@common/components/Attendees/ResourceSearch'
 import { Valarms } from '@common/types/Valarms'
 import { useResponsiveInputSize } from '@common/hooks/useResponsiveInputSize'
@@ -60,6 +59,7 @@ interface AppointmentModalFormProps {
   isFormValid: boolean
   onSave: () => void
   saveButtonText: string
+  isEdit?: boolean
 }
 
 export const AppointmentModalForm: React.FC<
@@ -88,7 +88,6 @@ export const AppointmentModalForm: React.FC<
   } = props
   const { t } = useI18n()
   const { isTooSmall: isMobile } = useScreenSizeDetection()
-  const theme = useTheme()
 
   const nameInputRef = React.useRef<HTMLInputElement>(null)
 
@@ -106,6 +105,16 @@ export const AppointmentModalForm: React.FC<
   const showExpandedLabel = isExpanded && !isMobile
   const titleLabel = isExpanded ? t('booking.title') : ''
   const participantsLabel = isExpanded ? t('event.form.participants') : ''
+
+  useEffect(() => {
+    const collapseForm = (): void => {
+      if (!open) {
+        setIsExpanded(false)
+      }
+    }
+
+    collapseForm()
+  }, [open])
 
   return (
     <ResponsiveDialog
@@ -128,9 +137,11 @@ export const AppointmentModalForm: React.FC<
           buttonSize={buttonSize}
           onExpandToggle={() => setIsExpanded(s => !s)}
           onSave={onSave}
+          onClose={onClose}
           loading={loading}
           isFormValid={isFormValid}
           saveButtonText={saveButtonText}
+          isEdit={props.isEdit}
         />
       }
     >
@@ -140,19 +151,13 @@ export const AppointmentModalForm: React.FC<
         </Typography>
       )}
 
-      <FieldWithLabel label={titleLabel} isExpanded={showExpandedLabel}>
-        <TextField
-          sx={{ pt: 1 }}
-          size={isMobile ? 'medium' : 'small'}
-          margin="dense"
-          placeholder={t('booking.scheduleName')}
-          type="text"
-          fullWidth
-          value={name}
-          onChange={e => setName(e.target.value)}
-          inputRef={nameInputRef}
-        />
-      </FieldWithLabel>
+      <TitleField
+        titleLabel={titleLabel}
+        showExpandedLabel={showExpandedLabel}
+        name={name}
+        setName={setName}
+        nameInputRef={nameInputRef}
+      />
 
       <TimeSlotSelectField
         duration={duration}
@@ -167,19 +172,11 @@ export const AppointmentModalForm: React.FC<
         isExpanded={isExpanded}
       />
 
-      <FieldWithLabel
-        label={t('booking.color')}
-        isExpanded={showExpandedLabel}
-        sx={{ padding: 0, margin: 0 }}
-      >
-        <ColorPicker
-          selectedColor={{
-            light: color,
-            dark: getAccessiblePair(color, theme)
-          }}
-          onChange={c => setColor(c.light)}
-        />
-      </FieldWithLabel>
+      <ColorField
+        showExpandedLabel={showExpandedLabel}
+        color={color}
+        setColor={setColor}
+      />
 
       <AppointmentModalExpandedFields
         isExpanded={isExpanded}

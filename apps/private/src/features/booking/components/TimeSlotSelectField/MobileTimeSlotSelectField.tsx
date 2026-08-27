@@ -23,7 +23,9 @@ export const MobileTimeSlotSelectField: React.FC<TimeSlotSelectFieldProps> = ({
   }, [duration, t])
 
   return (
-    <MobileSelector displayText={currentLabel}>
+    <MobileSelector
+      displayText={<span style={{ fontSize: 16 }}>{currentLabel}</span>}
+    >
       <List sx={{ overflow: 'auto', flex: 1, pt: 0 }}>
         {TIME_SLOT_OPTIONS.map(({ value, label }) => (
           <ListItem key={value} value={value} disablePadding>

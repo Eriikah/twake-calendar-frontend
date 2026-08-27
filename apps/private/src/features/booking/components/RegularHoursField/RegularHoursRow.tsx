@@ -76,7 +76,7 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = ({
           hasError={hasError}
         />
       </Box>
-      <Typography sx={{ mx: 1 }}>-</Typography>
+      <Typography sx={{ mx: isMobile ? 0.5 : 1 }}>-</Typography>
       <Box sx={{ width }}>
         <TimePickerField
           testId={`end-time-${day}-${index}`}

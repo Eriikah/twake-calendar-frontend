@@ -174,6 +174,7 @@ export const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
       isFormValid={isFormValid}
       onSave={() => void handleSave()}
       saveButtonText={t('actions.save', { defaultValue: 'Save' })}
+      isEdit
     />
   )
 }

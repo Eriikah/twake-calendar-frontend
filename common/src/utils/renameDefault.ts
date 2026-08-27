@@ -1,9 +1,9 @@
 export function renameDefault(
   davName: string | undefined,
   ownerName: string,
-  t: (key: string, params?: object) => string,
+  t: (key: string, params?: Record<string, unknown>) => string,
   isOwnCalendar?: boolean
-) {
+): string {
   if (!ownerName) {
     if (davName && davName !== '#default') return davName
   }
