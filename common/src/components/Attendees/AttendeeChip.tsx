@@ -1,8 +1,10 @@
 import { getAccessiblePair } from '@common/utils/getAccessiblePair'
+import { userAttendee } from '@common/features/User/models/attendee'
 import { Box, Chip, Icon, IconButton, useTheme } from '@linagora/twake-mui'
 import CircleIcon from '@mui/icons-material/Circle'
 import CloseIcon from '@mui/icons-material/Close'
 import { ReactElement } from 'react'
+import { AttendeePopover } from './AttendeePopover'
 import { User } from './types'
 
 export interface AttendeeChipProps {
@@ -65,19 +67,25 @@ export const AttendeeChip: React.FC<AttendeeChipProps> = ({
     )
   }
 
+  const attendeeForPopover = isString
+    ? new userAttendee({ cal_address: option, cn: '' })
+    : userAttendee.fromUser(option)
+
   return (
-    <Chip
-      {...getItemProps({ index })}
-      key={label}
-      variant="filled"
-      color="secondary"
-      icon={renderIcon()}
-      deleteIcon={renderDeleteIcon()}
-      style={{
-        color: textColor,
-        maxWidth: '200px'
-      }}
-      label={label}
-    />
+    <AttendeePopover attendee={attendeeForPopover}>
+      <Chip
+        {...getItemProps({ index })}
+        key={label}
+        variant="filled"
+        color="secondary"
+        icon={renderIcon()}
+        deleteIcon={renderDeleteIcon()}
+        style={{
+          color: textColor,
+          maxWidth: '200px'
+        }}
+        label={label}
+      />
+    </AttendeePopover>
   )
 }
