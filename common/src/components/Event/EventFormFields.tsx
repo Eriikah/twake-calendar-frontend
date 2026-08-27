@@ -3,8 +3,10 @@ import AttendeeSelector from '@common/components/Attendees/AttendeeSearch'
 import { useEventOrganizer } from '@common/features/Events/useEventOrganizer'
 import { useResponsiveInputSize } from '@common/hooks/useResponsiveInputSize'
 import { useScreenSizeDetection } from '@common/useScreenSizeDetection'
-import { saveEventFormDataToTemp } from '@common/utils/eventFormTempStorage'
-import { isSafeHttpUrl } from '@common/utils/isSafeUrl'
+import {
+  EventFormContext,
+  saveEventFormDataToTemp
+} from '@common/utils/eventFormTempStorage'
 import {
   browserDefaultTimeZone,
   getTimezoneOffset,
@@ -22,7 +24,6 @@ import React, {
   useState
 } from 'react'
 import { useI18n } from 'twake-i18n'
-import { userOrganiser } from '@common/features/User/userDataTypes'
 import { AddDescButton } from './AddDescButton'
 import { EventFormFieldsExpanded } from './components/EventFormFieldsExpanded'
 import { FieldWithLabel } from './components/FieldWithLabel'
@@ -31,21 +32,82 @@ import {
   EventFormHandle,
   EventFormValues
 } from './EventFormFields.types'
-import { AttachmentField } from './fields/AttachmentField'
 import { CalendarSelectField } from './fields/CalendarSelectField'
 import { EventDateTimeField } from './fields/EventDateTimeField'
 import LocationField from './fields/LocationField'
 import { TitleField } from './fields/TitleField'
 import { VideoConferenceField } from './fields/VideoConferenceField'
-import { TdriveButton } from '@common/features/Tdrive/components/TdriveButton'
-import { useIsTdrivePickerAvailable } from '@common/features/Tdrive/hooks/useIsTdrivePickerAvailable'
-import { TdriveFile } from '@common/features/Tdrive/types'
-import { Attachment } from '@common/types/Attachment'
-import { useEventFormValues } from './hooks/useEventFormValues'
 import { validateEventFormValues } from './utils/formValidation'
+import { userOrganiser } from '@common/features/User/userDataTypes'
+import { EventFormAttachments } from './fields/EventFormAttachments'
+import { useEventFormValues } from './hooks/useEventFormValues'
 
 const showInputLabel = (showMore: boolean, label: string): string =>
   showMore ? label : ''
+
+function useEventFormImperativeHandle(
+  ref: React.ForwardedRef<EventFormHandle>,
+  {
+    formValues,
+    organizer,
+    isTeamCalendar,
+    isFormValid,
+    isSpecific,
+    showMore,
+    tempStorageKey,
+    tempStorageContext,
+    onSubmit,
+    onCancel
+  }: {
+    formValues: EventFormValues
+    organizer: userOrganiser
+    isTeamCalendar: boolean
+    isFormValid: boolean
+    isSpecific: boolean
+    showMore: boolean
+    tempStorageKey: 'create' | 'update'
+    tempStorageContext?: EventFormContext
+    onSubmit: (
+      values: EventFormValues,
+      organizer?: userOrganiser
+    ) => Promise<void>
+    onCancel: () => void
+  }
+): void {
+  const organizerRef = useRef(organizer)
+  useEffect(() => {
+    organizerRef.current = isTeamCalendar
+      ? formValues.organizer || organizer
+      : organizer
+  }, [isTeamCalendar, organizer, formValues.organizer])
+
+  const latestValuesRef = useRef(formValues)
+  useEffect(() => {
+    latestValuesRef.current = {
+      ...formValues,
+      organizer: formValues.organizer || organizer
+    }
+  }, [formValues, organizer])
+
+  useImperativeHandle(ref, () => ({
+    submit: async (): Promise<void> => {
+      if (!isFormValid && !isSpecific) return
+
+      const values = { ...latestValuesRef.current }
+      saveEventFormDataToTemp(tempStorageKey, {
+        ...values,
+        resources: values.selectedResources,
+        ...tempStorageContext,
+        fromError: false
+      })
+      await onSubmit(values, organizerRef.current)
+    },
+    cancel: (): void => onCancel(),
+    getValues: (): EventFormValues => ({ ...latestValuesRef.current }),
+    isValid: (): boolean =>
+      validateEventFormValues(latestValuesRef.current, showMore)
+  }))
+}
 
 const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
   (props, ref) => {
@@ -111,6 +173,7 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
       setShowRepeat,
       setHasEndDateChanged,
       setAttachments,
+      setOrganizer,
       handleAllDayChange
     } = useEventFormValues({
       initialValues,
@@ -119,8 +182,14 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
       tempStorageContext,
       onStartChange,
       onEndChange,
-      onAllDayChange
+      onAllDayChange,
+      userOrganizer,
+      eventOrganizer: event?.organizer
     })
+
+    useEffect(() => {
+      onDirtyChange?.(isDirty)
+    }, [isDirty, onDirtyChange])
 
     const handleValidationChange = useCallback(
       (valid: boolean) => {
@@ -129,10 +198,6 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
       },
       [onValidationChange]
     )
-
-    useEffect(() => {
-      onDirtyChange?.(isDirty)
-    }, [isDirty, onDirtyChange])
 
     const selectedCalendar = calList?.[formValues.calendarid]
     const isTeamCalendar = Boolean(selectedCalendar?.owner?.teamCalendar)
@@ -144,102 +209,31 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
       userOrganizer
     })
 
-    const eventOrganizer = event?.organizer
-
-    const initialOrganizer = useMemo(() => {
-      if (eventOrganizer) {
-        return new userOrganiser({
-          cal_address: eventOrganizer.cal_address,
-          cn: eventOrganizer.cn
-        })
-      }
-      return userOrganizer
-    }, [eventOrganizer, userOrganizer])
-
-    const [selectedOrganizer, setSelectedOrganizer] = useState(initialOrganizer)
-    const [prevCalendarId, setPrevCalendarId] = useState(formValues.calendarid)
-    const [prevUserOrganizer, setPrevUserOrganizer] = useState(userOrganizer)
-
     useEffect(() => {
-      const initOrganizerData = (): void => {
-        if (prevCalendarId !== formValues.calendarid) {
-          setPrevCalendarId(formValues.calendarid)
-          setSelectedOrganizer(userOrganizer)
-        } else if (prevUserOrganizer !== userOrganizer && !eventOrganizer) {
-          setPrevUserOrganizer(userOrganizer)
-          setSelectedOrganizer(userOrganizer)
-        }
+      if (!formValues.organizer && organizer) {
+        setOrganizer(organizer)
       }
-      initOrganizerData()
-    }, [
-      formValues.calendarid,
-      prevCalendarId,
-      prevUserOrganizer,
-      eventOrganizer,
-      userOrganizer
-    ])
+    }, [formValues.organizer, organizer, setOrganizer])
 
     useEffect(() => {
       onCalendarChange?.(formValues.calendarid)
     }, [formValues.calendarid, onCalendarChange])
 
-    // Keep organizer in a ref so submit() can read it synchronously
-    const organizerRef = useRef(organizer)
-    useEffect(() => {
-      organizerRef.current = isTeamCalendar ? selectedOrganizer : organizer
-    }, [isTeamCalendar, organizer, selectedOrganizer])
-
-    // Use a ref to store the LATEST formValues so the imperative handlers
-    // always have the current state without needing to be re-bound
-    const latestValuesRef = useRef(formValues)
-    useEffect(() => {
-      latestValuesRef.current = formValues
-    }, [formValues])
-
-    useImperativeHandle(ref, () => ({
-      submit: async (): Promise<void> => {
-        if (!isFormValid && !isSpecific) return
-
-        const values = { ...latestValuesRef.current }
-
-        // Save snapshot to temp storage before API call
-        saveEventFormDataToTemp(tempStorageKey, {
-          ...values,
-          resources: values.selectedResources,
-          ...tempStorageContext,
-          fromError: false
-        })
-
-        await onSubmit(values, organizerRef.current)
-      },
-      cancel: (): void => {
-        onCancel()
-      },
-      getValues: (): EventFormValues => ({ ...latestValuesRef.current }),
-      isValid: (): boolean =>
-        validateEventFormValues(latestValuesRef.current, showMore)
-    }))
+    useEventFormImperativeHandle(ref, {
+      formValues,
+      organizer,
+      isTeamCalendar,
+      isFormValid,
+      isSpecific,
+      showMore,
+      tempStorageKey,
+      tempStorageContext,
+      onSubmit,
+      onCancel
+    })
 
     const v = formValues
     const isExpanded = showMore && !isMobile
-
-    const pickerAvailable = useIsTdrivePickerAvailable()
-
-    // AttachmentField silently skips attachments whose URI is not a safe
-    // http(s) URL, so mirror that predicate to avoid an orphan label.
-    const hasVisibleAttachments = v.attachments.some(a => isSafeHttpUrl(a.uri))
-
-    const handleTdriveFilesSelected = useCallback(
-      (files: TdriveFile[]): void => {
-        // Convert Tdrive files to Attachments
-        const attachments = files.map(
-          file =>
-            new Attachment(file.url, file.mimeType ?? undefined, file.name)
-        )
-        setAttachments([...v.attachments, ...attachments])
-      },
-      [v.attachments, setAttachments]
-    )
 
     return (
       <React.Fragment>
@@ -312,26 +306,12 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
           setDescription={setDescription}
         />
 
-        {pickerAvailable ? (
-          <TdriveButton
-            onFilesSelected={handleTdriveFilesSelected}
-            showMore={showMore}
-            attachments={v.attachments}
-            setAttachments={setAttachments}
-          />
-        ) : (
-          hasVisibleAttachments && (
-            <FieldWithLabel
-              label={showInputLabel(showMore, t('event.form.tdriveFiles'))}
-              isExpanded={isExpanded}
-            >
-              <AttachmentField
-                attachments={v.attachments}
-                setAttachments={setAttachments}
-              />
-            </FieldWithLabel>
-          )
-        )}
+        <EventFormAttachments
+          v={v}
+          setAttachments={setAttachments}
+          showMore={showMore}
+          isExpanded={isExpanded}
+        />
 
         <LocationField
           location={v.location}
@@ -363,8 +343,8 @@ const EventFormFields = forwardRef<EventFormHandle, EventFormFieldsProps>(
           selectedCalendar={selectedCalendar}
           isTeamCalendar={isTeamCalendar}
           isDisableOrganizerSelection={typeOfAction === 'solo'}
-          setSelectedOrganizer={setSelectedOrganizer}
-          selectedOrganizer={selectedOrganizer}
+          setSelectedOrganizer={setOrganizer}
+          selectedOrganizer={v.organizer}
         />
       </React.Fragment>
     )

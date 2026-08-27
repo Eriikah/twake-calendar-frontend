@@ -26,10 +26,10 @@ export const ConfirmDiscardChangesDialog: React.FC<
         <Typography>{t('editModeDialog.discardChanges.body')}</Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel} variant="text">
+        <Button onClick={onCancel} variant="outlined" color="secondary">
           {t('editModeDialog.discardChanges.continueEditing')}
         </Button>
-        <Button onClick={onConfirm} color="error" variant="contained">
+        <Button onClick={onConfirm} variant="contained">
           {t('editModeDialog.discardChanges.discard')}
         </Button>
       </DialogActions>

@@ -14,6 +14,8 @@ import {
 } from '@common/utils/eventFormTempStorage'
 import { isEventFormDirty } from '@common/utils/isEventFormDirty'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { userOrganiser } from '@common/features/User/userDataTypes'
+import { CalendarEvent } from '@common/types/EventsTypes'
 
 function isTempDataValidForContext(
   tempData: EventFormTempData | null,
@@ -106,6 +108,7 @@ function useEventFormSetters(
   setTitle: (v: string) => void
   setDescription: (v: string) => void
   setAttachments: (v: Attachment[]) => void
+  setOrganizer: (v: userOrganiser | undefined) => void
   setLocation: (v: string) => void
   setStart: (v: string) => void
   setEnd: (v: string) => void
@@ -196,6 +199,10 @@ function useEventFormSetters(
     (v: EventFormValues['attachments']) => set('attachments', v),
     [set]
   )
+  const setOrganizer = useCallback(
+    (v: userOrganiser | undefined) => set('organizer', v),
+    [set]
+  )
 
   const handleAllDayChange = useCallback(
     (newAllDay: boolean, newStart: string, newEnd: string) => {
@@ -231,8 +238,54 @@ function useEventFormSetters(
     setShowRepeat,
     setHasEndDateChanged,
     setAttachments,
+    setOrganizer,
     handleAllDayChange
   }
+}
+
+function useInitialOrganizer(
+  userOrganizer: userOrganiser | undefined,
+  eventOrganizer: CalendarEvent['organizer'] | undefined
+): userOrganiser | undefined {
+  return useMemo(() => {
+    if (eventOrganizer) {
+      return new userOrganiser({
+        cal_address: eventOrganizer.cal_address,
+        cn: eventOrganizer.cn
+      })
+    }
+    return userOrganizer
+  }, [eventOrganizer, userOrganizer])
+}
+
+function useEventFormOrganizerSideEffects(
+  calendarid: string,
+  userOrganizer: userOrganiser | undefined,
+  eventOrganizer: CalendarEvent['organizer'] | undefined,
+  setFormValues: React.Dispatch<React.SetStateAction<EventFormValues>>
+): void {
+  const [prevCalendarId, setPrevCalendarId] = useState(calendarid)
+  const [prevUserOrganizer, setPrevUserOrganizer] = useState(userOrganizer)
+
+  useEffect(() => {
+    const initOrganizer = (): void => {
+      if (prevCalendarId !== calendarid) {
+        setPrevCalendarId(calendarid)
+        setFormValues(prev => ({ ...prev, organizer: undefined }))
+      } else if (prevUserOrganizer !== userOrganizer && !eventOrganizer) {
+        setPrevUserOrganizer(userOrganizer)
+        setFormValues(prev => ({ ...prev, organizer: undefined }))
+      }
+    }
+    initOrganizer()
+  }, [
+    calendarid,
+    prevCalendarId,
+    prevUserOrganizer,
+    eventOrganizer,
+    userOrganizer,
+    setFormValues
+  ])
 }
 
 export function useEventFormValues({
@@ -242,18 +295,34 @@ export function useEventFormValues({
   tempStorageContext,
   onStartChange,
   onEndChange,
-  onAllDayChange
+  onAllDayChange,
+  userOrganizer,
+  eventOrganizer
 }: UseEventFormValuesParams): UseEventFormValuesReturn {
+  const initialOrganizer = useInitialOrganizer(userOrganizer, eventOrganizer)
+
+  const initialValuesWithOrganizer = useMemo(
+    () => ({ ...initialValues, organizer: initialOrganizer }),
+    [initialValues, initialOrganizer]
+  )
+
   const [formValues, setFormValues] = useState<EventFormValues>({
     ...DEFAULT_FORM_VALUES,
-    ...initialValues
+    ...initialValuesWithOrganizer
   })
 
   useEventFormSeeding(
     isOpen,
     tempStorageKey,
     tempStorageContext,
-    initialValues,
+    initialValuesWithOrganizer,
+    setFormValues
+  )
+
+  useEventFormOrganizerSideEffects(
+    formValues.calendarid,
+    userOrganizer,
+    eventOrganizer,
     setFormValues
   )
 
@@ -273,8 +342,8 @@ export function useEventFormValues({
   )
 
   const isDirty = useMemo(
-    () => isEventFormDirty(formValues, initialValues),
-    [formValues, initialValues]
+    () => isEventFormDirty(formValues, initialValuesWithOrganizer),
+    [formValues, initialValuesWithOrganizer]
   )
 
   return {

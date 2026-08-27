@@ -34,6 +34,7 @@ export interface EventFormValues {
   showDescription: boolean
   showRepeat: boolean
   hasEndDateChanged: boolean
+  organizer?: userOrganiser
 }
 
 export const DEFAULT_FORM_VALUES: EventFormValues = {
@@ -56,7 +57,8 @@ export const DEFAULT_FORM_VALUES: EventFormValues = {
   attachments: [],
   showDescription: false,
   showRepeat: false,
-  hasEndDateChanged: false
+  hasEndDateChanged: false,
+  organizer: undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -123,9 +125,6 @@ export interface EventFormFieldsProps {
 
   // Dirty notification for parent (e.g. to enable unsaved-changes guard)
   onDirtyChange?: (isDirty: boolean) => void
-
-  // Callback when calendar selection changes
-  onCalendarChange?: (newCalendarId: string) => void
 }
 
 export interface UseEventFormValuesReturn {
@@ -152,6 +151,7 @@ export interface UseEventFormValuesReturn {
   setShowRepeat: (v: boolean) => void
   setHasEndDateChanged: (v: boolean) => void
   setAttachments: (v: EventFormValues['attachments']) => void
+  setOrganizer: (v: userOrganiser | undefined) => void
   handleAllDayChange: (
     newAllDay: boolean,
     newStart: string,
@@ -171,4 +171,6 @@ export interface UseEventFormValuesParams {
     newStart: string,
     newEnd: string
   ) => void
+  userOrganizer?: userOrganiser
+  eventOrganizer?: CalendarEvent['organizer']
 }
