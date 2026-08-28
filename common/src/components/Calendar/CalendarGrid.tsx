@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useCallback } from 'react'
 import cx from 'classnames'
 import type { MutableRefObject, RefObject } from 'react'
 import FullCalendar from '@fullcalendar/react'
@@ -124,6 +124,18 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   const { isTooSmall: isMobile, isTablet } = useScreenSizeDetection()
   const isNotDesktop = isTablet || isMobile
 
+  const [dateRange, setDateRange] = useState<{ start: Date; end: Date } | null>(
+    null
+  )
+
+  const handleDatesSet = useCallback(
+    (arg: DatesSetArg) => {
+      setDateRange({ start: arg.start, end: arg.end })
+      otherProps.datesSet(arg)
+    },
+    [otherProps.datesSet]
+  )
+
   const { isPending, filteredCalendarEvents, viewHandlers, upcomingEventId } =
     useCalendarGridState({
       calendarRef,
@@ -135,7 +147,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
       setSelectedMiniDate: otherProps.setSelectedMiniDate,
       onViewChange: otherProps.onViewChange,
       errorHandler: otherProps.errorHandler,
-      visibleBookingLinks: otherProps.visibleBookingLinks
+      visibleBookingLinks: otherProps.visibleBookingLinks,
+      rangeStart: dateRange?.start,
+      rangeEnd: dateRange?.end
     })
 
   const { events } = useDraftEvent({
@@ -220,7 +234,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
               timezone={otherProps.timezone}
             />
           )}
-          datesSet={otherProps.datesSet}
+          datesSet={handleDatesSet}
           dayHeaderContent={viewHandlers.handleDayHeaderContent}
           dayHeaderDidMount={viewHandlers.handleDayHeaderDidMount}
           dayHeaderWillUnmount={viewHandlers.handleDayHeaderWillUnmount}

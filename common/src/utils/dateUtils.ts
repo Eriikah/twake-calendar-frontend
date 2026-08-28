@@ -1,11 +1,6 @@
 import { CALENDAR_VIEWS } from '@common/components/Calendar/utils/constants'
 import moment from 'moment'
 
-/**
- * Pad a number with leading zeros to ensure minimum 2 digits
- */
-export const pad = (n: number): string => n.toString().padStart(2, '0')
-
 export function formatDateToYYYYMMDDTHHMMSS(date: Date) {
   return moment(date).format('YYYYMMDDTHHmmss')
 }
@@ -97,57 +92,4 @@ export function getTwoWeekRange(date = new Date()): { start: Date; end: Date } {
   end.setDate(start.getDate() + 14)
   end.setHours(23, 59, 59, 999)
   return { start, end }
-}
-
-/**
- * Convert time from one timezone to another and return minutes from midnight in target timezone
- */
-export const convertTimeToMinutesInTimezone = (
-  time: string,
-  sourceTimezone: string | undefined,
-  targetTimezone: string,
-  baseDate: Date
-): number => {
-  const sourceTz = sourceTimezone || targetTimezone
-  const [hours, minutes] = time.split(':').map(Number)
-
-  const sourceMoment = moment
-    .tz(baseDate, sourceTz)
-    .startOf('day')
-    .hour(hours)
-    .minute(minutes)
-
-  const targetMoment = sourceMoment.clone().tz(targetTimezone)
-  return targetMoment.hours() * 60 + targetMoment.minutes()
-}
-
-/**
- * Get day offset between two dates
- */
-export const getDayOffset = (date1: Date, date2: Date): number => {
-  const d1 = new Date(date1)
-  const d2 = new Date(date2)
-  d1.setHours(0, 0, 0, 0)
-  d2.setHours(0, 0, 0, 0)
-  return Math.round((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24))
-}
-
-/**
- * Get the date in the target timezone for a given day of week index
- */
-export const getDateInTimezone = (
-  dayIndex: number,
-  startOfWeek: Date,
-  targetTimezone: string
-): Date => {
-  const date = new Date(startOfWeek)
-  date.setDate(startOfWeek.getDate() + dayIndex)
-  return moment.tz(date, targetTimezone).toDate()
-}
-
-/**
- * Format date to ISO string without timezone
- */
-export const formatDateISO = (date: Date): string => {
-  return date.toISOString().split('T')[0]
 }

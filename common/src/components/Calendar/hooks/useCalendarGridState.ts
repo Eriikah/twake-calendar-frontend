@@ -13,11 +13,8 @@ import { CalendarApi, EventInput } from '@fullcalendar/core'
 import { CalendarEvent } from '@common/types/EventsTypes'
 import { EventErrorHandler } from '@common/components/Error/EventErrorHandler'
 import type { RootState } from '@common/app/store'
-import {
-  BookingLink,
-  DayOfWeek
-} from '@common/features/booking/types/BookingTypes'
-import { computeStartOfTheWeek } from '@common/utils/dateUtils'
+import { BookingLink } from '@common/features/booking/types/BookingTypes'
+import moment from 'moment-timezone'
 
 const getTempCalendarIds = (
   tempcalendars: RootState['calendars']['templist']
@@ -52,6 +49,8 @@ export interface UseCalendarGridStateProps {
   onViewChange: (view: string) => void
   errorHandler: EventErrorHandler
   visibleBookingLinks?: string[]
+  rangeStart?: Date
+  rangeEnd?: Date
 }
 
 export interface CalendarGridState {
@@ -61,7 +60,7 @@ export interface CalendarGridState {
   upcomingEventId: string | undefined
 }
 
-interface UseCalendarEventsDataProps {
+export interface UseCalendarEventsDataProps {
   selectedCalendars: string[]
   calendars: RootState['calendars']['list']
   tempcalendars: RootState['calendars']['templist']
@@ -72,6 +71,8 @@ interface UseCalendarEventsDataProps {
   currentView: string
   timezone: string
   t: (key: string) => string
+  rangeStart?: Date
+  rangeEnd?: Date
 }
 
 export interface CalendarEventsData {
@@ -178,7 +179,9 @@ export const useCalendarEventsData = ({
   currentView,
   timezone,
   t,
-  visibleBookingLinks
+  visibleBookingLinks,
+  rangeStart,
+  rangeEnd
 }: UseCalendarEventsDataProps & {
   visibleBookingLinks?: string[]
 }): CalendarEventsData => {
@@ -199,7 +202,11 @@ export const useCalendarEventsData = ({
     visibleBookingLinks
   })
 
-  const bookingListEvents = useBookingLinksEvents(visibleBookingLinks)
+  const bookingListEvents = useBookingLinksEvents(
+    visibleBookingLinks,
+    rangeStart,
+    rangeEnd
+  )
 
   const filteredCalendarEvents = useFilteredCalendarEvents(
     fullCalendarEvents,
@@ -260,7 +267,9 @@ export const useCalendarGridState = ({
   setSelectedMiniDate,
   onViewChange,
   errorHandler,
-  visibleBookingLinks
+  visibleBookingLinks,
+  rangeStart,
+  rangeEnd
 }: UseCalendarGridStateProps): CalendarGridState => {
   const { t } = useI18n()
   const {
@@ -291,7 +300,9 @@ export const useCalendarGridState = ({
     currentView,
     timezone,
     t,
-    visibleBookingLinks
+    visibleBookingLinks,
+    rangeStart,
+    rangeEnd
   })
 
   const viewHandlers = useCalendarViewHandlers({
@@ -321,67 +332,51 @@ export const useCalendarGridState = ({
     upcomingEventId
   }
 }
-export const DAY_TO_INDEX: Record<DayOfWeek, number> = {
-  MON: 0,
-  TUE: 1,
-  WED: 2,
-  THU: 3,
-  FRI: 4,
-  SAT: 5,
-  SUN: 6
-}
-
-// Constants for booking link event generation
-const BOOKING_LINK_WEEKS_BEFORE = 26
-const BOOKING_LINK_WEEKS_AFTER = 26
-const BOOKING_LINK_TOTAL_WEEKS =
-  BOOKING_LINK_WEEKS_BEFORE + BOOKING_LINK_WEEKS_AFTER
 
 function useBookingLinksEvents(
-  visibleBookingLinks: string[] | undefined
+  visibleBookingLinks: string[] | undefined,
+  rangeStart?: Date,
+  rangeEnd?: Date
 ): EventInput[] {
   const allBookingLinks = useAppSelector(state => state.bookingLinks.list)
 
+  // Use primitive values (timestamps) for stable dependencies
+  const rangeStartTime = rangeStart?.getTime()
+  const rangeEndTime = rangeEnd?.getTime()
+
   return useMemo(() => {
-    const bookingList = allBookingLinks.filter(link =>
-      visibleBookingLinks?.includes(link.publicId)
-    )
+    const totalWeeks =
+      rangeStartTime && rangeEndTime
+        ? moment(rangeEndTime).diff(moment(rangeStartTime), 'weeks') + 1
+        : 6
+    const effectiveRangeStart = moment(rangeStartTime).startOf('week')
 
-    return bookingList.flatMap((link: BookingLink): EventInput[] =>
-      (link.availabilityRules ?? []).flatMap((rule): EventInput[] => {
-        if (rule.type !== 'weekly') return []
+    return allBookingLinks
+      .filter(link => visibleBookingLinks?.includes(link.publicId))
+      ?.flatMap((link: BookingLink): EventInput[] =>
+        (link.availabilityRules ?? []).flatMap((rule): EventInput[] => {
+          if (rule.type !== 'weekly') return []
+          const ruleTimeZone = rule.timeZone || 'UTC'
 
-        // Generate events for booking link visibility window
-        return Array.from(
-          { length: BOOKING_LINK_TOTAL_WEEKS },
-          (_, weekOffset) => {
-            const startOfWeek = computeStartOfTheWeek(new Date())
-            const weekStart = new Date(startOfWeek)
-            weekStart.setDate(
-              weekStart.getDate() + (weekOffset - BOOKING_LINK_WEEKS_BEFORE) * 7
-            )
+          return Array.from({ length: totalWeeks }, (_, weekOffset) => {
+            const targetDate = effectiveRangeStart
+              .clone()
+              .add(weekOffset, 'weeks')
+              .day(rule.dayOfWeek)
 
-            const dayIndex = DAY_TO_INDEX[rule.dayOfWeek]
-            const date = new Date(weekStart)
-            date.setDate(weekStart.getDate() + dayIndex)
+            const dateStr = targetDate.format('YYYY-MM-DD')
 
-            const [startHours, startMinutes] = rule.start.split(':')
-            const [endHours, endMinutes] = rule.end.split(':')
-            const start = new Date(date)
-            start.setHours(
-              parseInt(startHours, 10),
-              parseInt(startMinutes, 10),
-              0,
-              0
-            )
-            const end = new Date(date)
-            end.setHours(parseInt(endHours, 10), parseInt(endMinutes, 10), 0, 0)
+            const startWallClock = `${dateStr}T${rule.start}:00`
+            const endWallClock = `${dateStr}T${rule.end}:00`
+
+            const startMoment = moment.tz(startWallClock, ruleTimeZone)
+            const endMoment = moment.tz(endWallClock, ruleTimeZone)
 
             return {
               id: `${link.publicId}-${rule.dayOfWeek}-w${weekOffset}`,
               title: link.name,
-              start: start.toISOString(),
-              end: end.toISOString(),
+              start: startMoment.toISOString(),
+              end: endMoment.toISOString(),
               backgroundColor: link.color,
               borderColor: link.color,
               extendedProps: {
@@ -395,11 +390,10 @@ function useBookingLinksEvents(
               },
               priority: 0
             } as EventInput
-          }
-        )
-      })
-    )
-  }, [allBookingLinks, visibleBookingLinks])
+          })
+        })
+      )
+  }, [allBookingLinks, visibleBookingLinks, rangeStartTime, rangeEndTime])
 }
 
 export function useVisibleBookingLinks(
