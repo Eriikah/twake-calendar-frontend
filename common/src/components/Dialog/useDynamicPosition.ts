@@ -20,7 +20,8 @@ interface HorizontalPositionOptions {
   dialogWidth: number
   viewportWidth: number
   gap: number
-  padding: number
+  paddingRight: number
+  paddingLeft: number
 }
 
 interface VerticalPositionOptions {
@@ -40,6 +41,7 @@ interface DialogDimensions {
 const DEFAULT_HEADER_HEIGHT_PX = 70
 const DEFAULT_GAP = 12
 const DEFAULT_PADDING = 40
+const DEFAULT_LEFT_PADDING = 270
 const DEFAULT_BOTTOM_PADDING = 28
 
 const FALLBACK_SELECTORS = [
@@ -124,30 +126,43 @@ const getDialogDimensions = (dialogId?: string): DialogDimensions | null => {
 const parseHeaderOffset = (headerHeightStr: string): number =>
   parseInt(headerHeightStr, 10) || DEFAULT_HEADER_HEIGHT_PX
 
-const calculateHorizontalPosition = ({
+export const calculateHorizontalPosition = ({
   anchorRect,
   dialogWidth,
   viewportWidth,
   gap,
-  padding
+  paddingRight,
+  paddingLeft
 }: HorizontalPositionOptions): number => {
-  const preferredLeft = anchorRect.left - dialogWidth - gap
-  const maxLeft = viewportWidth - dialogWidth - padding
+  const minLeft = paddingLeft
+  const maxLeft = viewportWidth - dialogWidth - paddingRight
 
-  if (preferredLeft >= padding) {
-    return Math.max(padding, Math.min(preferredLeft, maxLeft))
+  if (minLeft > maxLeft) {
+    return Math.max(0, maxLeft)
   }
 
-  const rightSpace =
-    viewportWidth - (anchorRect.right + gap + dialogWidth + padding)
-  const leftSpace = anchorRect.left - gap - dialogWidth - padding
+  const preferredLeft = anchorRect.left - dialogWidth - gap
+  const preferredRight = anchorRect.right + gap
 
-  const left =
-    rightSpace >= 0 || rightSpace > leftSpace
-      ? anchorRect.right + gap
-      : preferredLeft
+  if (preferredLeft >= minLeft) {
+    return preferredLeft
+  }
 
-  return Math.max(padding, Math.min(left, maxLeft))
+  if (preferredRight <= maxLeft) {
+    return preferredRight
+  }
+
+  const clampedLeft = Math.max(minLeft, preferredLeft)
+  const clampedRight = Math.min(maxLeft, preferredRight)
+
+  const visibleRectIfLeft = anchorRect.right - (clampedLeft + dialogWidth)
+  const visibleRectIfRight = clampedRight - anchorRect.left
+
+  if (visibleRectIfLeft >= visibleRectIfRight) {
+    return Math.min(maxLeft, clampedLeft)
+  }
+
+  return Math.max(minLeft, clampedRight)
 }
 
 const calculateVerticalPosition = ({
@@ -171,7 +186,7 @@ const calculateVerticalPosition = ({
   return Math.max(effectiveMinTop, Math.min(unclampedTop, maxTop))
 }
 
-export const calculateDynamicPosition = (
+const calculateDynamicPosition = (
   anchorEl?: HTMLElement | null,
   headerHeightStr: string = '70px',
   cachedRect?: DOMRect | null,
@@ -195,7 +210,8 @@ export const calculateDynamicPosition = (
     dialogWidth,
     viewportWidth: window.innerWidth,
     gap: DEFAULT_GAP,
-    padding: DEFAULT_PADDING
+    paddingRight: DEFAULT_PADDING,
+    paddingLeft: DEFAULT_LEFT_PADDING
   })
 
   const top = calculateVerticalPosition({
@@ -254,7 +270,7 @@ const getInitialPosition = (
   return calculateDynamicPosition(anchorEl, headerHeight, initialRect, dialogId)
 }
 
-export const useDynamicPosition = (
+const useDynamicPosition = (
   options: UseDynamicPositionOptions
 ): DynamicPosition | null => {
   const { anchorEl, headerHeight = '70px', dialogId } = options
