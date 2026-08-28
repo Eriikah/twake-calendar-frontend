@@ -13,6 +13,11 @@ import { CalendarApi, EventInput } from '@fullcalendar/core'
 import { CalendarEvent } from '@common/types/EventsTypes'
 import { EventErrorHandler } from '@common/components/Error/EventErrorHandler'
 import type { RootState } from '@common/app/store'
+import {
+  BookingLink,
+  DayOfWeek
+} from '@common/features/booking/types/BookingTypes'
+import { computeStartOfTheWeek } from '@common/utils/dateUtils'
 
 const getTempCalendarIds = (
   tempcalendars: RootState['calendars']['templist']
@@ -194,8 +199,11 @@ export const useCalendarEventsData = ({
     visibleBookingLinks
   })
 
+  const bookingListEvents = useBookingLinksEvents(visibleBookingLinks)
+
   const filteredCalendarEvents = useFilteredCalendarEvents(
     fullCalendarEvents,
+    bookingListEvents,
     currentView,
     timezone
   )
@@ -312,4 +320,96 @@ export const useCalendarGridState = ({
     viewHandlers,
     upcomingEventId
   }
+}
+export const DAY_TO_INDEX: Record<DayOfWeek, number> = {
+  MON: 0,
+  TUE: 1,
+  WED: 2,
+  THU: 3,
+  FRI: 4,
+  SAT: 5,
+  SUN: 6
+}
+
+// Constants for booking link event generation
+const BOOKING_LINK_WEEKS_BEFORE = 26
+const BOOKING_LINK_WEEKS_AFTER = 26
+const BOOKING_LINK_TOTAL_WEEKS =
+  BOOKING_LINK_WEEKS_BEFORE + BOOKING_LINK_WEEKS_AFTER
+
+function useBookingLinksEvents(
+  visibleBookingLinks: string[] | undefined
+): EventInput[] {
+  const allBookingLinks = useAppSelector(state => state.bookingLinks.list)
+
+  return useMemo(() => {
+    const bookingList = allBookingLinks.filter(link =>
+      visibleBookingLinks?.includes(link.publicId)
+    )
+
+    return bookingList.flatMap((link: BookingLink): EventInput[] =>
+      (link.availabilityRules ?? []).flatMap((rule): EventInput[] => {
+        if (rule.type !== 'weekly') return []
+
+        // Generate events for booking link visibility window
+        return Array.from(
+          { length: BOOKING_LINK_TOTAL_WEEKS },
+          (_, weekOffset) => {
+            const startOfWeek = computeStartOfTheWeek(new Date())
+            const weekStart = new Date(startOfWeek)
+            weekStart.setDate(
+              weekStart.getDate() + (weekOffset - BOOKING_LINK_WEEKS_BEFORE) * 7
+            )
+
+            const dayIndex = DAY_TO_INDEX[rule.dayOfWeek]
+            const date = new Date(weekStart)
+            date.setDate(weekStart.getDate() + dayIndex)
+
+            const [startHours, startMinutes] = rule.start.split(':')
+            const [endHours, endMinutes] = rule.end.split(':')
+            const start = new Date(date)
+            start.setHours(
+              parseInt(startHours, 10),
+              parseInt(startMinutes, 10),
+              0,
+              0
+            )
+            const end = new Date(date)
+            end.setHours(parseInt(endHours, 10), parseInt(endMinutes, 10), 0, 0)
+
+            return {
+              id: `${link.publicId}-${rule.dayOfWeek}-w${weekOffset}`,
+              title: link.name,
+              start: start.toISOString(),
+              end: end.toISOString(),
+              backgroundColor: link.color,
+              borderColor: link.color,
+              extendedProps: {
+                calId: link.publicId,
+                colors: link.color
+                  ? { dark: link.color, light: link.color }
+                  : undefined,
+                attendee: [],
+                class: 'PUBLIC',
+                isBookingLink: true
+              },
+              priority: 0
+            } as EventInput
+          }
+        )
+      })
+    )
+  }, [allBookingLinks, visibleBookingLinks])
+}
+
+export function useVisibleBookingLinks(
+  visibleBookingLinks: string[] | undefined
+): BookingLink[] {
+  const allBookingLinks = useAppSelector(state => state.bookingLinks.list)
+
+  return useMemo(() => {
+    return allBookingLinks.filter(link =>
+      visibleBookingLinks?.includes(link.publicId)
+    )
+  }, [allBookingLinks, visibleBookingLinks])
 }

@@ -37,6 +37,8 @@ import { CalendarGrid } from '@common/components/Calendar/CalendarGrid'
 import ImportAlert from '@common/features/Events/ImportAlert'
 import { TimezoneChangeAlert } from '@common/components/Timezone/TimezoneChangeAlert'
 import { useVisibleBookingLinks } from './hooks/useVisibleBookingLinks'
+import { EditAppointmentModal } from '../../features/booking/EditAppointmentModal'
+import type { BookingLink } from '@common/features/booking/types/BookingTypes'
 import dayjs from 'dayjs'
 
 export interface CalendarControllerRef {
@@ -184,6 +186,21 @@ const CalendarController: React.FC<CalendarControllerProps> = ({
 
   const [isMoreEventsDrawerOpen, setIsMoreEventsDrawerOpen] = useState(false)
   const [moreEvents, setMoreEvents] = useState<EventApi[]>([])
+
+  const [isEditAppointmentModalOpen, setIsEditAppointmentModalOpen] =
+    useState(false)
+  const [editingBookingLink, setEditingBookingLink] =
+    useState<BookingLink | null>(null)
+
+  const handleEditBookingLink = (link: BookingLink): void => {
+    setEditingBookingLink(link)
+    setIsEditAppointmentModalOpen(true)
+  }
+
+  const handleCloseEditModal = (): void => {
+    setIsEditAppointmentModalOpen(false)
+    setEditingBookingLink(null)
+  }
 
   const handleMoreLinkClick = (arg: MoreLinkArg): string | void => {
     if (!isMobile) return
@@ -346,6 +363,7 @@ const CalendarController: React.FC<CalendarControllerProps> = ({
           visibleBookingLinks={visibleBookingLinks}
           selectedRange={selectedRange}
           draftCalendarId={draftCalendarId}
+          onEditBookingLink={handleEditBookingLink}
         />
       )}
       {view === 'search' && <SearchResultsPage />}
@@ -382,6 +400,14 @@ const CalendarController: React.FC<CalendarControllerProps> = ({
         />
       )}
       <EventErrorSnackbar messages={eventErrors} onClose={handleErrorClose} />
+
+      {editingBookingLink && (
+        <EditAppointmentModal
+          open={isEditAppointmentModalOpen}
+          onClose={handleCloseEditModal}
+          bookingLink={editingBookingLink}
+        />
+      )}
 
       {isMobile && (
         <ViewMoreEvents

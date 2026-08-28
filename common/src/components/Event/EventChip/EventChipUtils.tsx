@@ -201,6 +201,14 @@ export function getCardStyle(
         color: effectiveColor?.dark,
         border: '1px solid white'
       }
+    case 'BOOKING':
+      return {
+        ...baseStyle,
+        backgroundColor: bestColor + '1A',
+        border: '1px solid white',
+        padding: '0px',
+        borderRadius: '4px'
+      }
     default:
       if (isPrivate) {
         return {

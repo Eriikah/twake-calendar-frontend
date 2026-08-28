@@ -39,6 +39,8 @@ import { useSwipeNavigation } from './hooks/useSwipeNavigation'
 import { useAutoScrollToUpcommingEvent } from '../Event/hooks/useAutoScrollToUpcommingEvent'
 import { usePreserveScrollPositionInScheduleView } from './hooks/usePreserveScrollPositionInScheduleView'
 import { useDraftEvent } from './hooks/useDraftEvent'
+import { BookingLinkOverlay } from './BookingLinkOverlay'
+import type { BookingLink } from '@common/features/booking/types/BookingTypes'
 
 const localeMap: Record<string, LocaleInput | undefined> = {
   fr: frLocale,
@@ -73,6 +75,7 @@ export interface CalendarGridProps {
   visibleBookingLinks?: string[]
   selectedRange?: DateSelectArg | null
   draftCalendarId?: string | null
+  onEditBookingLink?: (link: BookingLink) => void
 }
 
 const CALENDAR_PLUGINS = [
@@ -167,6 +170,13 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
         }}
         {...(isNotDesktop ? swipeHandlers : {})}
       >
+        <BookingLinkOverlay
+          visibleBookingLinks={otherProps.visibleBookingLinks}
+          calendarRef={calendarRef}
+          timezone={otherProps.timezone}
+          currentView={otherProps.currentView}
+          onEditBookingLink={otherProps.onEditBookingLink}
+        />
         <FullCalendar
           {...CALENDAR_DEFAULT_PROPS}
           key={otherProps.hiddenDays.join(',')}
