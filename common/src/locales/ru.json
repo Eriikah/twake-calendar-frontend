@@ -107,7 +107,8 @@
       "viewAllEvents": "Просмотр всех событий",
       "editor": "Редактор",
       "owner": "Владелец",
-      "administrator": "Администратор"
+      "administrator": "Администратор",
+      "privateEventsNotice": "Только владелец календаря может видеть его частные события."
     }
   },
   "colorPicker": {
