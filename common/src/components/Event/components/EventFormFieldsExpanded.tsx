@@ -12,6 +12,7 @@ import { FieldWithLabel } from './FieldWithLabel'
 import { OrganizerSelectField } from '../fields/OrganizerSelectField'
 import { Calendar } from '@common/types/CalendarTypes'
 import { userOrganiser } from '@common/features/User/userDataTypes'
+import { useResponsiveInputSize } from '@common/hooks/useResponsiveInputSize'
 
 interface EventFormFieldsExpandedProps {
   alarms: Valarms
@@ -52,6 +53,7 @@ export const EventFormFieldsExpanded: React.FC<
 }) => {
   const { t } = useI18n()
   const { isTooSmall: isMobile } = useScreenSizeDetection()
+  const inputSize = useResponsiveInputSize()
 
   if (!showMore) return null
 
@@ -77,11 +79,11 @@ export const EventFormFieldsExpanded: React.FC<
           label={t('event.form.resource')}
           isExpanded={showMore && !isMobile}
         >
-          <FormControl fullWidth margin="dense" size="small">
+          <FormControl fullWidth margin="dense" size={inputSize}>
             <ResourceSearch
               objectTypes={['resource']}
               selectedResources={selectedResources}
-              inputSlot={params => <TextField {...params} size="small" />}
+              inputSlot={params => <TextField {...params} size={inputSize} />}
               onChange={(_event: React.SyntheticEvent, value: Resource[]) =>
                 setSelectedResources(value)
               }

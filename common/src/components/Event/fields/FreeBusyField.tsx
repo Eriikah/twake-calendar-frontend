@@ -7,6 +7,7 @@ import {
 } from '@linagora/twake-mui'
 import { useI18n } from 'twake-i18n'
 import { FieldWithLabel } from '@common/components/Event/components/FieldWithLabel'
+import { useResponsiveInputSize } from '@common/hooks/useResponsiveInputSize'
 
 export interface FreeBusyFieldProps {
   busy: string
@@ -22,13 +23,14 @@ export const FreeBusyField: React.FC<FreeBusyFieldProps> = ({
 }) => {
   const { t } = useI18n()
   const { isTooSmall: isMobile } = useScreenSizeDetection()
+  const inputSize = useResponsiveInputSize()
 
   return (
     <FieldWithLabel
       label={t('event.form.showMeAs')}
       isExpanded={showMore && !isMobile}
     >
-      <FormControl fullWidth margin="dense" size="small">
+      <FormControl fullWidth margin="dense" size={inputSize}>
         <Select
           labelId="busy"
           value={busy}

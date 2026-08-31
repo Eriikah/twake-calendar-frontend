@@ -8,17 +8,21 @@ export const ModalActions: React.FC<{
   buttonSize: 'small' | 'medium' | 'large'
   onExpandToggle: () => void
   onSave: () => void
+  onClose: () => void
   loading: boolean
   isFormValid: boolean
   saveButtonText: string
+  isEdit?: boolean
 }> = ({
   isExpanded,
   buttonSize,
   onExpandToggle,
+  onClose,
   onSave,
   loading,
   isFormValid,
-  saveButtonText
+  saveButtonText,
+  isEdit
 }) => {
   const { t } = useI18n()
 
@@ -39,13 +43,20 @@ export const ModalActions: React.FC<{
           {t('common.moreOptions')}
         </Button>
       )}
-      <Button
-        onClick={() => void onSave()}
-        variant="contained"
-        disabled={loading || !isFormValid}
-      >
-        {saveButtonText}
-      </Button>
+      <Box sx={{ display: 'flex', gap: 1, ml: isExpanded ? 'auto' : 0 }}>
+        {(isExpanded || isEdit) && (
+          <Button size={buttonSize} variant="outlined" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+        )}
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          disabled={loading || !isFormValid}
+        >
+          {saveButtonText}
+        </Button>
+      </Box>
     </Box>
   )
 }

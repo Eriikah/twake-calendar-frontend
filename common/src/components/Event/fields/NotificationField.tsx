@@ -13,6 +13,7 @@ import { useScreenSizeDetection } from '@common/useScreenSizeDetection'
 import { translateDuration } from '@common/components/EventPreview/utils/parseDuration'
 import { VAlarm } from '@common/types/VAlarm'
 import { Valarms } from '@common/types/Valarms'
+import { useResponsiveInputSize } from '@common/hooks/useResponsiveInputSize'
 
 const PREDEFINED_VALUES = [
   '-PT1M',
@@ -42,6 +43,8 @@ export const NotificationField: React.FC<NotificationFieldProps> = ({
 }) => {
   const { t } = useI18n()
   const { isTooSmall: isMobile } = useScreenSizeDetection()
+  const inputSize = useResponsiveInputSize()
+
   const selectedTriggers = alarms?.getAlarms()?.map(a => a?.trigger) ?? []
 
   const customTriggers = selectedTriggers.filter(
@@ -97,7 +100,7 @@ export const NotificationField: React.FC<NotificationFieldProps> = ({
       label={t('event.form.notification')}
       isExpanded={showMore && !isMobile}
     >
-      <FormControl fullWidth margin="dense" size="small">
+      <FormControl fullWidth margin="dense" size={inputSize}>
         <Select
           labelId="notification"
           multiple

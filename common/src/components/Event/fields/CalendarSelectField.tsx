@@ -18,6 +18,7 @@ import { CalendarItemList } from '@common/components/Calendar/CalendarItemList'
 import { OwnerCaption } from '@common/components/Calendar/OwnerCaption'
 import { FieldWithLabel } from '@common/components/Event/components/FieldWithLabel'
 import { SectionPreviewRow } from '@common/components/Event/components/SectionPreviewRow'
+import { useResponsiveInputSize } from '@common/hooks/useResponsiveInputSize'
 
 export interface CalendarSelectFieldProps {
   calendarid: string
@@ -108,6 +109,7 @@ const CalendarSelectFieldExpanded: React.FC<{
   disabled
 }) => {
   const { t } = useI18n()
+  const inputSize = useResponsiveInputSize()
 
   const delegatedCalendars = userPersonalCalendars.filter(cal => cal.delegated)
   const personalCalendars = userPersonalCalendars.filter(cal => !cal.delegated)
@@ -118,7 +120,7 @@ const CalendarSelectFieldExpanded: React.FC<{
   }
 
   return (
-    <FormControl fullWidth margin="dense" size="small">
+    <FormControl fullWidth margin="dense" size={inputSize}>
       <Select
         value={calendarid ?? ''}
         label=""
