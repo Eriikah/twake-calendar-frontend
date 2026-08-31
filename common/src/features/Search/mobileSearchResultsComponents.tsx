@@ -3,7 +3,6 @@ import {
   getTitleStyle
 } from '@common/components/Event/EventChip/EventChipUtils'
 import { Calendar } from '@common/types/CalendarTypes'
-import { defaultColors } from '@common/utils/defaultColors'
 import { Box, Card, CardHeader, Typography } from '@linagora/twake-mui'
 import React from 'react'
 import { useI18n } from 'twake-i18n'
@@ -20,6 +19,7 @@ interface MobileEventCardProps {
   calendar: Calendar | undefined
   timeZone: string
   customSubHeader?: (titleStyle: React.CSSProperties) => React.ReactNode
+  effectiveColor?: { light: string; dark: string }
 }
 
 export const RenderMobileDate: React.FC<MobileDateProps> = ({
@@ -39,15 +39,18 @@ export const RenderMobileDate: React.FC<MobileDateProps> = ({
   </Box>
 )
 
-const getCardSx = (calendar: Calendar): React.CSSProperties => ({
+const getCardSx = (effectiveColor: {
+  light: string
+  dark: string
+}): React.CSSProperties => ({
   height: 'stretch',
   minHeight: '58px',
   width: '100%',
   borderRadius: '8px',
   padding: 1,
   boxShadow: 'none',
-  backgroundColor: calendar.color?.light,
-  color: calendar.color?.dark,
+  backgroundColor: effectiveColor.light,
+  color: effectiveColor.dark,
   border: '1px solid',
   borderColor: 'background.paper',
   display: 'flex'
@@ -72,7 +75,8 @@ export const RenderMobileEventCard: React.FC<MobileEventCardProps> = ({
   eventData,
   calendar,
   timeZone,
-  customSubHeader
+  customSubHeader,
+  effectiveColor
 }) => {
   const { t } = useI18n()
 
@@ -81,15 +85,13 @@ export const RenderMobileEventCard: React.FC<MobileEventCardProps> = ({
   const { start, allDay, summary, uid } = eventData.data
   const startDate = new Date(start)
 
-  const bestColor = calendar.color
-    ? getBestColor(calendar.color as { light: string; dark: string })
-    : defaultColors[0].dark
-  const titleStyle = getTitleStyle(
-    bestColor,
-    'ACCEPTED',
-    calendar ?? ({} as Calendar),
-    false
-  )
+  const resolvedColor = effectiveColor ??
+    (calendar.color as { light: string; dark: string }) ?? {
+      light: '#fff',
+      dark: '#000'
+    }
+  const bestColor = getBestColor(resolvedColor)
+  const titleStyle = getTitleStyle(bestColor, 'ACCEPTED', resolvedColor, false)
 
   const defaultSubHeader = !allDay && (
     <Typography style={getSubheaderStyle(titleStyle.color)}>
@@ -104,7 +106,7 @@ export const RenderMobileEventCard: React.FC<MobileEventCardProps> = ({
   return (
     <Card
       variant="outlined"
-      sx={getCardSx(calendar)}
+      sx={getCardSx(resolvedColor)}
       data-testid={`event-card-${uid}`}
     >
       <CardHeader

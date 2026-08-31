@@ -11,6 +11,8 @@ import {
 import { RenderMobileEventCard } from '@common/features/Search/mobileSearchResultsComponents'
 import { SearchEventResult } from '@common/features/Search/types/SearchEventResult'
 import { useI18n } from 'twake-i18n'
+import { getEffectiveColor } from './EventChipUtils'
+import { useAppSelector } from '@common/app/hooks'
 
 export interface MobileEventChipScheduleProps extends EventChipScheduleProps {
   arg: EventContentArg
@@ -55,22 +57,29 @@ const parseEventToSearchResult = (
 
 export const MobileEventChipSchedule: React.FC<
   MobileEventChipScheduleProps
-> = ({
-  arg,
-  calendars,
-  tempcalendars,
-  timezone,
-  dayData,
-  upcommingEventId
-}) => {
+> = ({ arg, timezone, dayData, upcommingEventId }) => {
   const { t } = useI18n()
   const theme = useTheme()
+  const calendars = useAppSelector(state => state.calendars.list)
+  const tempcalendars = useAppSelector(state => state.calendars.templist)
 
   const ext = arg.event.extendedProps as CalendarEvent
-  const { temp } = arg.event._def.extendedProps
+  const { temp, colors, bookingLinkPublicId } = arg.event._def.extendedProps
   const calendarsSource = temp ? tempcalendars : calendars
   const calendar = calendarsSource[ext.calId]
   const videoUrl = ext.x_openpass_videoconference
+
+  const bookingLinks = useAppSelector(state => state.bookingLinks.list)
+  const bookingLinkColor = bookingLinks?.find(
+    bl => bl.publicId === bookingLinkPublicId
+  )?.color
+
+  const effectiveColor = getEffectiveColor(
+    theme,
+    calendar,
+    colors as Record<string, string> | string | undefined,
+    bookingLinkColor
+  )
 
   if (!calendar) return null
 
@@ -101,6 +110,7 @@ export const MobileEventChipSchedule: React.FC<
       <RenderMobileEventCard
         eventData={eventData}
         calendar={calendar}
+        effectiveColor={effectiveColor}
         timeZone={timezone}
         customSubHeader={(titleStyle: React.CSSProperties) => (
           <RenderListEventTime

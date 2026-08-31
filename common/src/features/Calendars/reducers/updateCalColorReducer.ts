@@ -13,6 +13,11 @@ export const updateCalColorReducer = (create: ReducerCreators<CalendarState>) =>
       const cal = state.list[action.payload.id]
       if (cal) {
         cal.color = action.payload.color
+        if (cal.events) {
+          Object.values(cal.events).forEach(event => {
+            event.color = action.payload.color
+          })
+        }
       }
     }
   )
