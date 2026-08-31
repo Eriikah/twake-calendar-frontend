@@ -146,6 +146,7 @@ export const EventDescriptionRow: React.FC<{
 }> = ({ description, attach }) => {
   const builder = new EventDescriptionBuilder(description ?? '', attach ?? [])
     .removeFooter()
+    .linkify()
     .sanitize()
     .filterAttachments()
 

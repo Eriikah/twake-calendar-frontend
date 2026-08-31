@@ -145,4 +145,40 @@ describe('EventDescriptionBuilder', () => {
     const builder2 = new EventDescriptionBuilder(text2)
     expect(builder2.buildPlainText()).toBe('link &amp;')
   })
+
+  describe('linkify (security & edge cases)', () => {
+    it('should convert a bare URL to a clickable link', () => {
+      const text = 'Check out https://linagora.com for more info.'
+      const builder = new EventDescriptionBuilder(text).linkify()
+      expect(builder.buildHtml()).toBe(
+        'Check out <a href="https://linagora.com" target="_blank" rel="noopener noreferrer">https://linagora.com</a> for more info.'
+      )
+    })
+
+    it('should NOT alter URLs that are already inside HTML attributes (e.g., href)', () => {
+      const text = '<a href="https://evil.com">https://good.com</a>'
+      const builder = new EventDescriptionBuilder(text).linkify()
+      // Note: The text inside the tag 'https://good.com' is technically outside an HTML tag.
+      // But the attribute 'https://evil.com' should remain untouched.
+      expect(builder.buildHtml()).toBe(
+        '<a href="https://evil.com">https://good.com</a>'
+      )
+    })
+
+    it('should NOT break existing image tags with URLs in src', () => {
+      const text = '<img src="https://example.com/image.png" />'
+      const builder = new EventDescriptionBuilder(text).linkify()
+      expect(builder.buildHtml()).toBe(
+        '<img src="https://example.com/image.png" />'
+      )
+    })
+
+    it('should NOT include trailing quotes in the URL when it is next to quotes', () => {
+      const text = 'He said: "Go to https://example.com".'
+      const builder = new EventDescriptionBuilder(text).linkify()
+      expect(builder.buildHtml()).toBe(
+        'He said: "Go to <a href="https://example.com" target="_blank" rel="noopener noreferrer">https://example.com</a>".'
+      )
+    })
+  })
 })
