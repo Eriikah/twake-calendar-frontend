@@ -3,6 +3,7 @@ import { Dialog, Box, IconButton } from '@linagora/twake-mui'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { TdriveFile } from '../types'
 import { PickerSkeleton } from './PickerSkeleton'
+import { useScreenSizeDetection } from '@common/useScreenSizeDetection'
 
 interface TdrivePickerDialogProps {
   open: boolean
@@ -63,6 +64,8 @@ export const TdrivePickerDialog: React.FC<TdrivePickerDialogProps> = ({
   containerRef,
   onReadyToUse
 }) => {
+  const { isTooSmall: isMobile } = useScreenSizeDetection()
+
   const [isReady, setIsReady] = useState(false)
 
   // Reset loader each time the dialog opens
@@ -76,13 +79,14 @@ export const TdrivePickerDialog: React.FC<TdrivePickerDialogProps> = ({
       open={open}
       onClose={onClose}
       fullWidth
+      fullScreen={isMobile}
       onTransitionEnter={handleTransitionEnter}
       sx={{
         '& .MuiDialog-paper': {
           maxWidth: '900px',
           width: '100%',
-          height: '80vh',
-          maxHeight: '800px',
+          height: isMobile ? '100vh' : '80vh',
+          maxHeight: isMobile ? undefined : '800px',
           display: 'flex',
           flexDirection: 'column',
           position: 'relative'
