@@ -166,7 +166,8 @@
       }
     },
     "freeBusy": {
-      "unknown": "Statut inconnu",
+      "unknown": "Impossible d'afficher le calendrier de cet invité.",
+      "contact": "Impossible d'afficher le calendrier de cet invité.",
       "busy": "Cette personne est occupée",
       "busyCalOwner": "Vous avez un autre événement à cette heure-ci",
       "free": "L'utilisateur est disponible",

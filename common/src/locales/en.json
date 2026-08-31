@@ -166,7 +166,8 @@
       }
     },
     "freeBusy": {
-      "unknown": "Unknown status",
+      "unknown": "Can't show this guest's calendar.",
+      "contact": "Can't show this guest's calendar.",
       "busy": "This person is busy",
       "busyCalOwner": "You have another event at this time",
       "free": "User is free",

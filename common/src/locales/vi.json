@@ -166,8 +166,9 @@
       }
     },
     "freeBusy": {
-      "unknown": "Trạng thái không rõ",
-      "busy": "Người này đang bận",
+      "unknown": "Không thể hiển thị lịch của khách này.",
+      "contact": "Không thể hiển thị lịch của khách này.",
+      "busy": "Người này hiện đang bận",
       "busyCalOwner": "Bạn có một sự kiện khác vào thời gian này",
       "free": "Người dùng đang rảnh",
       "loading": "Đang tải trạng thái"
