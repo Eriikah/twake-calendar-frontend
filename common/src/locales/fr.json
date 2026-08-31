@@ -273,7 +273,7 @@
     "deleteRecurrentEvent": "Supprimer l'événement récurrent",
     "discardChanges": {
       "title": "Abandonner les modifications ?",
-      "body": "Vos modifications n'ont pas été enregistrées. Souhaitez-vous vraiment les abandonner ?",
+      "body": "Vos modifications pourraient ne pas être enregistrées",
       "continueEditing": "Continuer l'édition",
       "discard": "Abandonner"
     }

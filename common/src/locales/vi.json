@@ -273,7 +273,7 @@
     "deleteRecurrentEvent": "Xóa sự kiện lặp lại",
     "discardChanges": {
       "title": "Hủy các thay đổi?",
-      "body": "Các thay đổi của bạn chưa được lưu. Bạn có thực sự muốn hủy chúng không?",
+      "body": "Các thay đổi bạn đã thực hiện có thể không được lưu",
       "continueEditing": "Tiếp tục chỉnh sửa",
       "discard": "Hủy"
     }
