@@ -118,6 +118,7 @@ const CALENDAR_DEFAULT_PROPS = {
 export const CalendarGrid: React.FC<CalendarGridProps> = ({
   calendarRef,
   calendarWrapperRef,
+  datesSet,
   ...otherProps
 }) => {
   const { lang } = useI18n()
@@ -131,9 +132,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   const handleDatesSet = useCallback(
     (arg: DatesSetArg) => {
       setDateRange({ start: arg.start, end: arg.end })
-      otherProps.datesSet(arg)
+      datesSet(arg)
     },
-    [otherProps.datesSet]
+    [datesSet]
   )
 
   const { isPending, filteredCalendarEvents, viewHandlers, upcomingEventId } =

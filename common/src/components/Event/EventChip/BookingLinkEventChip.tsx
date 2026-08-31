@@ -84,7 +84,9 @@ export const BaseBookingLinkChip: React.FC<BaseBookingLinkChipProps> = ({
         title={
           showCompact ? (
             data.active === false ? (
-              <WebAssetOffOutlinedIcon sx={{ color: titleStyle.color, fontSize: '12px' }} />
+              <WebAssetOffOutlinedIcon
+                sx={{ color: titleStyle.color, fontSize: '12px' }}
+              />
             ) : (
               <EventIcon sx={{ color: titleStyle.color, fontSize: '12px' }} />
             )
@@ -106,9 +108,13 @@ export const BaseBookingLinkChip: React.FC<BaseBookingLinkChipProps> = ({
                 }}
               >
                 {data.active === false ? (
-                  <WebAssetOffOutlinedIcon sx={{ color: titleStyle.color, fontSize: '12px' }} />
+                  <WebAssetOffOutlinedIcon
+                    sx={{ color: titleStyle.color, fontSize: '12px' }}
+                  />
                 ) : (
-                  <EventIcon sx={{ color: titleStyle.color, fontSize: '12px' }} />
+                  <EventIcon
+                    sx={{ color: titleStyle.color, fontSize: '12px' }}
+                  />
                 )}
                 {isMonthView && (
                   <Typography variant="body2" noWrap style={titleStyle}>
@@ -127,7 +133,7 @@ export const BaseBookingLinkChip: React.FC<BaseBookingLinkChipProps> = ({
 export const BookingLinkEventChip: React.FC<EventChipProps> = ({ arg }) => {
   const event = arg.event
   const props = event._def.extendedProps
-  const { colors } = props
+  const { colors, active } = props
   const isMonthView = arg.view.type === CALENDAR_VIEWS.dayGridMonth
   const eventLength = getEventDuration(event)
 
@@ -143,7 +149,8 @@ export const BookingLinkEventChip: React.FC<EventChipProps> = ({ arg }) => {
       data={{
         color,
         name: event.title,
-        durationMinutes: eventLength
+        durationMinutes: eventLength,
+        active: active as boolean | undefined
       }}
       isMonthView={isMonthView}
     />

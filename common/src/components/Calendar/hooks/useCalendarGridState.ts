@@ -5,6 +5,7 @@ import { useI18n } from 'twake-i18n'
 import { useCalendarViewHandlers } from './useCalendarViewHandlers'
 import { useFilteredCalendarEvents } from './useCalendarControllerHooks'
 import { useFindUpcommingEvent } from './useFindUpcommingEvent'
+import { useBookingLinksEvents } from './useBookingLinks'
 import {
   extractEvents,
   eventToFullCalendarFormat
@@ -13,8 +14,6 @@ import { CalendarApi, EventInput } from '@fullcalendar/core'
 import { CalendarEvent } from '@common/types/EventsTypes'
 import { EventErrorHandler } from '@common/components/Error/EventErrorHandler'
 import type { RootState } from '@common/app/store'
-import { BookingLink } from '@common/features/booking/types/BookingTypes'
-import moment from 'moment-timezone'
 
 const getTempCalendarIds = (
   tempcalendars: RootState['calendars']['templist']
@@ -29,12 +28,10 @@ const getFilteredEvents = (
   selectedCalendars: string[],
   calendars: RootState['calendars']['list'],
   email: string | undefined,
-  hideDeclinedEvents: boolean | undefined,
-  visibleBookingLinks?: string[]
+  hideDeclinedEvents: boolean | undefined
 ): CalendarEvent[] => {
   return extractEvents(selectedCalendars, calendars || {}, {
-    hideDeclinedEvents,
-    visibleBookingLinks
+    hideDeclinedEvents
   })
 }
 
@@ -91,7 +88,6 @@ interface FullCalendarEventsProps {
   isPending: boolean
   hideDeclinedEvents: boolean
   t: (key: string) => string
-  visibleBookingLinks?: string[]
 }
 
 const useFullCalendarEvents = ({
@@ -102,8 +98,7 @@ const useFullCalendarEvents = ({
   userId,
   isPending,
   hideDeclinedEvents,
-  t,
-  visibleBookingLinks
+  t
 }: FullCalendarEventsProps): EventInput[] => {
   const tempCalendarIds = useMemo(
     () => getTempCalendarIds(tempcalendars),
@@ -117,16 +112,9 @@ const useFullCalendarEvents = ({
         selectedCalendars,
         calendars,
         email,
-        hideDeclinedEvents,
-        visibleBookingLinks
+        hideDeclinedEvents
       ),
-    [
-      selectedCalendars,
-      calendars,
-      email,
-      hideDeclinedEvents,
-      visibleBookingLinks
-    ]
+    [selectedCalendars, calendars, email, hideDeclinedEvents]
   )
 
   const filteredTempEvents = useMemo(
@@ -135,16 +123,9 @@ const useFullCalendarEvents = ({
         tempCalendarIds,
         tempcalendars,
         email,
-        hideDeclinedEvents,
-        visibleBookingLinks
+        hideDeclinedEvents
       ),
-    [
-      tempCalendarIds,
-      tempcalendars,
-      email,
-      hideDeclinedEvents,
-      visibleBookingLinks
-    ]
+    [tempCalendarIds, tempcalendars, email, hideDeclinedEvents]
   )
 
   return useMemo(() => {
@@ -198,8 +179,7 @@ export const useCalendarEventsData = ({
     userId,
     isPending,
     hideDeclinedEvents,
-    t,
-    visibleBookingLinks
+    t
   })
 
   const bookingListEvents = useBookingLinksEvents(
@@ -331,79 +311,4 @@ export const useCalendarGridState = ({
     viewHandlers,
     upcomingEventId
   }
-}
-
-function useBookingLinksEvents(
-  visibleBookingLinks: string[] | undefined,
-  rangeStart?: Date,
-  rangeEnd?: Date
-): EventInput[] {
-  const allBookingLinks = useAppSelector(state => state.bookingLinks.list)
-
-  // Use primitive values (timestamps) for stable dependencies
-  const rangeStartTime = rangeStart?.getTime()
-  const rangeEndTime = rangeEnd?.getTime()
-
-  return useMemo(() => {
-    const totalWeeks =
-      rangeStartTime && rangeEndTime
-        ? moment(rangeEndTime).diff(moment(rangeStartTime), 'weeks') + 1
-        : 6
-    const effectiveRangeStart = moment(rangeStartTime).startOf('week')
-
-    return allBookingLinks
-      .filter(link => visibleBookingLinks?.includes(link.publicId))
-      ?.flatMap((link: BookingLink): EventInput[] =>
-        (link.availabilityRules ?? []).flatMap((rule): EventInput[] => {
-          if (rule.type !== 'weekly') return []
-          const ruleTimeZone = rule.timeZone || 'UTC'
-
-          return Array.from({ length: totalWeeks }, (_, weekOffset) => {
-            const targetDate = effectiveRangeStart
-              .clone()
-              .add(weekOffset, 'weeks')
-              .day(rule.dayOfWeek)
-
-            const dateStr = targetDate.format('YYYY-MM-DD')
-
-            const startWallClock = `${dateStr}T${rule.start}:00`
-            const endWallClock = `${dateStr}T${rule.end}:00`
-
-            const startMoment = moment.tz(startWallClock, ruleTimeZone)
-            const endMoment = moment.tz(endWallClock, ruleTimeZone)
-
-            return {
-              id: `${link.publicId}-${rule.dayOfWeek}-w${weekOffset}`,
-              title: link.name,
-              start: startMoment.toISOString(),
-              end: endMoment.toISOString(),
-              backgroundColor: link.color,
-              borderColor: link.color,
-              extendedProps: {
-                calId: link.publicId,
-                colors: link.color
-                  ? { dark: link.color, light: link.color }
-                  : undefined,
-                attendee: [],
-                class: 'PUBLIC',
-                isBookingLink: true
-              },
-              priority: 0
-            } as EventInput
-          })
-        })
-      )
-  }, [allBookingLinks, visibleBookingLinks, rangeStartTime, rangeEndTime])
-}
-
-export function useVisibleBookingLinks(
-  visibleBookingLinks: string[] | undefined
-): BookingLink[] {
-  const allBookingLinks = useAppSelector(state => state.bookingLinks.list)
-
-  return useMemo(() => {
-    return allBookingLinks.filter(link =>
-      visibleBookingLinks?.includes(link.publicId)
-    )
-  }, [allBookingLinks, visibleBookingLinks])
 }
