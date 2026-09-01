@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 
 export interface DynamicPosition {
-  top: number
+  top?: number
+  bottom?: number
   left: number
 }
 
@@ -223,6 +224,17 @@ const calculateDynamicPosition = (
     bottomPadding: DEFAULT_BOTTOM_PADDING
   })
 
+  const anchorCenterY = anchorRect.top + anchorRect.height / 2
+  const viewportCenterY = window.innerHeight / 2
+
+  // When the anchor is in the bottom half of the viewport we pin the dialog
+  // by its bottom edge so that as content grows it expands upward (towards the
+  // available space) instead of downward off-screen.
+  if (anchorCenterY > viewportCenterY) {
+    const bottom = window.innerHeight - top - dialogHeight
+    return { bottom, left }
+  }
+
   return { top, left }
 }
 
@@ -244,27 +256,9 @@ const clearPositionFromDOM = (dialogId?: string): void => {
 const applyPositionToDOM = (pos: DynamicPosition, dialogId?: string): void => {
   const paperEl = getDialogPaperElement(dialogId)
   if (!paperEl) return
-  paperEl.style.top = `${pos.top}px`
-  paperEl.style.left = `${pos.left}px`
-  // Clear any drag transform so the clamped position is the true visual position.
+  if (pos.top !== undefined) paperEl.style.top = `${pos.top}px`
+  if (pos.left !== undefined) paperEl.style.left = `${pos.left}px`
   paperEl.style.transform = ''
-}
-
-const setupResizeObserver = (
-  callback: () => void,
-  dialogId?: string
-): (() => void) | undefined => {
-  if (typeof ResizeObserver === 'undefined') return undefined
-
-  const paperEl = getDialogPaperElement(dialogId)
-  if (!paperEl) return undefined
-
-  const resizeObserver = new ResizeObserver(callback)
-  resizeObserver.observe(paperEl)
-
-  return (): void => {
-    resizeObserver.disconnect()
-  }
 }
 
 const getInitialPosition = (
@@ -309,7 +303,6 @@ const useDynamicPosition = (
     let isSubscribed = true
     let rafId: number | null = null
     let timerId: ReturnType<typeof setTimeout> | null = null
-    let cleanupResizeObserver: (() => void) | undefined
 
     const updatePos = (): void => {
       if (!isSubscribed) return
@@ -333,16 +326,11 @@ const useDynamicPosition = (
         dialogId
       )
       if (pos) {
-        // In case of repositionning and the dialog size changes, we clear the transform
         applyPositionToDOM(pos, dialogId)
         setPosition(pos)
         setLastPosition(pos)
       } else {
         rafId = requestAnimationFrame(updatePos)
-      }
-
-      if (!cleanupResizeObserver) {
-        cleanupResizeObserver = setupResizeObserver(updatePos, dialogId)
       }
     }
 
@@ -361,7 +349,6 @@ const useDynamicPosition = (
       if (rafId) cancelAnimationFrame(rafId)
       if (timerId) clearTimeout(timerId)
       window.removeEventListener('resize', updatePos)
-      cleanupResizeObserver?.()
     }
   }, [isEnabled, anchorEl, headerHeight, dialogId])
 
