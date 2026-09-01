@@ -230,7 +230,8 @@ const CalendarController: React.FC<CalendarControllerProps> = ({
     setOpenEditModePopup,
     tempUsers,
     setTempEvent,
-    timezone
+    timezone,
+    onEditBookingLink: handleEditBookingLink
   })
 
   // Open the event preview modal when arriving from a /events/:uid deep link.

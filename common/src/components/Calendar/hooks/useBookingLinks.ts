@@ -53,7 +53,8 @@ function buildEventsForRule(
         attendee: [],
         class: 'PUBLIC',
         isBookingLink: true,
-        active: link.active
+        active: link.active,
+        bookingLink: link
       },
       priority: 0
     } as EventInput
