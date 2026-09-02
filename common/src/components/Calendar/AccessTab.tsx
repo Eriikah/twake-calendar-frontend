@@ -109,6 +109,12 @@ export function AccessTab({
         onChange={onUsersWithAccessChange}
         onInvitesLoaded={onInvitesLoaded}
       />
+      <Typography
+        variant="body2"
+        sx={{ color: 'text.secondary', mt: 1, lineHeight: 1.5 }}
+      >
+        {t('calendarPopover.access.privateEventsNotice')}
+      </Typography>
 
       {!!window.DAV_BASE_URL && !isResource && (
         <FieldWithLabel label={t('calendar.caldav_access')} isExpanded={false}>

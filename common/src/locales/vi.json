@@ -107,7 +107,8 @@
       "viewAllEvents": "Xem tất cả sự kiện",
       "editor": "Biên tập viên",
       "owner": "Chủ sở hữu",
-      "administrator": "Quản trị viên"
+      "administrator": "Quản trị viên",
+      "privateEventsNotice": "Chỉ chủ sở hữu của lịch mới có thể xem các sự kiện riêng tư của lịch đó."
     }
   },
   "colorPicker": {
