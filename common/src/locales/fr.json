@@ -596,6 +596,8 @@
       "NEEDS-ACTION": "En attente de réponse de l'organisateur"
     },
     "cancelSuccess": "Réservation annulée. Vous pouvez réserver un nouveau créneau si vous le souhaitez.",
+    "disabledSuccess": "Lien de réservation désactivé avec succès",
+    "enabledSuccess": "Lien de réservation activé avec succès",
     "createAppointmentTitle": "Créer un lien de prise de rendez-vous",
     "editAppointmentTitle": "Modifier le lien de prise de rendez-vous",
     "activeSchedule": "Lien de rendez-vous actif",

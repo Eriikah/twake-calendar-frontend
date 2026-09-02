@@ -1,8 +1,12 @@
 import { createBookingLink } from '@common/features/booking/BookingDao'
 import { setVisibleBookingLinks } from '@common/utils/storage/setVisibleBookingLinks'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useI18n } from 'twake-i18n'
+import { ResponsiveDialog } from '@common/components/Dialog'
+import { useScreenSizeDetection } from '@common/useScreenSizeDetection'
 import { AppointmentModalForm } from './components/AppointmentModalForm'
+import { HeaderRightAction } from './components/HeaderRightAction'
+import { ModalActions } from './components/ModalActions'
 import { useAppointmentForm } from './hooks/useAppointmentForm'
 import { getVisibleBookingLinks } from '@common/utils/storage/getVisibleBookingLinks'
 import {
@@ -22,6 +26,9 @@ export const CreateAppointmentModal: React.FC<CreateAppointmentModalProps> = ({
   onClose
 }) => {
   const { t } = useI18n()
+  const { isTooSmall: isMobile } = useScreenSizeDetection()
+  const buttonSize = isMobile ? 'small' : 'medium'
+  const [isExpanded, setIsExpanded] = useState(false)
   const {
     name,
     setName,
@@ -66,6 +73,12 @@ export const CreateAppointmentModal: React.FC<CreateAppointmentModalProps> = ({
       setCalendarid(userPersonalCalendars[0].id)
     }
   }, [userPersonalCalendars, calendarid, setCalendarid])
+
+  useEffect(() => {
+    if (!open) {
+      setIsExpanded(false)
+    }
+  }, [open])
 
   const handleSave = async (): Promise<void> => {
     if (!isFormValid) {
@@ -112,46 +125,67 @@ export const CreateAppointmentModal: React.FC<CreateAppointmentModalProps> = ({
   }
 
   return (
-    <AppointmentModalForm
+    <ResponsiveDialog
       open={open}
       onClose={onClose}
       title={t('booking.createAppointmentTitle')}
-      name={name}
-      setName={setName}
-      duration={duration}
-      setDuration={setDuration}
-      description={description}
-      setDescription={setDescription}
-      showDescription={showDescription}
-      setShowDescription={setShowDescription}
-      timezone={timezone}
-      setTimezone={setTimezone}
-      calendarid={calendarid}
-      setCalendarid={setCalendarid}
-      color={color}
-      setColor={setColor}
-      active={active}
-      onActiveChange={setActive}
-      userPersonalCalendars={userPersonalCalendars}
-      availabilityRules={availabilityRules}
-      setAvailabilityRules={setAvailabilityRules}
-      attendees={attendees}
-      setAttendees={setAttendees}
-      location={location}
-      setLocation={setLocation}
-      alarms={alarms}
-      setAlarms={setAlarms}
-      busy={busy}
-      setBusy={setBusy}
-      eventClass={eventClass}
-      setEventClass={setEventClass}
-      selectedResources={selectedResources}
-      setSelectedResources={setSelectedResources}
-      error={error}
-      loading={loading}
-      isFormValid={isFormValid}
-      onSave={() => void handleSave()}
-      saveButtonText={t('booking.save')}
-    />
+      headerRightAction={
+        <HeaderRightAction
+          onActiveChange={setActive}
+          active={active}
+          loading={loading}
+        />
+      }
+      isExpanded={isExpanded}
+      onExpandToggle={() => setIsExpanded(p => !p)}
+      expandText={t('tooltip.expand')}
+      actions={
+        <ModalActions
+          isExpanded={isExpanded}
+          buttonSize={buttonSize}
+          onExpandToggle={() => setIsExpanded(s => !s)}
+          onSave={() => void handleSave()}
+          onClose={onClose}
+          loading={loading}
+          isFormValid={isFormValid}
+          saveButtonText={t('booking.save')}
+        />
+      }
+    >
+      <AppointmentModalForm
+        open={open}
+        isExpanded={isExpanded}
+        name={name}
+        setName={setName}
+        duration={duration}
+        setDuration={setDuration}
+        description={description}
+        setDescription={setDescription}
+        showDescription={showDescription}
+        setShowDescription={setShowDescription}
+        timezone={timezone}
+        setTimezone={setTimezone}
+        calendarid={calendarid}
+        setCalendarid={setCalendarid}
+        color={color}
+        setColor={setColor}
+        userPersonalCalendars={userPersonalCalendars}
+        availabilityRules={availabilityRules}
+        setAvailabilityRules={setAvailabilityRules}
+        attendees={attendees}
+        setAttendees={setAttendees}
+        location={location}
+        setLocation={setLocation}
+        alarms={alarms}
+        setAlarms={setAlarms}
+        busy={busy}
+        setBusy={setBusy}
+        eventClass={eventClass}
+        setEventClass={setEventClass}
+        selectedResources={selectedResources}
+        setSelectedResources={setSelectedResources}
+        error={error}
+      />
+    </ResponsiveDialog>
   )
 }

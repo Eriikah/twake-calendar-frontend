@@ -595,6 +595,8 @@
       "NEEDS-ACTION": "Đang chờ phản hồi từ người tổ chức"
     },
     "cancelSuccess": "Đặt chỗ đã bị hủy. Bạn có thể đặt một khung giờ mới nếu muốn.",
+    "disabledSuccess": "Liên kết đặt lịch đã được tắt thành công",
+    "enabledSuccess": "Liên kết đặt lịch đã được bật thành công",
     "createAppointmentTitle": "Tạo lịch hẹn",
     "editAppointmentTitle": "Chỉnh sửa lịch hẹn",
     "activeSchedule": "Lịch hẹn đang hoạt động",
