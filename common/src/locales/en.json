@@ -596,6 +596,8 @@
       "NEEDS-ACTION": "Waiting for organizer response"
     },
     "cancelSuccess": "Reservation cancelled. You can book a new slot if you wish to.",
+    "disabledSuccess": "Booking link disabled successfully. People accessing the link will no longer be able to perform bookings with it.",
+    "enabledSuccess": "Booking link enabled successfully. People accessing the link will again be able to perform bookings with it.",
     "createAppointmentTitle": "Create appointment schedule",
     "editAppointmentTitle": "Edit appointment schedule",
     "activeSchedule": "Active appointment schedule",

@@ -1,9 +1,14 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useI18n } from 'twake-i18n'
 import { useAppDispatch } from '@common/app/hooks'
 import { updateBookingLink } from '@common/features/booking/BookingLinksSlice'
+import { SnackbarAlert } from '@common/components/Loading/SnackBarAlert'
+import { ResponsiveDialog } from '@common/components/Dialog'
+import { useScreenSizeDetection } from '@common/useScreenSizeDetection'
 import { useAppointmentForm } from './hooks/useAppointmentForm'
 import { AppointmentModalForm } from './components/AppointmentModalForm'
+import { HeaderRightAction } from './components/HeaderRightAction'
+import { ModalActions } from './components/ModalActions'
 import type { BookingLink } from '@common/features/booking/types/BookingTypes'
 import {
   formatResourceIds,
@@ -11,6 +16,7 @@ import {
   formatExtraAttendees,
   buildUpdateBookingPayload
 } from './utils'
+
 interface EditAppointmentModalProps {
   open: boolean
   onClose: () => void
@@ -24,6 +30,12 @@ export const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
 }) => {
   const { t } = useI18n()
   const dispatch = useAppDispatch()
+  const { isTooSmall: isMobile } = useScreenSizeDetection()
+  const buttonSize = isMobile ? 'small' : 'medium'
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [showDisableEnableSuccess, setShowDisableEnableSuccess] =
+    useState(false)
+  const [activeSuccessMessage, setActiveSuccessMessage] = useState('')
   const {
     name,
     setName,
@@ -63,6 +75,12 @@ export const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
     setSelectedResources
   } = useAppointmentForm({ bookingLink, isOpen: open })
 
+  useEffect(() => {
+    if (!open) {
+      setIsExpanded(false)
+    }
+  }, [open])
+
   const handleActiveToggle = async (newActive: boolean): Promise<void> => {
     const prevActive = active
     setActive(newActive)
@@ -77,6 +95,10 @@ export const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
           }
         })
       ).unwrap()
+      setActiveSuccessMessage(
+        newActive ? t('booking.enabledSuccess') : t('booking.disabledSuccess')
+      )
+      setShowDisableEnableSuccess(true)
     } catch (err) {
       console.error('Failed to update booking link active status:', err)
       setError(err instanceof Error ? err.message : String(err))
@@ -132,49 +154,77 @@ export const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
   }
 
   return (
-    <AppointmentModalForm
+    <ResponsiveDialog
       open={open}
       onClose={onClose}
       title={t('booking.editAppointmentTitle', {
         defaultValue: 'Edit appointment schedule'
       })}
-      name={name}
-      setName={setName}
-      duration={duration}
-      setDuration={setDuration}
-      description={description}
-      setDescription={setDescription}
-      showDescription={showDescription}
-      setShowDescription={setShowDescription}
-      timezone={timezone}
-      setTimezone={setTimezone}
-      calendarid={calendarid}
-      setCalendarid={setCalendarid}
-      color={color}
-      setColor={setColor}
-      active={active}
-      onActiveChange={newActive => void handleActiveToggle(newActive)}
-      userPersonalCalendars={userPersonalCalendars}
-      availabilityRules={availabilityRules}
-      setAvailabilityRules={setAvailabilityRules}
-      attendees={attendees}
-      setAttendees={setAttendees}
-      location={location}
-      setLocation={setLocation}
-      alarms={alarms}
-      setAlarms={setAlarms}
-      busy={busy}
-      setBusy={setBusy}
-      eventClass={eventClass}
-      setEventClass={setEventClass}
-      selectedResources={selectedResources}
-      setSelectedResources={setSelectedResources}
-      error={error}
-      loading={loading}
-      isFormValid={isFormValid}
-      onSave={() => void handleSave()}
-      saveButtonText={t('actions.save', { defaultValue: 'Save' })}
-      isEdit
-    />
+      headerRightAction={
+        <HeaderRightAction
+          onActiveChange={newActive => void handleActiveToggle(newActive)}
+          active={active}
+          loading={loading}
+        />
+      }
+      isExpanded={isExpanded}
+      onExpandToggle={() => setIsExpanded(p => !p)}
+      expandText={t('tooltip.expand')}
+      actions={
+        <ModalActions
+          isExpanded={isExpanded}
+          buttonSize={buttonSize}
+          onExpandToggle={() => setIsExpanded(s => !s)}
+          onSave={() => void handleSave()}
+          onClose={onClose}
+          loading={loading}
+          isFormValid={isFormValid}
+          saveButtonText={t('actions.save', { defaultValue: 'Save' })}
+          isEdit
+        />
+      }
+    >
+      <AppointmentModalForm
+        open={open}
+        isExpanded={isExpanded}
+        name={name}
+        setName={setName}
+        duration={duration}
+        setDuration={setDuration}
+        description={description}
+        setDescription={setDescription}
+        showDescription={showDescription}
+        setShowDescription={setShowDescription}
+        timezone={timezone}
+        setTimezone={setTimezone}
+        calendarid={calendarid}
+        setCalendarid={setCalendarid}
+        color={color}
+        setColor={setColor}
+        userPersonalCalendars={userPersonalCalendars}
+        availabilityRules={availabilityRules}
+        setAvailabilityRules={setAvailabilityRules}
+        attendees={attendees}
+        setAttendees={setAttendees}
+        location={location}
+        setLocation={setLocation}
+        alarms={alarms}
+        setAlarms={setAlarms}
+        busy={busy}
+        setBusy={setBusy}
+        eventClass={eventClass}
+        setEventClass={setEventClass}
+        selectedResources={selectedResources}
+        setSelectedResources={setSelectedResources}
+        error={error}
+      />
+
+      <SnackbarAlert
+        key={activeSuccessMessage}
+        open={showDisableEnableSuccess}
+        setOpen={setShowDisableEnableSuccess}
+        message={activeSuccessMessage}
+      />
+    </ResponsiveDialog>
   )
 }
