@@ -29,6 +29,31 @@ export class EventDescriptionBuilder {
     return this
   }
 
+  public linkify(): this {
+    if (!this.text) return this
+
+    const urlRegex = /(https?:\/\/[^\s<]+)/g
+    if (!urlRegex.test(this.text)) return this
+
+    let insideAnchor = false
+
+    this.text = this.text.replace(
+      /(<[^>]+>)|(https?:\/\/[^\s<"']+)/g,
+      (match: string, tag: string | undefined, url: string | undefined) => {
+        if (tag) {
+          if (/^<a[\s>]/i.test(tag)) insideAnchor = true
+          else if (/^<\/a>/i.test(tag)) insideAnchor = false
+          return tag
+        }
+        return url && !insideAnchor
+          ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
+          : match
+      }
+    )
+
+    return this
+  }
+
   public sanitize(): this {
     this.text = sanitizeHtml(this.text)
     return this

@@ -1,4 +1,17 @@
-import DOMPurify from 'dompurify'
+import dompurify from 'dompurify'
+
+const DOMPurify =
+  typeof window !== 'undefined' && typeof dompurify === 'function'
+    ? dompurify(window)
+    : dompurify
+
+if (typeof DOMPurify?.addHook === 'function') {
+  DOMPurify.addHook('afterSanitizeAttributes', (node: Element) => {
+    if (node.tagName === 'A' && node.hasAttribute('target')) {
+      node.setAttribute('rel', 'noopener noreferrer')
+    }
+  })
+}
 
 /**
  * Sanitizes HTML text by only allowing basic styling tags.
@@ -32,11 +45,13 @@ export function sanitizeHtml(htmlText: string): string {
     'a'
   ]
 
-  const sanitized = DOMPurify.sanitize(htmlText, {
-    ALLOWED_TAGS: allowedTags,
-    ALLOWED_ATTR: ['href'],
-    KEEP_CONTENT: true
-  })
+  if (typeof DOMPurify?.sanitize === 'function') {
+    return DOMPurify.sanitize(htmlText, {
+      ALLOWED_TAGS: allowedTags,
+      ALLOWED_ATTR: ['href', 'target', 'rel'],
+      KEEP_CONTENT: true
+    })
+  }
 
-  return sanitized
+  return htmlText
 }

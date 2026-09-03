@@ -42,5 +42,12 @@ describe('sanitizeUtils', () => {
         '<script>alert(1)</script><p>safe text</p><iframe src="dangerous"></iframe>'
       expect(sanitizeHtml(input)).toBe('<p>safe text</p>')
     })
+
+    it('should add rel="noopener noreferrer" to links with target', () => {
+      const input = '<a href="https://example.com" target="_blank">link</a>'
+      expect(sanitizeHtml(input)).toBe(
+        '<a href="https://example.com" target="_blank" rel="noopener noreferrer">link</a>'
+      )
+    })
   })
 })
