@@ -81,22 +81,25 @@ export function useBookingLinksEvents(
         : 6
     const effectiveRangeStart = moment(rangeStartTime).startOf('week')
 
-    return allBookingLinks
-      .filter(link => visibleBookingLinks?.includes(link.publicId))
-      .flatMap(link =>
-        (link.availabilityRules ?? [])
-          .filter(rule => rule.type === 'weekly')
-          .flatMap(rule =>
-            buildEventsForRule(
-              link,
-              rule as AvailabilityRule & {
-                dayOfWeek: string
-                timeZone?: string
-              },
-              totalWeeks,
-              effectiveRangeStart
-            )
-          )
+    const filteredLinks = allBookingLinks.filter(link =>
+      visibleBookingLinks?.includes(link.publicId)
+    )
+
+    return filteredLinks.flatMap(link => {
+      const weeklyRules = (link.availabilityRules ?? []).filter(
+        rule => rule.type === 'weekly'
       )
+      return weeklyRules.flatMap(rule =>
+        buildEventsForRule(
+          link,
+          rule as AvailabilityRule & {
+            dayOfWeek: string
+            timeZone?: string
+          },
+          totalWeeks,
+          effectiveRangeStart
+        )
+      )
+    })
   }, [allBookingLinks, visibleBookingLinks, rangeStartTime, rangeEndTime])
 }

@@ -2,7 +2,7 @@ import { EventErrorHandler } from '@common/components/Error/EventErrorHandler'
 import { Calendar } from '@common/types/CalendarTypes'
 import { userAttendee } from '@common/features/User/models/attendee'
 import { EventContentArg } from '@fullcalendar/core'
-import { Theme, getContrastRatio } from '@linagora/twake-mui'
+import { Theme, getContrastRatio, alpha } from '@linagora/twake-mui'
 import { getAccessiblePair } from '@common/utils/getAccessiblePair'
 import CancelIcon from '@mui/icons-material/Cancel'
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined'
@@ -204,7 +204,7 @@ export function getCardStyle(
     case 'BOOKING':
       return {
         ...baseStyle,
-        backgroundColor: bestColor + '1A',
+        backgroundColor: alpha(bestColor, 0.1),
         border: '1px solid white',
         padding: '0px',
         borderRadius: '4px'

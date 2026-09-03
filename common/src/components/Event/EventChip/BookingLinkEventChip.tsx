@@ -61,6 +61,15 @@ export const BaseBookingLinkChip: React.FC<BaseBookingLinkChipProps> = ({
 
   const titleStyle = getTitleStyle(bestColor)
 
+  const statusIcon =
+    data.active === false ? (
+      <WebAssetOffOutlinedIcon
+        sx={{ color: titleStyle.color, fontSize: '12px' }}
+      />
+    ) : (
+      <EventIcon sx={{ color: titleStyle.color, fontSize: '12px' }} />
+    )
+
   return (
     <Card
       variant="outlined"
@@ -83,13 +92,7 @@ export const BaseBookingLinkChip: React.FC<BaseBookingLinkChipProps> = ({
         }}
         title={
           showCompact ? (
-            data.active === false ? (
-              <WebAssetOffOutlinedIcon
-                sx={{ color: titleStyle.color, fontSize: '12px' }}
-              />
-            ) : (
-              <EventIcon sx={{ color: titleStyle.color, fontSize: '12px' }} />
-            )
+            statusIcon
           ) : (
             <Box
               sx={{
@@ -107,15 +110,7 @@ export const BaseBookingLinkChip: React.FC<BaseBookingLinkChipProps> = ({
                   gap: 1
                 }}
               >
-                {data.active === false ? (
-                  <WebAssetOffOutlinedIcon
-                    sx={{ color: titleStyle.color, fontSize: '12px' }}
-                  />
-                ) : (
-                  <EventIcon
-                    sx={{ color: titleStyle.color, fontSize: '12px' }}
-                  />
-                )}
+                {statusIcon}
                 {isMonthView && (
                   <Typography variant="body2" noWrap style={titleStyle}>
                     {data.name}
@@ -142,8 +137,7 @@ export const BookingLinkEventChip: React.FC<EventChipProps> = ({ arg }) => {
     (colors as { light: string; dark: string } | undefined)?.dark ||
     (colors as { light: string; dark: string } | undefined)?.light ||
     event.backgroundColor ||
-    '#1976d2'
-
+    defaultColors[0].light
   return (
     <BaseBookingLinkChip
       data={{
