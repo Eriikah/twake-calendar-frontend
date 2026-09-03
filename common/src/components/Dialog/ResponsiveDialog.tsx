@@ -21,7 +21,7 @@ import { useIsInIframe } from '@common/contexts/EmbeddingContext'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CloseIcon from '@mui/icons-material/Close'
 import OpenInFullIcon from '@mui/icons-material/OpenInFull'
-import React, { ReactNode, useContext, useId, useMemo } from 'react'
+import React, { ReactNode, useContext, useId, useMemo, useState } from 'react'
 import useDynamicPosition from './useDynamicPosition'
 
 /**
@@ -233,8 +233,34 @@ function ResponsiveDialog({
     dialogId: titleId
   })
 
+  // Once we have a position, freeze it for the lifetime of this open session.
+  // This prevents re-renders triggered by chip movement (e.g. all-day toggle)
+  // from updating left/top in the sx prop and jumping the dialog.
+  const [lockedPosition, setLockedPosition] = useState<{
+    top?: number
+    bottom?: number
+    left: number
+  } | null>(null)
+
+  React.useEffect(() => {
+    if (!open) {
+      setLockedPosition(null)
+    }
+  }, [open])
+
+  React.useEffect(() => {
+    if (open && position && !lockedPosition) {
+      setLockedPosition(position)
+    }
+  }, [open, position, lockedPosition])
+
+  // No ResizeObserver clamping needed here.  useDynamicPosition now returns
+  // `bottom` instead of `top` when the anchor sits in the bottom half of the
+  // viewport.  CSS `bottom` pinning makes the dialog grow upward naturally as
+  // its height increases, without any JS resize tracking.
+
   const isDynamic = !isExpanded && !isMobile && Boolean(dynamicPositioning)
-  const isPendingPosition = isDynamic && !position
+  const isPendingPosition = isDynamic && !lockedPosition
   const hideBackdrop = isExpanded || isPendingPosition
 
   const baseSx: SxProps<Theme> | undefined = isMobile
@@ -245,7 +271,7 @@ function ResponsiveDialog({
           transition: hideBackdrop ? 'none !important' : undefined,
           pointerEvents: hideBackdrop ? 'none' : undefined
         },
-        ...(position && !isExpanded
+        ...(lockedPosition && !isExpanded
           ? {
               '& .MuiDialog-container': {
                 display: 'flex',
@@ -255,7 +281,7 @@ function ResponsiveDialog({
             }
           : {}),
         '& .MuiDialog-paper': {
-          overflowY: 'hidden',
+          overflowY: 'visible',
           maxWidth: isExpanded ? '100%' : normalMaxWidth,
           width: '100%',
           height: isExpanded
@@ -264,12 +290,22 @@ function ResponsiveDialog({
           maxHeight: isExpanded && isInIframe ? '100%' : undefined,
           margin: isExpanded
             ? `${isInIframe ? 0 : headerHeight} 0 0 0`
-            : position
+            : lockedPosition
               ? '0 !important'
               : '32px',
-          position: position && !isExpanded ? 'fixed' : undefined,
-          left: position && !isExpanded ? `${position.left}px` : undefined,
-          top: position && !isExpanded ? `${position.top}px` : undefined,
+          position: lockedPosition && !isExpanded ? 'fixed' : undefined,
+          left:
+            lockedPosition && !isExpanded
+              ? `${lockedPosition.left}px`
+              : undefined,
+          top:
+            lockedPosition && !isExpanded && lockedPosition.top !== undefined
+              ? `${lockedPosition.top}px`
+              : undefined,
+          bottom:
+            lockedPosition && !isExpanded && lockedPosition.bottom !== undefined
+              ? `${lockedPosition.bottom}px`
+              : undefined,
           visibility: isPendingPosition ? 'hidden' : undefined,
           opacity: isPendingPosition ? 0 : undefined,
           boxShadow: isExpanded ? 'none !important' : undefined,
