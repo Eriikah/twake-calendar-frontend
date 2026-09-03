@@ -97,11 +97,11 @@ export function AttendeeActions({
                 borderColor: 'divider',
                 borderRadius: '50%',
                 padding: 1,
-                color: alpha(theme.palette.grey[900], 0.9)
+                color: alpha(theme.palette.grey[900], 0.9),
+                '&.Mui-disabled': { color: alpha(theme.palette.grey[900], 0.9) }
               }}
               size="small"
               disabled={!isInternalUser || loading}
-              loading={loading}
             >
               <Icon icon={Discuss} size={20} />
             </IconButton>
