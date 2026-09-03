@@ -2,7 +2,8 @@ import { EventErrorHandler } from '@common/components/Error/EventErrorHandler'
 import { Calendar } from '@common/types/CalendarTypes'
 import { userAttendee } from '@common/features/User/models/attendee'
 import { EventContentArg } from '@fullcalendar/core'
-import { getContrastRatio } from '@linagora/twake-mui'
+import { Theme, getContrastRatio } from '@linagora/twake-mui'
+import { getAccessiblePair } from '@common/utils/getAccessiblePair'
 import CancelIcon from '@mui/icons-material/Cancel'
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
@@ -14,8 +15,8 @@ const COMPACT_WIDTH_THRESHOLD = 100
 
 export interface EventChipProps {
   arg: EventContentArg
-  calendars: Record<string, Calendar>
-  tempcalendars: Record<string, Calendar>
+  calendars?: Record<string, Calendar>
+  tempcalendars?: Record<string, Calendar>
   errorHandler: EventErrorHandler
 }
 export interface IconDisplayConfig {
@@ -54,10 +55,49 @@ export function getOwnerAttendee(
   return attendees.find(att => ownerEmails.has(att.cal_address.toLowerCase()))
 }
 
+export function getEffectiveColor(
+  theme: Theme,
+  calendar?: Calendar,
+  eventColors?: Record<string, string> | string,
+  bookingLinkColor?: string
+): { light: string; dark: string } {
+  if (bookingLinkColor) {
+    return {
+      light: bookingLinkColor,
+      dark: getAccessiblePair(bookingLinkColor, theme)
+    }
+  }
+
+  if (eventColors) {
+    if (typeof eventColors === 'string') {
+      return { light: eventColors, dark: getAccessiblePair(eventColors, theme) }
+    }
+    if (eventColors.light || eventColors.dark) {
+      const light = eventColors.light || eventColors.dark || '#fff'
+      return {
+        light,
+        dark: eventColors.dark || getAccessiblePair(light, theme)
+      }
+    }
+    // If it's a record with other keys (like booking color), take the first string value
+    const values = Object.values(eventColors).filter(v => typeof v === 'string')
+    if (values.length > 0) {
+      return { light: values[0], dark: getAccessiblePair(values[0], theme) }
+    }
+  }
+
+  return (
+    (calendar?.color as { light: string; dark: string }) ?? {
+      light: '#fff',
+      dark: '#000'
+    }
+  )
+}
+
 export function getTitleStyle(
   bestColor: string,
   partstat?: string,
-  calendar?: Calendar,
+  effectiveColor?: { light: string; dark: string },
   isPrivate?: boolean
 ): React.CSSProperties {
   const baseStyle: React.CSSProperties = {
@@ -79,12 +119,12 @@ export function getTitleStyle(
     case 'TENTATIVE':
       return baseStyle
     case 'ACCEPTED':
-      return { ...baseStyle, color: calendar?.color?.dark }
+      return { ...baseStyle, color: effectiveColor?.dark }
     case 'NEEDS-ACTION':
       return baseStyle
     default:
       if (isPrivate) {
-        return { ...baseStyle, color: calendar?.color?.dark }
+        return { ...baseStyle, color: effectiveColor?.dark }
       }
       return baseStyle
   }
@@ -133,7 +173,7 @@ export function getCardStyle(
   bestColor: string,
   eventLength: number,
   partstat?: string,
-  calendar?: Calendar,
+  effectiveColor?: { light: string; dark: string },
   isPrivate?: boolean
 ): React.CSSProperties {
   const baseStyle: React.CSSProperties = getCardVariantStyle(
@@ -157,16 +197,16 @@ export function getCardStyle(
     case 'ACCEPTED':
       return {
         ...baseStyle,
-        backgroundColor: calendar?.color?.light,
-        color: calendar?.color?.dark,
+        backgroundColor: effectiveColor?.light,
+        color: effectiveColor?.dark,
         border: '1px solid white'
       }
     default:
       if (isPrivate) {
         return {
           ...baseStyle,
-          backgroundColor: calendar?.color?.light,
-          color: calendar?.color?.dark,
+          backgroundColor: effectiveColor?.light,
+          color: effectiveColor?.dark,
           border: '1px solid white'
         }
       }

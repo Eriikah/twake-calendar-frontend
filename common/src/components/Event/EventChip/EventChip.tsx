@@ -5,15 +5,18 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Typography
+  Typography,
+  useTheme
 } from '@linagora/twake-mui'
-import { useRef } from 'react'
+import React, { useRef } from 'react'
+import { useAppSelector } from '@common/app/hooks'
 import { stringAvatar } from '@common/components/Event/utils/eventUtils'
 import { ErrorEventChip } from './ErrorEventChip'
 import {
   DisplayedIcons,
   EventChipProps,
   getBestColor,
+  getEffectiveColor,
   getCardStyle,
   getEventDuration,
   getEventTimes,
@@ -33,18 +36,29 @@ export const EVENT_DURATION = {
   LONG: 60
 } as const
 
-export const EventChip: React.FC<EventChipProps> = ({
-  arg,
-  calendars,
-  tempcalendars,
-  errorHandler
-}) => {
+export const EventChip: React.FC<EventChipProps> = ({ arg, errorHandler }) => {
   const cardRef = useRef<HTMLDivElement>(null)
   const showCompact = useCompactMode(cardRef)
+  const theme = useTheme()
+
+  const calendars = useAppSelector(state => state.calendars.list)
+  const tempcalendars = useAppSelector(state => state.calendars.templist)
 
   const event = arg.event
   const props = event._def.extendedProps
-  const { calId, temp, attendee: attendees = [], class: classification } = props
+  const {
+    calId,
+    temp,
+    attendee: attendees = [],
+    class: classification,
+    colors,
+    bookingLinkPublicId
+  } = props
+
+  const bookingLinks = useAppSelector(state => state.bookingLinks.list)
+  const bookingLinkColor = bookingLinks?.find(
+    bl => bl.publicId === bookingLinkPublicId
+  )?.color
 
   // ponytail: strip the invisible video-conference footer (visio join link +
   // "do not edit" block) so it doesn't leak into the grid preview.
@@ -78,12 +92,13 @@ export const EventChip: React.FC<EventChipProps> = ({
     const displayPartstat = ownerAttendee?.partstat || 'ACCEPTED'
 
     // Color and contrast logic
-    const bestColor = getBestColor(
-      (calendar.color as { light: string; dark: string }) ?? {
-        light: '#fff',
-        dark: '#000'
-      }
+    const effectiveColor = getEffectiveColor(
+      theme,
+      calendar,
+      colors as Record<string, string> | string | undefined,
+      bookingLinkColor
     )
+    const bestColor = getBestColor(effectiveColor)
 
     // Icon display configuration
     const IconDisplayed: IconDisplayConfig = {
@@ -107,7 +122,7 @@ export const EventChip: React.FC<EventChipProps> = ({
     const titleStyle = getTitleStyle(
       bestColor,
       displayPartstat,
-      calendar,
+      effectiveColor,
       isPrivate
     )
 
@@ -115,7 +130,7 @@ export const EventChip: React.FC<EventChipProps> = ({
       bestColor,
       eventLength,
       displayPartstat,
-      calendar,
+      effectiveColor,
       isPrivate
     )
 

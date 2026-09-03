@@ -5,7 +5,8 @@ import SquareRoundedIcon from '@mui/icons-material/SquareRounded'
 import { Calendar } from '@common/types/CalendarTypes'
 import { CalendarEvent } from '@common/types/EventsTypes'
 import { useI18n } from 'twake-i18n'
-import { defaultColors } from '@common/utils/defaultColors'
+import { useAppSelector } from '@common/app/hooks'
+import { getEffectiveColor } from './EventChipUtils'
 import {
   RenderOrganizer,
   RenderVideoJoin,
@@ -35,24 +36,31 @@ export interface DesktopEventChipScheduleProps extends EventChipScheduleProps {
 
 export const DesktopEventChipSchedule: React.FC<
   DesktopEventChipScheduleProps
-> = ({
-  arg,
-  calendars,
-  tempcalendars,
-  timezone,
-  dayData,
-  upcommingEventId
-}) => {
+> = ({ arg, timezone, dayData, upcommingEventId }) => {
   const { t } = useI18n()
   const theme = useTheme()
+  const calendars = useAppSelector(state => state.calendars.list)
+  const tempcalendars = useAppSelector(state => state.calendars.templist)
 
   const ext = arg.event.extendedProps as CalendarEvent
-  const { temp } = arg.event._def.extendedProps
+  const { temp, colors, bookingLinkPublicId } = arg.event._def.extendedProps
   const isRecurrent = !!ext.repetition
   const videoUrl = ext.x_openpass_videoconference
   const calendarsSource = temp ? tempcalendars : calendars
   const calendar = calendarsSource[ext.calId]
-  const calendarColor = calendar?.color?.light ?? defaultColors[0].light
+
+  const bookingLinks = useAppSelector(state => state.bookingLinks.list)
+  const bookingLinkColor = bookingLinks?.find(
+    bl => bl.publicId === bookingLinkPublicId
+  )?.color
+
+  const effectiveColor = getEffectiveColor(
+    theme,
+    calendar,
+    colors as Record<string, string> | string | undefined,
+    bookingLinkColor
+  )
+  const calendarColor = effectiveColor.light
 
   return (
     <Box
