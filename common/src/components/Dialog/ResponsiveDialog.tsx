@@ -391,7 +391,7 @@ function ResponsiveDialog({
           sx={
             [
               titleSx,
-              isDraggable ? { cursor: 'move' } : {},
+              isDraggable ? { cursor: 'move', userSelect: 'none' } : {},
               isMobile ? { px: 2 } : {}
             ] as SxProps<Theme>
           }
