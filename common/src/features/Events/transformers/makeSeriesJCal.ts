@@ -5,7 +5,13 @@ import {
   VObjectProperty
 } from '@common/features/Calendars/types/CalendarData'
 import { CalendarEvent } from '@common/types/EventsTypes'
-import { makeTimezone, makeVevent } from '@common/features/Events/utils'
+import {
+  makeTimezone,
+  makeVevent,
+  findFieldValue,
+  getFieldValues,
+  parseInstant
+} from '@common/features/Events/utils'
 import { VcalendarProperties } from '@common/features/Calendars/types/VcalendarProperties'
 
 const METADATA_FIELDS = [
@@ -18,20 +24,6 @@ const METADATA_FIELDS = [
   'organizer',
   'x-openpaas-videoconference'
 ] as const
-
-// Helper function to get field values from props
-const getFieldValues = (
-  props: VObjectProperty[],
-  fieldName: string
-): VObjectProperty[] =>
-  props.filter(([k]) => k.toLowerCase() === fieldName.toLowerCase())
-
-// Helper function to find a single field value from props
-const findFieldValue = (
-  props: VObjectProperty[],
-  fieldName: string
-): VObjectProperty | undefined =>
-  props.find(([k]) => k.toLowerCase() === fieldName.toLowerCase())
 
 // Helper function to serialize for comparison
 const serialize = (values: VObjectProperty[] | VCalComponent[]): string =>
@@ -147,11 +139,7 @@ const isSourceOverride = (
   const rid = findFieldValue(vevent[1] as VObjectProperty[], 'recurrence-id')
   if (!rid) return false
 
-  const ridValue = rid[3] as string
-  const tzid = (rid[1] as Record<string, string>)?.tzid || 'UTC'
-  const ridMs = ridValue.endsWith('Z')
-    ? moment.utc(ridValue).valueOf()
-    : moment.tz(ridValue, tzid).valueOf()
+  const ridMs = parseInstant(rid, 'UTC')
   const srcTzid = sourceTimezone || 'UTC'
   const srcMs = sourceRecurrenceId.endsWith('Z')
     ? moment.utc(sourceRecurrenceId).valueOf()
