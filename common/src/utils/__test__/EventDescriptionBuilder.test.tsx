@@ -3,7 +3,8 @@
  */
 import {
   EventDescriptionBuilder,
-  EVENT_FOOTER_SEPARATOR
+  EVENT_FOOTER_SEPARATOR,
+  SEPARATORS_NEED_HANDLE
 } from '../EventDescriptionBuilder'
 import { Attachment } from '@common/types/Attachment'
 
@@ -28,6 +29,13 @@ describe('EventDescriptionBuilder', () => {
   describe('removeFooter', () => {
     it('should remove footer block', () => {
       const text = `Meeting notes\n\n${EVENT_FOOTER_SEPARATOR}\nJoin Visio: https://visio.link/123\n${EVENT_FOOTER_SEPARATOR}`
+      const builder = new EventDescriptionBuilder(text).removeFooter()
+      expect(builder.buildHtml()).toBe('Meeting notes')
+    })
+
+    it('should remove legacy footer block', () => {
+      const legacySeparator = SEPARATORS_NEED_HANDLE[1]
+      const text = `Meeting notes\n\n${legacySeparator}\nJoin Visio: https://visio.link/123\n${legacySeparator}`
       const builder = new EventDescriptionBuilder(text).removeFooter()
       expect(builder.buildHtml()).toBe('Meeting notes')
     })
