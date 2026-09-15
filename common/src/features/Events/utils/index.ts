@@ -9,3 +9,9 @@ export { makeVevent } from './makeVevent'
 export { normalizeRepetition } from './normalizeRepetition'
 export { normalizeTimezone } from './normalizeTimezone'
 export { parseCalendarEvent } from './parseCalendarEvent'
+export {
+  findFieldValue,
+  getFieldValues,
+  parseMoment,
+  parseInstant
+} from './jCalUtils'
