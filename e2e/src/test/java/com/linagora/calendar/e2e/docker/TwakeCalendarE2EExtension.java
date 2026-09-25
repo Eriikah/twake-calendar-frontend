@@ -157,6 +157,7 @@ public class TwakeCalendarE2EExtension implements BeforeEachCallback, AfterTestE
         state.context = browser.newContext(contextOptions());
         E2EClock.install(state.context);
         LiveProbe.install(state.context);
+        BearerTokens.track(state.context);
         state.context.setDefaultTimeout(DEFAULT_TIMEOUT_MS);
         // several features hand something to the clipboard and confirm it on screen; without the
         // permission the write silently rejects and the confirmation never comes

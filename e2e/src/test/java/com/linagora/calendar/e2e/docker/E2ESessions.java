@@ -37,6 +37,7 @@ public class E2ESessions {
         E2EClock.install(context);
         LiveProbe.install(context);
         contexts.add(context);
+        BearerTokens.track(context);
         Page page = context.newPage();
         LoginPage.loginAs(page, user);
         return new CalendarPage(page).waitUntilLoaded();
@@ -49,6 +50,7 @@ public class E2ESessions {
         E2EClock.install(context);
         LiveProbe.install(context);
         contexts.add(context);
+        BearerTokens.track(context);
         Page page = context.newPage();
         LoginPage.loginAs(page, user);
         return page;
@@ -67,6 +69,7 @@ public class E2ESessions {
         E2EClock.install(context);
         LiveProbe.install(context);
         contexts.add(context);
+        BearerTokens.track(context);
         Page page = context.newPage();
         LoginPage.loginAs(page, user);
         return new CalendarPage(page).waitUntilLoaded();
@@ -83,6 +86,7 @@ public class E2ESessions {
         E2EClock.install(context);
         LiveProbe.install(context);
         contexts.add(context);
+        BearerTokens.track(context);
         return context.newPage();
     }
 
