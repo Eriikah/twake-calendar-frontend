@@ -46,8 +46,7 @@ class LiveUpdatesTest extends TwakeCalendarE2ETest {
         probe.putEvent(user, uid, Ical.event(uid, before, E2EClock.today(), 9));
         // the subject here is the live *rename*: get the starting state on screen the reliable
         // way, so a slow first delivery cannot be mistaken for a broken update
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         awaitAttached(calendar.eventCard(before));
 
         String after = unique("After");
@@ -68,8 +67,7 @@ class LiveUpdatesTest extends TwakeCalendarE2ETest {
         LocalDate from = calendar.firstVisibleDate();
         LocalDate to = from.plusDays(1);
         probe.putEvent(user, uid, Ical.event(uid, title, from, 9));
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         awaitAttached(calendar.eventCard(title));
 
         probe.putEvent(user, uid, Ical.event(uid, title, to, 9));
@@ -104,8 +102,7 @@ class LiveUpdatesTest extends TwakeCalendarE2ETest {
         calendar.createEvent().title(title).addGuest(guest.email()).save();
         awaitAttached(calendar.eventCard(title));
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         awaitAttached(guestCalendar.eventCard(title));
         guestCalendar.openEvent(title).answer("Yes");
 
@@ -157,8 +154,7 @@ class LiveUpdatesTest extends TwakeCalendarE2ETest {
         String title = unique("Missed");
         // the socket never learns about it: the page is not listening while it is being blocked
         page.route("**/ws**", route -> route.abort());
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
 
         String uid = UUID.randomUUID().toString();
         probe.putEvent(user, uid, Ical.event(uid, title, E2EClock.today(), 9));

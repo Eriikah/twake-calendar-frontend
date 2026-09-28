@@ -96,8 +96,7 @@ class VideoConferenceTest extends TwakeCalendarE2ETest {
         awaitAttached(calendar.eventCard(title));
 
         assertThat(probe.singleEvent(user)).contains(MEETING_HOST);
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         assertThat(calendar.openEvent(title).text())
             .as("and comes back after a reload")
             .containsIgnoringCase("join");
@@ -180,8 +179,7 @@ class VideoConferenceTest extends TwakeCalendarE2ETest {
         awaitAttached(calendar.eventCard(title));
         String organizerLink = meetingLink(probe.singleEvent(organizer));
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         PlaywrightAssertions.assertThat(guestCalendar.eventCard(title).first())
             .isAttached(new LocatorAssertions.IsAttachedOptions().setTimeout(60_000));
 

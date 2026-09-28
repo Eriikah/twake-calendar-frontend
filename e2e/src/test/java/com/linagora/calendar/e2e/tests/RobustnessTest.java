@@ -114,8 +114,7 @@ class RobustnessTest extends TwakeCalendarE2ETest {
             }
             route.resume();
         });
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
 
         Awaitility.await().atMost(Duration.ofSeconds(60)).untilAsserted(() ->
             assertThat(calendar.eventTitles())
@@ -140,8 +139,7 @@ class RobustnessTest extends TwakeCalendarE2ETest {
         }
 
         long startedAt = System.currentTimeMillis();
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         Awaitility.await().atMost(Duration.ofSeconds(60)).untilAsserted(() ->
             assertThat(calendar.eventCards().count()).isGreaterThan(50));
         long elapsed = System.currentTimeMillis() - startedAt;
@@ -163,8 +161,7 @@ class RobustnessTest extends TwakeCalendarE2ETest {
                 E2EClock.today(), 8 + (index % 8)));
         }
 
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         calendar.switchView("Month");
         page.waitForTimeout(5000);
 
@@ -206,8 +203,7 @@ class RobustnessTest extends TwakeCalendarE2ETest {
             assertThat(probe.eventSummaries(user))
                 .as("what goes in has to come back, character for character")
                 .containsExactly(title));
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         calendar.eventCard(title).first().waitFor();
         assertThat(calendar.eventTitles()).anyMatch(shown -> shown.contains("✅"));
     }
@@ -289,8 +285,7 @@ class RobustnessTest extends TwakeCalendarE2ETest {
 
     private void reload(CalendarPage calendar, String title) {
         calendar.eventCard(title).first().waitFor();
-        calendar.page().reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         calendar.eventCard(title).first().waitFor();
     }
 

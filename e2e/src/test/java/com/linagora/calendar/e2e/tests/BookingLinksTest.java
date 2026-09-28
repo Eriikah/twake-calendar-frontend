@@ -186,8 +186,7 @@ class BookingLinksTest extends TwakeCalendarE2ETest {
 
         assertThat(calendar.bookingLinksJson())
             .contains("\"dayOfWeek\":\"WED\",\"start\":\"11:00\",\"end\":\"15:00\"");
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         assertThat(calendar.editBookingLink(name).startTimeOn("WED")).isEqualTo("11:00");
     }
 

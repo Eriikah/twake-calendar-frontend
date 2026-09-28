@@ -75,8 +75,7 @@ class PastStabilityTest extends TwakeCalendarE2ETest {
         String title = "Anchor " + UUID.randomUUID().toString().substring(0, 8);
         String uid = UUID.randomUUID().toString();
         probe.putEvent(user, uid, Ical.event(uid, title, E2EClock.today(), 9));
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         awaitAttached(calendar.eventCard(title));
 
         for (int i = 0; i < 12; i++) {

@@ -24,8 +24,7 @@ class SettingsTest extends TwakeCalendarE2ETest {
         PlaywrightAssertions.assertThat(page.getByLabel("Retour au calendrier")).isVisible();
         // ...and reloading proves the preference reached the backend, not just the redux store.
         page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
 
         PlaywrightAssertions.assertThat(page.getByLabel("Aujourd'hui", new Page.GetByLabelOptions().setExact(true)))
             .isVisible(new LocatorAssertions.IsVisibleOptions().setTimeout(20_000));

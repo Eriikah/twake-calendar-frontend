@@ -58,8 +58,7 @@ class RecurrenceEditionTest extends TwakeCalendarE2ETest {
         form.repeat().frequency(RecurrenceSection.DAILY).endsAfter(occurrences);
         form.save();
         awaitAttached(calendar.eventCard(title));
-        calendar.page().reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         awaitAttached(calendar.eventCard(title));
         return title;
     }
@@ -296,8 +295,7 @@ class RecurrenceEditionTest extends TwakeCalendarE2ETest {
         creation.repeat().frequency(RecurrenceSection.DAILY).endsOn(weekStart.plusDays(1));
         creation.save();
         awaitAttached(calendar.eventCard(title));
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         int before = calendar.eventCard(title).count();
 
         var form = calendar.openEvent(title).edit(ALL_EVENTS).expand();
@@ -407,8 +405,7 @@ class RecurrenceEditionTest extends TwakeCalendarE2ETest {
 
         Awaitility.await().atMost(Duration.ofSeconds(30)).untilAsserted(() ->
             assertThat(Ics.master(probe.singleEvent(user))).contains(guest.email()));
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         PlaywrightAssertions.assertThat(guestCalendar.eventCard(title))
             .hasCount(4, new LocatorAssertions.HasCountOptions().setTimeout(45_000));
     }
@@ -422,8 +419,7 @@ class RecurrenceEditionTest extends TwakeCalendarE2ETest {
         CalendarPage guestCalendar = sessions.openFor(guest);
         String title = dailySeries(calendar, 4, guest.email());
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         awaitAttached(guestCalendar.eventCard(title));
         guestCalendar.openEvent(title).answer("Yes");
 
@@ -440,8 +436,7 @@ class RecurrenceEditionTest extends TwakeCalendarE2ETest {
         CalendarPage guestCalendar = sessions.openFor(guest);
         String title = dailySeries(calendar, 4, guest.email());
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         awaitAttached(guestCalendar.eventCard(title));
         guestCalendar.openEvent(title).answer("Yes", ALL_EVENTS);
 
@@ -497,8 +492,7 @@ class RecurrenceEditionTest extends TwakeCalendarE2ETest {
         CalendarPage guestCalendar = sessions.openFor(guest);
         String title = dailySeries(calendar, 4, guest.email());
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         awaitAttached(guestCalendar.eventCard(title));
         guestCalendar.openEvent(title).answer("Yes", THIS_EVENT);
 

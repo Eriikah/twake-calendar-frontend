@@ -163,8 +163,7 @@ class SharingTest extends TwakeCalendarE2ETest {
         Awaitility.await().atMost(Duration.ofMillis(PROPAGATION_MS))
             .pollInterval(Duration.ofSeconds(2))
             .untilAsserted(() -> {
-                matePage.reload();
-                new CalendarPage(matePage).waitUntilLoaded();
+                new CalendarPage(matePage).reload();
                 matePage.waitForTimeout(2000);
                 assertThat(sharedCalendarRow(matePage, user).count())
                     .as("a right taken back has to disappear from the other side too")
@@ -191,8 +190,7 @@ class SharingTest extends TwakeCalendarE2ETest {
         Awaitility.await().atMost(Duration.ofMillis(PROPAGATION_MS))
             .pollInterval(Duration.ofSeconds(2))
             .untilAsserted(() -> {
-                matePage.reload();
-                mateCalendar.waitUntilLoaded();
+                mateCalendar.reload();
                 matePage.waitForTimeout(2000);
                 assertThat(mateCalendar.eventCard(title).count())
                     .as("the events of a calendar taken back go with it, not only its sidebar row")

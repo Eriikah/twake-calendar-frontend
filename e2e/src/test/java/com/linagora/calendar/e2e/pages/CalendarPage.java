@@ -7,9 +7,11 @@ import com.linagora.calendar.e2e.docker.BearerTokens;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Mouse;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Request;
 import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.options.BoundingBox;
 import com.microsoft.playwright.options.WaitForSelectorState;
+import com.microsoft.playwright.options.WaitUntilState;
 
 /**
  * The main authenticated screen: menubar, sidebar and the FullCalendar grid.
@@ -37,6 +39,31 @@ public class CalendarPage {
         page.locator(".fc-view-harness").waitFor(
             new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
         return this;
+    }
+
+    /**
+     * Reloads the page and returns once the application holds its session again.
+     *
+     * <p>The application keeps its tokens in the memory of the page: a reload starts it without
+     * them. It then draws the calendar for an instant -- its requests answered by 401 -- before
+     * signing back in through the SSO, which lands on {@code /callback}. That round trip tears
+     * down whatever showed before it: a test acting on it races a navigation ("Execution context
+     * was destroyed"). So wait for the callback, then for the calendar it leads to.
+     */
+    public CalendarPage reload() {
+        signInAgain(page, () -> page.reload(new Page.ReloadOptions()
+            .setWaitUntil(WaitUntilState.COMMIT)));
+        return waitUntilLoaded();
+    }
+
+    /** Runs a navigation that starts the application over, until it went through the SSO. */
+    static void signInAgain(Page page, Runnable navigation) {
+        page.waitForRequest(CalendarPage::isOidcCallback, navigation);
+    }
+
+    private static boolean isOidcCallback(Request request) {
+        return request.isNavigationRequest()
+            && java.net.URI.create(request.url()).getPath().equals("/callback");
     }
 
     // ------------------------------------------------------------------ events

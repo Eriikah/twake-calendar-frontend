@@ -68,8 +68,7 @@ class BackendSyncTest extends TwakeCalendarE2ETest {
         String uid = UUID.randomUUID().toString();
         probe.putEvent(user, uid, Ical.event(uid, title, E2EClock.today().plusWeeks(1), 9));
         // Reload so that the SPA starts from a clean slate and really has to fetch the range
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
 
         assertThat(calendar.eventTitles()).doesNotContain(title);
         calendar.next();

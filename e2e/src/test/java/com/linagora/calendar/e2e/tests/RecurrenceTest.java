@@ -75,8 +75,7 @@ class RecurrenceTest extends TwakeCalendarE2ETest {
         if (start == null) {
             awaitAttached(calendar.eventCard(title));
         }
-        calendar.page().reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         if (start == null) {
             awaitAttached(calendar.eventCard(title));
         }
@@ -270,8 +269,7 @@ class RecurrenceTest extends TwakeCalendarE2ETest {
         form.startDate(onA31st);
         form.repeat().frequency(RecurrenceSection.MONTHLY).endsNever();
         form.save();
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
 
         LocalDate shortMonth = onA31st.plusMonths(1);
         while (shortMonth.lengthOfMonth() == 31) {

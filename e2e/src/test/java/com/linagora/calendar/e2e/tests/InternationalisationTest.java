@@ -45,8 +45,7 @@ class InternationalisationTest extends TwakeCalendarE2ETest {
     /** Switches the interface language and comes back to the calendar. */
     private CalendarPage speaking(CalendarPage calendar, String language) {
         calendar.openSettings().selectLanguage(language);
-        calendar.page().reload();
-        return calendar.waitUntilLoaded();
+        return calendar.reload();
     }
 
     @Test
@@ -237,8 +236,7 @@ class InternationalisationTest extends TwakeCalendarE2ETest {
         CalendarPage calendar = LoginPage.loginAs(page, user);
 
         speaking(calendar, "Français");
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
 
         PlaywrightAssertions.assertThat(page.getByLabel("Aujourd'hui", new Page.GetByLabelOptions().setExact(true)))
             .isVisible(new LocatorAssertions.IsVisibleOptions().setTimeout(30_000));
@@ -252,8 +250,7 @@ class InternationalisationTest extends TwakeCalendarE2ETest {
         calendar.createEvent(title);
         calendar.openEvent(title);
         String withPreview = page.locator("body").innerText();
-        calendar.page().reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         calendar.openSettings();
         String withSettings = page.locator("body").innerText();
 

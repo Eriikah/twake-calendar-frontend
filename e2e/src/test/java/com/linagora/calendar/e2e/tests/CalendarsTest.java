@@ -86,8 +86,7 @@ class CalendarsTest extends TwakeCalendarE2ETest {
     void untickingACalendarHidesItsEvents(Page page, E2EUser user, CalendarProbe probe) {
         CalendarPage calendar = LoginPage.loginAs(page, user);
         String title = seedEvent(probe, user);
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         awaitAttached(calendar.eventCard(title));
 
         calendar.calendarCheckbox("My calendar").uncheck();
@@ -101,8 +100,7 @@ class CalendarsTest extends TwakeCalendarE2ETest {
     void tickingACalendarBackShowsItsEvents(Page page, E2EUser user, CalendarProbe probe) {
         CalendarPage calendar = LoginPage.loginAs(page, user);
         String title = seedEvent(probe, user);
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         awaitAttached(calendar.eventCard(title));
         calendar.calendarCheckbox("My calendar").uncheck();
         PlaywrightAssertions.assertThat(calendar.eventCard(title))
@@ -137,8 +135,7 @@ class CalendarsTest extends TwakeCalendarE2ETest {
     void changingTheColourRecoloursTheEvents(Page page, E2EUser user, CalendarProbe probe) {
         CalendarPage calendar = LoginPage.loginAs(page, user);
         String title = seedEvent(probe, user);
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         awaitAttached(calendar.eventCard(title));
         String before = cardColour(page, title);
 
@@ -160,8 +157,7 @@ class CalendarsTest extends TwakeCalendarE2ETest {
 
         PlaywrightAssertions.assertThat(calendar.calendarCheckbox(name))
             .isVisible(new LocatorAssertions.IsVisibleOptions().setTimeout(20_000));
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         // #242 crashed on reload when the colour was not a plain string
         PlaywrightAssertions.assertThat(calendar.calendarCheckbox(name)).isVisible();
     }

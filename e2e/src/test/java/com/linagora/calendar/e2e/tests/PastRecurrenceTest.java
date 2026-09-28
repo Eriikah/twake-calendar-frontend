@@ -240,8 +240,7 @@ class PastRecurrenceTest extends TwakeCalendarE2ETest {
             END:VEVENT
             END:VCALENDAR
             """.formatted(uid, stamp, stamp, stamp, title).replace("\n", "\r\n"));
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         awaitAttached(calendar.eventCard(title));
 
         String renamed = title("Wkst renamed");
@@ -310,8 +309,7 @@ class PastRecurrenceTest extends TwakeCalendarE2ETest {
             END:VCALENDAR
             """.formatted(uid, today, today, today, title,
             uid, tomorrow, today, tomorrow, tomorrow, exception).replace("\n", "\r\n"));
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         awaitAttached(calendar.eventCard(title));
         assertThat(Ics.overrides(probe.singleEvent(user))).hasSize(1);
 
@@ -360,8 +358,7 @@ class PastRecurrenceTest extends TwakeCalendarE2ETest {
                 .as("the guest must receive the exception along with the series")
                 .isNotEmpty());
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         guestCalendar.openEvent(title).answer("Yes", ALL_EVENTS);
 
         Awaitility.await().atMost(Duration.ofSeconds(60)).untilAsserted(() -> {
@@ -390,16 +387,14 @@ class PastRecurrenceTest extends TwakeCalendarE2ETest {
         form.save();
         awaitAttached(calendar.eventCard(title));
 
-        aliceCalendar.page().reload();
-        aliceCalendar.waitUntilLoaded();
+        aliceCalendar.reload();
         aliceCalendar.openEvent(title).answer("Yes", ALL_EVENTS);
         Awaitility.await().atMost(Duration.ofSeconds(60)).untilAsserted(() ->
             assertThat(probe.singleEvent(organizer))
                 .as("the organizer must see alice's answer before we touch an occurrence")
                 .contains("PARTSTAT=ACCEPTED"));
 
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         calendar.next();
         awaitAttached(calendar.eventCard(title));
         var occurrence = calendar.openEvent(title).edit(THIS_EVENT);
@@ -475,8 +470,7 @@ class PastRecurrenceTest extends TwakeCalendarE2ETest {
         edited.expand().repeat().every(2);
         edited.save();
 
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         // the first occurrence must survive a rule change
         PlaywrightAssertions.assertThat(calendar.eventCard(title).first())
             .isAttached(new LocatorAssertions.IsAttachedOptions().setTimeout(30_000));

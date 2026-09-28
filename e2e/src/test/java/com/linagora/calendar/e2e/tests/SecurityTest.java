@@ -51,8 +51,7 @@ class SecurityTest extends TwakeCalendarE2ETest {
         String secret = title("Private matter");
         mine.createEvent(secret);
 
-        theirs.page().reload();
-        theirs.waitUntilLoaded();
+        theirs.reload();
         theirs.page().waitForTimeout(3000);
 
         PlaywrightAssertions.assertThat(theirs.eventCard(secret)).hasCount(0);
@@ -150,8 +149,7 @@ class SecurityTest extends TwakeCalendarE2ETest {
         page.onRequest(request -> requested.add(request.url()));
 
         LoginPage.loginAs(page, user);
-        page.reload();
-        new CalendarPage(page).waitUntilLoaded();
+        new CalendarPage(page).reload();
 
         assertThat(requested)
             .as("a third party would learn about every loading screen, and serve code nobody reviewed")

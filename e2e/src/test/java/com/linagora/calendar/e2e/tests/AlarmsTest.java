@@ -203,8 +203,7 @@ class AlarmsTest extends TwakeCalendarE2ETest {
         calendar.createEvent().title(title).addGuest(guest.email()).save();
         awaitAttached(calendar.eventCard(title));
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         awaitAttached(guestCalendar.eventCard(title));
         var personal = guestCalendar.openEvent(title).personalSettings();
         personal.notification("10 minutes");
@@ -273,8 +272,7 @@ class AlarmsTest extends TwakeCalendarE2ETest {
         calendar.createEvent().title(title).addGuest(guest.email())
             .expand().notification("10 minutes").save();
         awaitAttached(calendar.eventCard(title));
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         awaitAttached(guestCalendar.eventCard(title));
 
         Awaitility.await().atMost(Duration.ofSeconds(45)).untilAsserted(() ->
@@ -311,8 +309,7 @@ class AlarmsTest extends TwakeCalendarE2ETest {
         form.repeat().frequency(RecurrenceSection.DAILY).endsAfter(4);
         form.save();
         awaitAttached(calendar.eventCard(title));
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
 
         var occurrence = calendar.openEvent(title)
             .edit(com.linagora.calendar.e2e.pages.EventFormModal.Scope.THIS_EVENT).expand();

@@ -70,8 +70,7 @@ class AdministrationRightTest extends TwakeCalendarE2ETest {
 
         /** Opens the dialog of the calendar on a fresh page. */
         CalendarModal reopenDialog() {
-            page.reload();
-            return new CalendarPage(page).waitUntilLoaded().modifyCalendarMatching(fragment);
+            return new CalendarPage(page).reload().modifyCalendarMatching(fragment);
         }
     }
 
@@ -273,8 +272,7 @@ class AdministrationRightTest extends TwakeCalendarE2ETest {
         grantFromTheDialog(new Row(administratorPage, user.uid()), mate, "View all events");
 
         new SharedCalendar(matePage, user).awaitInSidebar();
-        page.reload();
-        CalendarModal reopened = owner.waitUntilLoaded().modifyCalendar("My calendar").tab("Access");
+        CalendarModal reopened = owner.reload().modifyCalendar("My calendar").tab("Access");
         assertThat(reopened.hasAccessRow(mate.email()))
             .as("the owner sees who their administrator let in")
             .isTrue();

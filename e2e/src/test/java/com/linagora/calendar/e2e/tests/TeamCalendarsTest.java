@@ -56,8 +56,7 @@ class TeamCalendarsTest extends TwakeCalendarE2ETest {
         Awaitility.await().atMost(Duration.ofMillis(PROPAGATION_MS))
             .pollInterval(Duration.ofSeconds(2))
             .untilAsserted(() -> {
-                page.reload();
-                new CalendarPage(page).waitUntilLoaded();
+                new CalendarPage(page).reload();
                 page.locator("li").filter(new Locator.FilterOptions().setHasText(teamName))
                     .first().waitFor(new Locator.WaitForOptions().setTimeout(8_000));
             });
@@ -230,8 +229,7 @@ class TeamCalendarsTest extends TwakeCalendarE2ETest {
         calendar.eventCard(title).first().waitFor(new Locator.WaitForOptions()
             .setState(WaitForSelectorState.ATTACHED).setTimeout(PROPAGATION_MS));
 
-        outsiderPage.reload();
-        new CalendarPage(outsiderPage).waitUntilLoaded();
+        new CalendarPage(outsiderPage).reload();
         outsiderPage.waitForTimeout(6000);
 
         assertThat(outsiderPage.locator("li")
@@ -260,8 +258,7 @@ class TeamCalendarsTest extends TwakeCalendarE2ETest {
         Awaitility.await().atMost(Duration.ofMillis(PROPAGATION_MS))
             .pollInterval(Duration.ofSeconds(2))
             .untilAsserted(() -> {
-                matePage.reload();
-                new CalendarPage(matePage).waitUntilLoaded();
+                new CalendarPage(matePage).reload();
                 matePage.waitForTimeout(2000);
                 assertThat(matePage.locator("li")
                     .filter(new Locator.FilterOptions().setHasText(name)).count())

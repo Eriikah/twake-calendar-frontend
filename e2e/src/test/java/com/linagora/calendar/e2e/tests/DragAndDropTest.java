@@ -214,8 +214,7 @@ class DragAndDropTest extends TwakeCalendarE2ETest {
             .expand().startTime("09:00").endTime("10:00")
             .save();
 
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         calendar.eventCard(title).first().waitFor(new Locator.WaitForOptions()
             .setState(WaitForSelectorState.ATTACHED).setTimeout(60_000));
         String before = Awaitility.await().atMost(Duration.ofSeconds(30))
@@ -281,8 +280,7 @@ class DragAndDropTest extends TwakeCalendarE2ETest {
             .isFalse();
 
         assertThat(dtStart(probe, user)).isEqualTo(before);
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         assertThat(startTimeOf(calendar, title)).isEqualTo("09:00");
     }
 
@@ -315,8 +313,7 @@ class DragAndDropTest extends TwakeCalendarE2ETest {
         Awaitility.await().atMost(Duration.ofSeconds(20)).untilAsserted(() ->
             assertThat(startTimeOf(calendar, title)).isEqualTo("16:00"));
 
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
 
         PlaywrightAssertions.assertThat(calendar.eventCard(title).first()).isAttached();
         assertThat(startTimeOf(calendar, title)).isEqualTo("16:00");

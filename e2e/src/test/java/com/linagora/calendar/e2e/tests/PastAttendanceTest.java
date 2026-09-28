@@ -63,15 +63,13 @@ class PastAttendanceTest extends TwakeCalendarE2ETest {
         calendar.createEvent().title(title).addGuest(guest.email()).save();
         awaitAttached(calendar.eventCard(title));
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         guestCalendar.openEvent(title).answer("Yes");
         Awaitility.await().atMost(Duration.ofSeconds(60)).untilAsserted(() ->
             assertThat(attendeeLine(probe.singleEvent(organizer), guest.email()))
                 .contains("PARTSTAT=ACCEPTED"));
 
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         var edited = calendar.openEvent(title).edit();
         edited.title(title("Kickoff renamed"));
         edited.save();

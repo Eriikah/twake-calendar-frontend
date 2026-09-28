@@ -70,16 +70,14 @@ class PastTimezoneTest extends TwakeCalendarE2ETest {
             .expand().startTime("09:00").endTime("10:00").save();
         awaitAttached(calendar.eventCard(title));
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         awaitAttached(guestCalendar.eventCard(title));
         assertThat(Ics.parameters(Ics.event(probe.singleEvent(guest)), "DTSTART")).contains("TZID");
 
         guestCalendar.openEvent(title).answer("Yes");
         Awaitility.await().atMost(Duration.ofSeconds(30)).untilAsserted(() ->
             assertThat(probe.singleEvent(guest)).contains("PARTSTAT=ACCEPTED"));
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         guestCalendar.openEvent(title).answer("Maybe");
         Awaitility.await().atMost(Duration.ofSeconds(30)).untilAsserted(() ->
             assertThat(probe.singleEvent(guest)).contains("PARTSTAT=TENTATIVE"));

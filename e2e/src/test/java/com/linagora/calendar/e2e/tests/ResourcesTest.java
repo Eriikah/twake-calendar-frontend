@@ -41,8 +41,7 @@ class ResourcesTest extends TwakeCalendarE2ETest {
         Awaitility.await().atMost(Duration.ofMillis(PROPAGATION_MS))
             .pollInterval(Duration.ofSeconds(2))
             .untilAsserted(() -> {
-                page.reload();
-                new CalendarPage(page).waitUntilLoaded();
+                new CalendarPage(page).reload();
                 page.locator("li").filter(new Locator.FilterOptions().setHasText(name))
                     .first().waitFor(new Locator.WaitForOptions().setTimeout(8_000));
             });
@@ -157,8 +156,7 @@ class ResourcesTest extends TwakeCalendarE2ETest {
         E2EUser outsider = users.newUser("outsider");
         Page outsiderPage = sessions.pageFor(outsider);
         outsiderPage.waitForTimeout(4000);
-        outsiderPage.reload();
-        new CalendarPage(outsiderPage).waitUntilLoaded();
+        new CalendarPage(outsiderPage).reload();
         outsiderPage.waitForTimeout(4000);
 
         assertThat(outsiderPage.locator("li")
@@ -175,8 +173,7 @@ class ResourcesTest extends TwakeCalendarE2ETest {
         CalendarPage calendar = LoginPage.loginAs(page, user);
         String room = unique("Invisible room");
         resources.create(room, "A room", user);
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         page.waitForTimeout(4000);
 
         assertThat(page.getByText("Resources").count())
@@ -238,8 +235,7 @@ class ResourcesTest extends TwakeCalendarE2ETest {
                 if (attempt == 3) {
                     throw tooEarly;
                 }
-                bookerCalendar.page().reload();
-                bookerCalendar.waitUntilLoaded();
+                bookerCalendar.reload();
             }
         }
         bookerCalendar.eventCard(title).first().waitFor();
@@ -248,8 +244,7 @@ class ResourcesTest extends TwakeCalendarE2ETest {
 
     /** Shows the resource calendar on its own, so what is seen belongs to it and nothing else. */
     private void showOnlyTheResource(CalendarPage calendar, Page page, String room) {
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         awaitResourceVisible(page, room);
         calendar.showCalendar(room);
         calendar.calendarCheckbox("My calendar").uncheck();
@@ -381,8 +376,7 @@ class ResourcesTest extends TwakeCalendarE2ETest {
         Awaitility.await().atMost(Duration.ofMillis(PROPAGATION_MS))
             .pollInterval(Duration.ofSeconds(3))
             .untilAsserted(() -> {
-                bookerPage.reload();
-                CalendarPage theirs = new CalendarPage(bookerPage).waitUntilLoaded();
+                CalendarPage theirs = new CalendarPage(bookerPage).reload();
                 assertThat(theirs.openEvent(title).showMore().text())
                     .as("the person who booked has to be able to see the room said yes")
                     .contains(room);

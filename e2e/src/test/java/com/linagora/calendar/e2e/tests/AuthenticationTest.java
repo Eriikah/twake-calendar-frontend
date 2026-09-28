@@ -32,8 +32,7 @@ class AuthenticationTest extends TwakeCalendarE2ETest {
     void reloadKeepsTheSession(Page page, E2EUser user) {
         LoginPage.loginAs(page, user);
 
-        page.reload();
-        new CalendarPage(page).waitUntilLoaded();
+        new CalendarPage(page).reload();
 
         assertThat(page).hasURL(java.util.regex.Pattern.compile(".*/calendar.*"));
         assertThat(page.getByLabel("Create a new event")).isVisible();

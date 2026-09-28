@@ -36,8 +36,7 @@ class SettingsFullTest extends TwakeCalendarE2ETest {
         calendar.openSettings().selectLanguage("Français");
         PlaywrightAssertions.assertThat(page.getByLabel("Retour au calendrier")).isVisible();
 
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
 
         PlaywrightAssertions.assertThat(page.getByLabel("Aujourd'hui",
                 new Page.GetByLabelOptions().setExact(true)))
@@ -92,8 +91,7 @@ class SettingsFullTest extends TwakeCalendarE2ETest {
 
         PlaywrightAssertions.assertThat(autoDetect)
             .isChecked(new LocatorAssertions.IsCheckedOptions().setChecked(!initially));
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         calendar.openSettings();
         PlaywrightAssertions.assertThat(page.getByLabel("Detect time zone automatically").first())
             .isChecked(new LocatorAssertions.IsCheckedOptions().setChecked(!initially));
@@ -127,8 +125,7 @@ class SettingsFullTest extends TwakeCalendarE2ETest {
         // from the server. Its own detection writes the zone it sits in on the way in, so the
         // reload below reads the settings as they stand *after* that automatic update
         CalendarPage elsewhere = sessions.openFor(user, "America/New_York");
-        elsewhere.page().reload();
-        elsewhere.waitUntilLoaded();
+        elsewhere.reload();
 
         PlaywrightAssertions.assertThat(elsewhere.weekNumber().first())
             .not().containsText("Week",
@@ -164,15 +161,13 @@ class SettingsFullTest extends TwakeCalendarE2ETest {
         calendar.createEvent().title(title).addGuest(guest.email()).save();
         awaitAttached(calendar.eventCard(title));
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         awaitAttached(guestCalendar.eventCard(title));
         guestCalendar.openEvent(title).answer("No");
         Awaitility.await().atMost(Duration.ofSeconds(45)).untilAsserted(() ->
             assertThat(probe.singleEvent(guest)).contains("PARTSTAT=DECLINED"));
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         PlaywrightAssertions.assertThat(guestCalendar.eventCard(title).first())
             .isAttached(new LocatorAssertions.IsAttachedOptions().setTimeout(30_000));
     }
@@ -188,16 +183,14 @@ class SettingsFullTest extends TwakeCalendarE2ETest {
         calendar.createEvent().title(title).addGuest(guest.email()).save();
         awaitAttached(calendar.eventCard(title));
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         awaitAttached(guestCalendar.eventCard(title));
         guestCalendar.openEvent(title).answer("No");
         Awaitility.await().atMost(Duration.ofSeconds(45)).untilAsserted(() ->
             assertThat(probe.singleEvent(guest)).contains("PARTSTAT=DECLINED"));
 
         // start from a clean page: the preview left open would swallow the click on the profile
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         guestCalendar.openSettings().toggle("Show declined events").backToCalendar();
 
         PlaywrightAssertions.assertThat(guestCalendar.eventCard(title))
@@ -216,8 +209,7 @@ class SettingsFullTest extends TwakeCalendarE2ETest {
         PlaywrightAssertions.assertThat(email)
             .isChecked(new LocatorAssertions.IsCheckedOptions().setChecked(!initially));
 
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         calendar.openSettings().tab("Notifications");
 
         PlaywrightAssertions.assertThat(page.getByLabel("Email").first())
@@ -245,8 +237,7 @@ class SettingsFullTest extends TwakeCalendarE2ETest {
         mine.openSettings().selectLanguage("Français");
         PlaywrightAssertions.assertThat(page.getByLabel("Retour au calendrier")).isVisible();
 
-        theirs.page().reload();
-        theirs.waitUntilLoaded();
+        theirs.reload();
         PlaywrightAssertions.assertThat(theirs.page().getByLabel("Today",
                 new Page.GetByLabelOptions().setExact(true)))
             .isVisible(new LocatorAssertions.IsVisibleOptions().setTimeout(30_000));

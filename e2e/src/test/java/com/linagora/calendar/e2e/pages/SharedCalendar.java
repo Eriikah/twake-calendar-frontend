@@ -76,8 +76,7 @@ public class SharedCalendar {
             // a locator giving up on one attempt is no reason to give up on the next one
             .ignoreExceptions()
             .untilAsserted(() -> {
-                page.reload();
-                check.accept(new CalendarPage(page).waitUntilLoaded());
+                check.accept(new CalendarPage(page).reload());
             });
     }
 

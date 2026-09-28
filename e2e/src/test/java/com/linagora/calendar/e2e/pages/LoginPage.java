@@ -37,8 +37,11 @@ public class LoginPage {
         }
         CalendarPage calendar = new CalendarPage(page).waitUntilLoaded();
         // the SPA took its date as it started, on the callback, which runs on the real clock:
-        // see E2EClock
-        page.reload();
+        // see E2EClock. Start it over from the root rather than reloading the calendar: the tokens
+        // live in the memory of the page, and a reloaded calendar would draw itself -- and fire
+        // its requests, answered by 401 -- before signing back in through the SSO.
+        CalendarPage.signInAgain(page, () -> page.navigate("/", new Page.NavigateOptions()
+            .setWaitUntil(com.microsoft.playwright.options.WaitUntilState.COMMIT)));
         calendar.waitUntilLoaded();
         return calendar;
     }

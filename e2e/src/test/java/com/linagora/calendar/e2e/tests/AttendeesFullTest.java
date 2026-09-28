@@ -155,8 +155,7 @@ class AttendeesFullTest extends TwakeCalendarE2ETest {
         calendar.createEvent().title(title).addGuest(guest.email()).save();
         awaitAttached(calendar.eventCard(title));
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         awaitAttached(guestCalendar.eventCard(title));
         guestCalendar.openEvent(title).answer("Yes");
 
@@ -176,8 +175,7 @@ class AttendeesFullTest extends TwakeCalendarE2ETest {
         calendar.createEvent().title(title).addGuest(guest.email()).save();
         awaitAttached(calendar.eventCard(title));
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         awaitAttached(guestCalendar.eventCard(title));
         guestCalendar.openEvent(title).answer("No");
 
@@ -197,8 +195,7 @@ class AttendeesFullTest extends TwakeCalendarE2ETest {
         calendar.createEvent().title(title).addGuest(guest.email()).save();
         awaitAttached(calendar.eventCard(title));
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         awaitAttached(guestCalendar.eventCard(title));
         guestCalendar.openEvent(title).answer("Maybe");
 
@@ -218,8 +215,7 @@ class AttendeesFullTest extends TwakeCalendarE2ETest {
         calendar.createEvent().title(title).addGuest(guest.email()).save();
         awaitAttached(calendar.eventCard(title));
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         awaitAttached(guestCalendar.eventCard(title));
         guestCalendar.openEvent(title).answer("Yes");
 
@@ -240,16 +236,14 @@ class AttendeesFullTest extends TwakeCalendarE2ETest {
         calendar.createEvent().title(title).addGuest(guest.email()).save();
         awaitAttached(calendar.eventCard(title));
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         awaitAttached(guestCalendar.eventCard(title));
         guestCalendar.openEvent(title).answer("No");
         Awaitility.await().atMost(Duration.ofSeconds(60)).untilAsserted(() ->
             assertThat(attendeeLine(probe.singleEvent(organizer), guest.email()))
                 .contains("PARTSTAT=DECLINED"));
 
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         assertThat(calendar.openEvent(title).showMore().text()).contains("1 no");
     }
 
@@ -267,8 +261,7 @@ class AttendeesFullTest extends TwakeCalendarE2ETest {
         form.addGuest(guest.email());
         form.save();
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         PlaywrightAssertions.assertThat(guestCalendar.eventCard(title).first())
             .isAttached(new LocatorAssertions.IsAttachedOptions().setTimeout(60_000));
     }

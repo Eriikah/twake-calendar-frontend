@@ -218,8 +218,7 @@ abstract class CalendarEdgesContract extends TwakeCalendarE2ETest {
         probe.putEvent(user, uid, Ical.eventBetween(uid, title,
             last.atTime(23, 30).atZone(E2EClock.BROWSER_ZONE),
             first.atTime(0, 30).atZone(E2EClock.BROWSER_ZONE)));
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         calendar.switchView("Day");
 
         calendar.goToDate(last);
@@ -242,8 +241,7 @@ abstract class CalendarEdgesContract extends TwakeCalendarE2ETest {
         probe.putEvent(user, earlyUid, Ical.eventBetween(earlyUid, early,
             first.atTime(0, 0).atZone(E2EClock.BROWSER_ZONE),
             first.atTime(1, 0).atZone(E2EClock.BROWSER_ZONE)));
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         calendar.switchView("Month");
 
         calendar.goToMonth(YearMonth.from(last));

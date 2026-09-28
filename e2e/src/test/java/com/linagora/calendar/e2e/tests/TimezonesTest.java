@@ -149,8 +149,7 @@ class TimezonesTest extends TwakeCalendarE2ETest {
             .expand().startDate(day).startTime("10:00").endTime("11:00").save();
         awaitAttached(paris.eventCard(title));
 
-        tokyo.page().reload();
-        tokyo.waitUntilLoaded();
+        tokyo.reload();
         // seven hours ahead, Tokyo may already be showing the next week
         tokyo.goToDate(day);
         PlaywrightAssertions.assertThat(tokyo.eventCard(title).first())
@@ -193,8 +192,7 @@ class TimezonesTest extends TwakeCalendarE2ETest {
         awaitAttached(paris.eventCard(title));
 
         CalendarPage tokyo = inTimezone(sessions.openFor(user, "Asia/Tokyo"), "Asia/Tokyo");
-        tokyo.page().reload();
-        tokyo.waitUntilLoaded();
+        tokyo.reload();
         // seven hours ahead, Tokyo is already in the next week on a Sunday evening
         tokyo.goToDate(day);
 
@@ -332,8 +330,7 @@ class TimezonesTest extends TwakeCalendarE2ETest {
 
         // the alert only asks once per browser zone and remembers having asked
         page.evaluate("() => localStorage.removeItem('lastCheckedTZ')");
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
 
         PlaywrightAssertions.assertThat(page.getByText(
                 java.util.regex.Pattern.compile("Your browser indicates", java.util.regex.Pattern.CASE_INSENSITIVE))
@@ -348,8 +345,7 @@ class TimezonesTest extends TwakeCalendarE2ETest {
         CalendarPage calendar = LoginPage.loginAs(page, user);
         calendar.openSettings().selectTimezone("Pacific/Auckland").backToCalendar();
         page.evaluate("() => localStorage.removeItem('lastCheckedTZ')");
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         PlaywrightAssertions.assertThat(page.getByText(
                 java.util.regex.Pattern.compile("Your browser indicates", java.util.regex.Pattern.CASE_INSENSITIVE))
                 .first())
@@ -375,8 +371,7 @@ class TimezonesTest extends TwakeCalendarE2ETest {
         calendar.openSettings().selectTimezone("Pacific/Auckland").backToCalendar();
 
         page.evaluate("() => localStorage.removeItem('lastCheckedTZ')");
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         page.waitForTimeout(4000);
 
         PlaywrightAssertions.assertThat(page.getByText(
@@ -397,8 +392,7 @@ class TimezonesTest extends TwakeCalendarE2ETest {
             .expand().timezone("Asia/Tokyo").startTime("18:00").endTime("19:00").save();
         awaitAttached(calendar.eventCard(title));
 
-        guestCalendar.page().reload();
-        guestCalendar.waitUntilLoaded();
+        guestCalendar.reload();
         PlaywrightAssertions.assertThat(guestCalendar.eventCard(title).first())
             .isAttached(new LocatorAssertions.IsAttachedOptions().setTimeout(60_000));
         assertThat(guestCalendar.eventCard(title).first().innerText())

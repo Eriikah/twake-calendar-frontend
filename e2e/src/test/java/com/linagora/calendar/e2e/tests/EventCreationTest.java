@@ -77,8 +77,7 @@ class EventCreationTest extends TwakeCalendarE2ETest {
         String title = uniqueTitle("Persisted");
 
         calendar.createEvent(title);
-        page.reload();
-        new CalendarPage(page).waitUntilLoaded();
+        new CalendarPage(page).reload();
 
         com.microsoft.playwright.assertions.PlaywrightAssertions
             .assertThat(calendar.eventCard(title).first()).isAttached();

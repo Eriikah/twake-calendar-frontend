@@ -116,8 +116,7 @@ class SharingAccessMatrixTest extends TwakeCalendarE2ETest {
         EventPreviewPopover preview = mateCalendar.openEvent(title);
         assertThat(preview.text()).contains(title);
         // a fresh page rather than dismissing the preview: the gestures below need nothing on top
-        matePage.reload();
-        mateCalendar.waitUntilLoaded();
+        mateCalendar.reload();
         shared.show();
         mateCalendar.eventCard(title).first().waitFor();
 
@@ -158,8 +157,7 @@ class SharingAccessMatrixTest extends TwakeCalendarE2ETest {
             .as("a calendar the user may only read is no destination for a new event")
             .noneMatch(option -> option.contains(owner.uid()));
         // dismissing the option list takes the form with it on this build: start from a fresh page
-        mateCalendar.page().reload();
-        mateCalendar.waitUntilLoaded();
+        mateCalendar.reload();
         mateCalendar.eventCard(ownerTitle).first().waitFor();
 
         String before = probe.dtStart(owner, ownerTitle).orElseThrow();

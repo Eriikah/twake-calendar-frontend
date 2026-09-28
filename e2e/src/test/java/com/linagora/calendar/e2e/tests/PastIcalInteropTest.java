@@ -53,8 +53,7 @@ class PastIcalInteropTest extends TwakeCalendarE2ETest {
             END:VEVENT
             END:VCALENDAR
             """.formatted(uid, stamp, stamp, stamp, title).replace("\n", "\r\n"));
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         awaitAttached(calendar.eventCard(title));
 
         String renamed = title("Imported renamed");

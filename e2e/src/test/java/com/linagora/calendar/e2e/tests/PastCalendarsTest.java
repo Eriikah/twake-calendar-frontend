@@ -45,8 +45,7 @@ class PastCalendarsTest extends TwakeCalendarE2ETest {
         PlaywrightAssertions.assertThat(calendar.calendarCheckbox(name))
             .isVisible(new LocatorAssertions.IsVisibleOptions().setTimeout(20_000));
 
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
 
         // #242 crashed here, in the contrast computation of the calendar colour
         PlaywrightAssertions.assertThat(calendar.calendarCheckbox(name))
@@ -59,8 +58,7 @@ class PastCalendarsTest extends TwakeCalendarE2ETest {
     void aPersonalCalendarCanBeUnticked(Page page, E2EUser user, CalendarProbe probe) {
         CalendarPage calendar = LoginPage.loginAs(page, user);
         String title = seedEvent(probe, user);
-        page.reload();
-        calendar.waitUntilLoaded();
+        calendar.reload();
         awaitAttached(calendar.eventCard(title));
 
         calendar.calendarCheckbox("My calendar").uncheck();
