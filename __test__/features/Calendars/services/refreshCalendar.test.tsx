@@ -478,6 +478,66 @@ describe('refreshCalendarWithSyncToken', () => {
     expect(state.list[mockCalendar.id].events['event1']).toBeUndefined()
   })
 
+  it('should outdate the loaded ranges when an event is created outside of the refreshed range', async () => {
+    ;(CalendarDAO.fetchSyncTokenChanges as jest.Mock).mockResolvedValue({
+      'sync-token': 'new-token',
+      _embedded: {
+        'dav:item': [
+          {
+            status: 200,
+            _links: {
+              self: { href: '/calendars/user1/cal1/september-event.ics' }
+            }
+          }
+        ]
+      }
+    })
+    // The event has no instance within the displayed range
+    ;(EventDao.reportEvent as jest.Mock).mockResolvedValue({
+      data: [null, null, []],
+      _links: {
+        self: { href: '/calendars/user1/cal1/september-event.ics' }
+      }
+    })
+
+    const store = storeFactory()
+    await store.dispatch(
+      refreshCalendarWithSyncToken({
+        calendar: mockCalendar,
+        calendarRange
+      })
+    )
+
+    // The range holding the event was fetched before its creation: the loader
+    // has to fetch it again
+    expect(
+      store.getState().calendars.list[mockCalendar.id].lastRangesOutdated
+    ).toEqual(expect.any(Number))
+    // but not the displayed one, the refresh just brought it up to date
+    expect(
+      store.getState().calendars.list[mockCalendar.id].lastCacheCleared
+    ).toBeUndefined()
+  })
+
+  it('should keep the loaded ranges when nothing changed', async () => {
+    ;(CalendarDAO.fetchSyncTokenChanges as jest.Mock).mockResolvedValue({
+      'sync-token': 'new-token',
+      _embedded: { 'dav:item': [] }
+    })
+
+    const store = storeFactory()
+    await store.dispatch(
+      refreshCalendarWithSyncToken({
+        calendar: mockCalendar,
+        calendarRange
+      })
+    )
+
+    expect(
+      store.getState().calendars.list[mockCalendar.id].lastRangesOutdated
+    ).toBeUndefined()
+  })
+
   it('should add new events to calendar state', async () => {
     const mockSyncResponse = {
       'sync-token': 'new-token',

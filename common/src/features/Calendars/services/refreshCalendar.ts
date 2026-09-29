@@ -113,6 +113,15 @@ export const refreshCalendarWithSyncToken = (
             target.events[event.uid] = event
           }
           target.syncToken = syncToken
+
+          // A changed event is only expanded over the displayed range: its
+          // occurrences in the ranges already fetched elsewhere are missing,
+          // so these ranges have to be loaded again. Not the displayed one,
+          // which is up to date: loading it again would replace the events
+          // just expanded, while they are being worked on.
+          if (deletedEvents.length > 0 && calType !== 'temp') {
+            target.lastRangesOutdated = Date.now()
+          }
         }
       },
       rejected: (state, action) => {

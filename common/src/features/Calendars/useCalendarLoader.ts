@@ -54,6 +54,32 @@ export function subtractIntervals(
   return remaining
 }
 
+export function clipInterval(
+  iv: Interval,
+  start: number,
+  end: number
+): Interval[] {
+  const clipped = {
+    start: Math.max(iv.start, start),
+    end: Math.min(iv.end, end)
+  }
+  return clipped.start < clipped.end ? [clipped] : []
+}
+
+export function removeInterval(
+  intervals: Interval[],
+  removed: Interval
+): Interval[] {
+  return intervals.flatMap(iv => {
+    if (iv.end <= removed.start || iv.start >= removed.end) return [iv]
+    const pieces: Interval[] = []
+    if (iv.start < removed.start)
+      pieces.push({ start: iv.start, end: removed.start })
+    if (iv.end > removed.end) pieces.push({ start: removed.end, end: iv.end })
+    return pieces
+  })
+}
+
 interface UseCalendarDataLoaderParams {
   selectedDate: Date
   currentView: string
@@ -93,6 +119,9 @@ export function useCalendarDataLoader({
   const inFlightRef = useRef<Record<string, Interval[]>>({})
   const tempFetchedIntervalsRef = useRef<Record<string, Interval[]>>({})
   const processedCacheClearRef = useRef<Record<string, number>>({})
+  // Bumped on every cache clear or outdating: a load requested before it is stale
+  const cacheEpochRef = useRef<Record<string, number>>({})
+  const processedOutdatedRangesRef = useRef<Record<string, number>>({})
 
   useEffect(() => {
     let cancelled = false
@@ -129,6 +158,7 @@ export function useCalendarDataLoader({
         if (cancelled) return
         await Promise.all(
           activeUnits.slice(i, i + BATCH_SIZE).map(async ({ id, gap }) => {
+            const epoch = cacheEpochRef.current[id] ?? 0
             try {
               await dispatch(
                 getCalendarDetail({
@@ -139,8 +169,15 @@ export function useCalendarDataLoader({
                   }
                 })
               ).unwrap()
-              if (!cancelled) {
-                // Promote gap from in-flight → fetched.
+              // Promote gap from in-flight → fetched. Left in-flight, it
+              // would stay covered after a cache clear and never be reloaded.
+              // The events are in the store even when this run went stale:
+              // only a cache clear since the request makes them outdated.
+              inFlightRef.current[id] = removeInterval(
+                inFlightRef.current[id] ?? [],
+                gap
+              )
+              if (epoch === (cacheEpochRef.current[id] ?? 0)) {
                 fetchedIntervalsRef.current[id] = mergeInterval(
                   fetchedIntervalsRef.current[id] ?? [],
                   gap
@@ -148,16 +185,9 @@ export function useCalendarDataLoader({
               }
             } catch {
               // Remove gap from in-flight so it can be retried.
-              inFlightRef.current[id] = (inFlightRef.current[id] ?? []).flatMap(
-                iv => {
-                  if (iv.end <= gap.start || iv.start >= gap.end) return [iv]
-                  const pieces: Interval[] = []
-                  if (iv.start < gap.start)
-                    pieces.push({ start: iv.start, end: gap.start })
-                  if (iv.end > gap.end)
-                    pieces.push({ start: gap.end, end: iv.end })
-                  return pieces
-                }
+              inFlightRef.current[id] = removeInterval(
+                inFlightRef.current[id] ?? [],
+                gap
               )
             }
           })
@@ -217,19 +247,10 @@ export function useCalendarDataLoader({
           .unwrap()
           .catch(() => {
             // Roll back by subtracting the original gap
-            fetchedIntervalsRef.current[id] = (
-              fetchedIntervalsRef.current[id] ?? []
-            ).flatMap(iv => {
-              if (iv.end <= originalGap.start || iv.start >= originalGap.end) {
-                return [iv] // no overlap, keep as-is
-              }
-              const pieces: Interval[] = []
-              if (iv.start < originalGap.start)
-                pieces.push({ start: iv.start, end: originalGap.start })
-              if (iv.end > originalGap.end)
-                pieces.push({ start: originalGap.end, end: iv.end })
-              return pieces
-            })
+            fetchedIntervalsRef.current[id] = removeInterval(
+              fetchedIntervalsRef.current[id] ?? [],
+              originalGap
+            )
           })
       })
     }
@@ -280,6 +301,8 @@ export function useCalendarDataLoader({
     calendarsWithClearedCache.forEach(({ id, cleared }) => {
       if (processedCacheClearRef.current[id] === cleared) return
       delete fetchedIntervalsRef.current[id]
+      delete inFlightRef.current[id]
+      cacheEpochRef.current[id] = (cacheEpochRef.current[id] ?? 0) + 1
 
       void dispatch(
         getCalendarDetail({
@@ -304,6 +327,35 @@ export function useCalendarDataLoader({
         })
     })
   }, [calendarsWithClearedCache, dispatch, visibleStart, visibleEnd])
+
+  // Outdated ranges: all the loaded ones but the displayed one, which the
+  // refresh reporting the change brought up to date
+  const calendarsWithOutdatedRanges = useMemo(
+    () =>
+      selectedCalendars
+        .map(id => {
+          const outdated = calendars[id]?.lastRangesOutdated
+          return outdated ? { id, outdated } : null
+        })
+        .filter(Boolean) as { id: string; outdated: number }[],
+    [selectedCalendars, calendars]
+  )
+
+  useEffect(() => {
+    calendarsWithOutdatedRanges.forEach(({ id, outdated }) => {
+      if (processedOutdatedRangesRef.current[id] === outdated) return
+      processedOutdatedRangesRef.current[id] = outdated
+      fetchedIntervalsRef.current[id] = (
+        fetchedIntervalsRef.current[id] ?? []
+      ).flatMap(iv => clipInterval(iv, visibleStart, visibleEnd))
+      // A load still pending may have been answered before the change: it no
+      // longer covers its range, nor records it once done
+      inFlightRef.current[id] = (inFlightRef.current[id] ?? []).flatMap(iv =>
+        clipInterval(iv, visibleStart, visibleEnd)
+      )
+      cacheEpochRef.current[id] = (cacheEpochRef.current[id] ?? 0) + 1
+    })
+  }, [calendarsWithOutdatedRanges, visibleStart, visibleEnd])
 
   // Temp calendars cleanup
   useEffect(() => {
