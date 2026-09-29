@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/react'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import { Suspense, useState } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router'
 import { HistoryRouter as Router } from 'redux-first-history/rr6'
 import { history } from '@common/app/store'
 import { Error as ErrorPage } from '@common/components/Error/Error'

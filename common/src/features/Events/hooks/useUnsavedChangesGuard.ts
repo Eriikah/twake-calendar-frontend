@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  useLocation,
-  useNavigate,
-  type NavigateFunction
-} from 'react-router-dom'
+import { useLocation, useNavigate, type NavigateFunction } from 'react-router'
 
 export interface UseUnsavedChangesGuardResult {
   showConfirm: boolean

@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 import { push } from 'redux-first-history'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { Loading } from '@common/components/Loading/Loading'
