@@ -2,6 +2,7 @@ import { useAppSelector } from '@common/app/hooks'
 import { dialogPaddingStyles } from '@common/theme/dialogPaddingStyles'
 import { ConfirmDiscardChangesDialog } from '@common/components/Dialog/ConfirmDiscardChangesDialog'
 import { ResponsiveDialog } from '@common/components/Dialog'
+import { Alert, Box, CircularProgress } from '@linagora/twake-mui'
 import EventFormFields from '@common/components/Event/EventFormFields'
 import { CalendarEvent } from '@common/types/EventsTypes'
 import { useScreenSizeDetection } from '@common/useScreenSizeDetection'
@@ -38,6 +39,8 @@ const EventUpdateModalInternal: React.FC<
     setShowMore,
     formRef,
     effectiveEvent,
+    hasOverrides,
+    isMasterPending,
     initialValues,
     handleClose: performClose,
     handleSubmit,
@@ -81,23 +84,41 @@ const EventUpdateModalInternal: React.FC<
         sx={dialogPaddingStyles(isMobile)}
         expandText={t('tooltip.moreEventOptions')}
       >
-        <EventFormFields
-          key={effectiveEvent?.uid || 'no-event'}
-          ref={formRef}
-          initialValues={editableInitialValues}
-          showMore={showMore}
-          isOpen={open}
-          isSpecific={false}
-          typeOfAction={typeOfAction}
-          eventId={event.uid}
-          event={event}
-          userPersonalCalendars={userPersonalCalendars}
-          onSubmit={handleSubmit}
-          onCancel={handleClose}
-          tempStorageKey="update"
-          tempStorageContext={tempContext}
-          onDirtyChange={setIsFormDirty}
-        />
+        {typeOfAction === 'all' && hasOverrides && (
+          <Alert
+            severity="warning"
+            sx={{ mb: 2 }}
+            data-testid="series-overrides-warning"
+          >
+            {t('event.form.seriesOverridesWarning')}
+          </Alert>
+        )}
+        {isMasterPending ? (
+          <Box
+            sx={{ display: 'flex', justifyContent: 'center', py: 4 }}
+            data-testid="series-loading"
+          >
+            <CircularProgress />
+          </Box>
+        ) : (
+          <EventFormFields
+            key={effectiveEvent?.uid || 'no-event'}
+            ref={formRef}
+            initialValues={editableInitialValues}
+            showMore={showMore}
+            isOpen={open}
+            isSpecific={false}
+            typeOfAction={typeOfAction}
+            eventId={event.uid}
+            event={event}
+            userPersonalCalendars={userPersonalCalendars}
+            onSubmit={handleSubmit}
+            onCancel={handleClose}
+            tempStorageKey="update"
+            tempStorageContext={tempContext}
+            onDirtyChange={setIsFormDirty}
+          />
+        )}
       </ResponsiveDialog>
       <ConfirmDiscardChangesDialog
         open={guard.showConfirm}
