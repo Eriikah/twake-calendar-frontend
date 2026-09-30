@@ -1,4 +1,4 @@
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router'
 import { useMemo } from 'react'
 import { PartStat } from '@common/features/User/models/attendee'
 

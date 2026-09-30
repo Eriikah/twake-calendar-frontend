@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import React from 'react'
 import { useParseToken } from '@public/features/EventPreview/hooks/useParseToken'
 

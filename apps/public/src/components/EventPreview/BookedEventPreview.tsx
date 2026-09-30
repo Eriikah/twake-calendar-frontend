@@ -5,7 +5,7 @@ import { useFilterEventAttendees } from '@common/components/Event/hooks/useFilte
 import { EventPreviewTitleRow } from '@common/components/EventPreview/EventPreviewTitleRow'
 import { Loading } from '@common/components/Loading/Loading'
 import React from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 import { useI18n } from 'twake-i18n'
 import {
   EventLoadError,

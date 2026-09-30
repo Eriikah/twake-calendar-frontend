@@ -1,7 +1,7 @@
 import { Box, Button, IconButton, useTheme, alpha } from '@linagora/twake-mui'
 import { Icon, CalendarToday, EmailOpen, Discuss } from '@linagora/twake-icons'
 import { useI18n } from 'twake-i18n'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { useAppSelector } from '@common/app/hooks'
 import {
   buildMailComposeUrl,

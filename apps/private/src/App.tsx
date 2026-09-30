@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/react'
 import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import { Suspense, useEffect } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router'
 import { HistoryRouter as Router } from 'redux-first-history/rr6'
 import { push } from 'redux-first-history'
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
