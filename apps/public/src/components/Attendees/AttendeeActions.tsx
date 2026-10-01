@@ -24,7 +24,8 @@ export function AttendeeActions({
 
   const mailSpaUrl = resolveMailSpaUrl(window.MAIL_SPA_URL, {
     localpart: getUserNameFromEmail(userEmail),
-    workplaceFqdn
+    workplaceFqdn,
+    workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK
   })
 
   const handleSendMail = (): void => {

@@ -32,12 +32,14 @@ export function AttendeeActions({
 
   const mailSpaUrl = resolveMailSpaUrl(window.MAIL_SPA_URL, {
     localpart: getUserNameFromEmail(userEmail),
-    workplaceFqdn
+    workplaceFqdn,
+    workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK
   })
 
   const chatSpaUrl = resolveChatSpaUrl(window.CHAT_SPA_URL, {
     localpart: getUserNameFromEmail(userEmail),
     workplaceFqdn,
+    workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK,
     target: getUserNameFromEmail(attendee.cal_address)
   })
 

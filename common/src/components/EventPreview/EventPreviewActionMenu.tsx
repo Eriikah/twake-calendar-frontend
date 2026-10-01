@@ -30,7 +30,8 @@ export const EventPreviewActionMenu: React.FC<EventPreviewActionMenuProps> = ({
   )
   const mailSpaUrl = resolveMailSpaUrl(window.MAIL_SPA_URL, {
     localpart: userEmail?.split('@')[0],
-    workplaceFqdn
+    workplaceFqdn,
+    workplaceFqdnFallback: window.WORKPLACE_FQDN_FALLBACK
   })
 
   const attendees = event.attendee ?? []
