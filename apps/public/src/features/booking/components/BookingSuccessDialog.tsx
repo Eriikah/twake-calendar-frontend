@@ -26,6 +26,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useI18n } from 'twake-i18n'
 import { BookingOwnerDisplay } from '@/components/Booking/BookingHeader/BookingOwnerInfo'
 import { getBookedEvent } from '../BookingDao'
+import { formatLocalizedDate } from '@common/components/Event/utils/dateTimeFormatters'
 
 interface BookingSuccessDialogProps {
   open: boolean
@@ -263,9 +264,9 @@ export const BookingSuccessDialog: React.FC<BookingSuccessDialogProps> = ({
 
   const slotTime = useMemo<SlotTime | null>(() => {
     if (!selectedSlot) return null
-    const startDate = dayjs(selectedSlot.start).locale(lang)
+    const startDate = dayjs(selectedSlot.start)
     return {
-      date: startDate.format('MMMM D, YYYY'),
+      date: formatLocalizedDate(selectedSlot.start, lang),
       time: startDate.format('HH:mm')
     }
   }, [selectedSlot, lang])
