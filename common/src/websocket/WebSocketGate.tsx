@@ -5,19 +5,17 @@ import { Calendar } from '@common/types/CalendarTypes'
 import { useSelectedCalendars } from '@common/utils/storage/useSelectedCalendars'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useI18n } from 'twake-i18n'
-import type { WebSocketWithCleanup } from './connection'
+import type { WebSocketWithCleanup } from '@linagora/twake-websocket'
 import { DebouncedFunc } from 'lodash'
-import { closeWebSocketConnection } from './connection/lifecycle/closeWebSocketConnection'
-import { establishWebSocketConnection } from './connection/lifecycle/establishWebSocketConnection'
 import {
+  closeWebSocketConnection,
   setupWebSocketPing,
-  type PingCleanup
-} from './connection/lifecycle/pingWebSocket'
-import { useWebSocketReconnect } from './connection/lifecycle/useWebSocketReconnect'
-import {
+  type PingCleanup,
+  useWebSocketReconnect,
   registerWebSocketState,
   setWebSocketConnecting
-} from './connection/webSocketState'
+} from '@linagora/twake-websocket'
+import { establishWebSocketConnection } from '@common/websocket/connection/lifecycle/establishWebSocketConnection'
 import { parseImportResults, type ImportResult } from './messaging'
 import { updateCalendars } from './messaging/updateCalendars'
 import { syncCalendarRegistrations } from './operations'

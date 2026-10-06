@@ -5,13 +5,19 @@ import {
   SSO_UNREACHABLE_ERROR,
   useInitializeApp
 } from '@common/features/User/useInitializeApp'
-import * as retryDelay from '@common/utils/getRetryDelay'
-import { setUserError } from '@common/features/User/UserSlice'
 import { startLogin } from '@linagora/twake-oidc'
+import { setUserError } from '@common/features/User/UserSlice'
+
 import { renderHook, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { push } from 'redux-first-history'
 import { renderWithProviders } from '../../utils/Renderwithproviders'
+
+jest.mock('@linagora/twake-websocket', () => ({
+  __esModule: true,
+  getRetryDelay: jest.fn(),
+  assertWebSocketAlive: jest.fn()
+}))
 
 jest.mock('@linagora/twake-oidc', () => ({
   ...jest.requireActual('@linagora/twake-oidc'),
@@ -85,7 +91,8 @@ describe('HandleLogin', () => {
       })
 
     beforeEach(() => {
-      jest.spyOn(retryDelay, 'getRetryDelay').mockReturnValue(0)
+      const { getRetryDelay } = jest.requireMock('@linagora/twake-websocket')
+      getRetryDelay.mockReturnValue(0)
       jest.spyOn(console, 'warn').mockImplementation(() => {})
       jest.spyOn(console, 'error').mockImplementation(() => {})
     })

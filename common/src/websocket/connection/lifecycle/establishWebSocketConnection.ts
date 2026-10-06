@@ -2,7 +2,7 @@ import { createWebSocketConnection } from '@common/websocket/connection/createCo
 import {
   WebSocketCallbacks,
   WebSocketWithCleanup
-} from '@common/websocket/connection/types'
+} from '@linagora/twake-websocket'
 
 export async function establishWebSocketConnection(
   callbacks: WebSocketCallbacks,

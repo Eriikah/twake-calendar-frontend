@@ -11,7 +11,17 @@ import { I18nContext } from 'twake-i18n'
 jest.mock('@common/websocket/connection/createConnection')
 jest.mock('@common/websocket/operations/registerToCalendars')
 jest.mock('@common/websocket/operations/unregisterToCalendars')
-jest.mock('@common/websocket/connection/lifecycle/pingWebSocket')
+jest.mock('@linagora/twake-websocket', () => {
+  const actual = jest.requireActual('@linagora/twake-websocket')
+  return {
+    __esModule: true,
+    ...actual,
+    setupWebSocketPing: jest.fn(() => ({
+      stop: jest.fn(),
+      sendPing: jest.fn()
+    }))
+  }
+})
 
 function TestWrapper({ store }: { store: Store }) {
   return (
