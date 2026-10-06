@@ -168,8 +168,18 @@ describe('WebSocketGate', () => {
 
     it('should handle socket close via callback', async () => {
       let onCloseCallback: Function | undefined
+<<<<<<< HEAD
+<<<<<<< HEAD
       ;(establishWebSocketConnection as jest.Mock).mockImplementation(
         (_url, _api, callbacks) => {
+=======
+      ;(createWebSocketConnection as jest.Mock).mockImplementation(
+        ({ callbacks }) => {
+>>>>>>> bab1b086 (fixup! chore: migrated the websocket management to twake-websocket)
+=======
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
+>>>>>>> cc212a65 (fixup! fixup! chore: migrated the websocket management to twake-websocket)
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -243,8 +253,18 @@ describe('WebSocketGate', () => {
       jest.useFakeTimers()
       const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
       let onCloseCallback: Function | undefined
+<<<<<<< HEAD
+<<<<<<< HEAD
       ;(establishWebSocketConnection as jest.Mock).mockImplementation(
         (_url, _api, callbacks) => {
+=======
+      ;(createWebSocketConnection as jest.Mock).mockImplementation(
+        ({ callbacks }) => {
+>>>>>>> bab1b086 (fixup! chore: migrated the websocket management to twake-websocket)
+=======
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
+>>>>>>> cc212a65 (fixup! fixup! chore: migrated the websocket management to twake-websocket)
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -283,8 +303,18 @@ describe('WebSocketGate', () => {
     it('should NOT reconnect on normal close (code 1000)', async () => {
       jest.useFakeTimers()
       let onCloseCallback: Function | undefined
+<<<<<<< HEAD
+<<<<<<< HEAD
       ;(establishWebSocketConnection as jest.Mock).mockImplementation(
         (_url, _api, callbacks) => {
+=======
+      ;(createWebSocketConnection as jest.Mock).mockImplementation(
+        ({ callbacks }) => {
+>>>>>>> bab1b086 (fixup! chore: migrated the websocket management to twake-websocket)
+=======
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
+>>>>>>> cc212a65 (fixup! fixup! chore: migrated the websocket management to twake-websocket)
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -314,8 +344,18 @@ describe('WebSocketGate', () => {
     it('should NOT reconnect on going away (code 1001)', async () => {
       jest.useFakeTimers()
       let onCloseCallback: Function | undefined
+<<<<<<< HEAD
+<<<<<<< HEAD
       ;(establishWebSocketConnection as jest.Mock).mockImplementation(
         (_url, _api, callbacks) => {
+=======
+      ;(createWebSocketConnection as jest.Mock).mockImplementation(
+        ({ callbacks }) => {
+>>>>>>> bab1b086 (fixup! chore: migrated the websocket management to twake-websocket)
+=======
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
+>>>>>>> cc212a65 (fixup! fixup! chore: migrated the websocket management to twake-websocket)
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -344,8 +384,18 @@ describe('WebSocketGate', () => {
       jest.useFakeTimers()
       const consoleLog = jest.spyOn(console, 'info').mockImplementation()
       let onCloseCallback: Function | undefined
+<<<<<<< HEAD
+<<<<<<< HEAD
       ;(establishWebSocketConnection as jest.Mock).mockImplementation(
         (_url, _api, callbacks) => {
+=======
+      ;(createWebSocketConnection as jest.Mock).mockImplementation(
+        ({ callbacks }) => {
+>>>>>>> bab1b086 (fixup! chore: migrated the websocket management to twake-websocket)
+=======
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
+>>>>>>> cc212a65 (fixup! fixup! chore: migrated the websocket management to twake-websocket)
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -385,8 +435,18 @@ describe('WebSocketGate', () => {
     it('should not reconnect if authentication is lost during reconnection timeout', async () => {
       jest.useFakeTimers()
       let onCloseCallback: Function | undefined
+<<<<<<< HEAD
+<<<<<<< HEAD
       ;(establishWebSocketConnection as jest.Mock).mockImplementation(
         (_url, _api, callbacks) => {
+=======
+      ;(createWebSocketConnection as jest.Mock).mockImplementation(
+        ({ callbacks }) => {
+>>>>>>> bab1b086 (fixup! chore: migrated the websocket management to twake-websocket)
+=======
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
+>>>>>>> cc212a65 (fixup! fixup! chore: migrated the websocket management to twake-websocket)
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -420,8 +480,18 @@ describe('WebSocketGate', () => {
     it('should clear reconnection timeout on component unmount', async () => {
       jest.useFakeTimers()
       let onCloseCallback: Function | undefined
+<<<<<<< HEAD
+<<<<<<< HEAD
       ;(establishWebSocketConnection as jest.Mock).mockImplementation(
         (_url, _api, callbacks) => {
+=======
+      ;(createWebSocketConnection as jest.Mock).mockImplementation(
+        ({ callbacks }) => {
+>>>>>>> bab1b086 (fixup! chore: migrated the websocket management to twake-websocket)
+=======
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
+>>>>>>> cc212a65 (fixup! fixup! chore: migrated the websocket management to twake-websocket)
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -458,9 +528,24 @@ describe('WebSocketGate', () => {
         JSON.stringify(['cal1', 'cal2'])
       )
       let onCloseCallback: Function | undefined
+<<<<<<< HEAD
+<<<<<<< HEAD
       mockConnection(mockSocket, callbacks => {
         onCloseCallback = callbacks.onClose
       })
+=======
+      ;(createWebSocketConnection as jest.Mock).mockImplementation(
+        ({ callbacks }) => {
+          onCloseCallback = callbacks.onClose
+          return Promise.resolve(mockSocket)
+        }
+      )
+>>>>>>> bab1b086 (fixup! chore: migrated the websocket management to twake-websocket)
+=======
+      mockConnection(mockSocket, callbacks => {
+        onCloseCallback = callbacks.onClose
+      })
+>>>>>>> cc212a65 (fixup! fixup! chore: migrated the websocket management to twake-websocket)
 
       render(<TestWrapper store={store} />)
 
@@ -503,8 +588,18 @@ describe('WebSocketGate', () => {
     })
     it('should trigger immediate reconnection when browser goes online', async () => {
       let onCloseCallback: Function | undefined
+<<<<<<< HEAD
+<<<<<<< HEAD
       ;(establishWebSocketConnection as jest.Mock).mockImplementation(
         (_url, _api, callbacks) => {
+=======
+      ;(createWebSocketConnection as jest.Mock).mockImplementation(
+        ({ callbacks }) => {
+>>>>>>> bab1b086 (fixup! chore: migrated the websocket management to twake-websocket)
+=======
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
+>>>>>>> cc212a65 (fixup! fixup! chore: migrated the websocket management to twake-websocket)
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -535,8 +630,18 @@ describe('WebSocketGate', () => {
     it('should pause reconnection attempts when browser goes offline', async () => {
       jest.useFakeTimers()
       let onCloseCallback: Function | undefined
+<<<<<<< HEAD
+<<<<<<< HEAD
       ;(establishWebSocketConnection as jest.Mock).mockImplementation(
         (_url, _api, callbacks) => {
+=======
+      ;(createWebSocketConnection as jest.Mock).mockImplementation(
+        ({ callbacks }) => {
+>>>>>>> bab1b086 (fixup! chore: migrated the websocket management to twake-websocket)
+=======
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
+>>>>>>> cc212a65 (fixup! fixup! chore: migrated the websocket management to twake-websocket)
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -588,8 +693,18 @@ describe('WebSocketGate', () => {
       jest.useFakeTimers()
       const consoleLog = jest.spyOn(console, 'info').mockImplementation()
       let onCloseCallback: Function | undefined
+<<<<<<< HEAD
+<<<<<<< HEAD
       ;(establishWebSocketConnection as jest.Mock).mockImplementation(
         (_url, _api, callbacks) => {
+=======
+      ;(createWebSocketConnection as jest.Mock).mockImplementation(
+        ({ callbacks }) => {
+>>>>>>> bab1b086 (fixup! chore: migrated the websocket management to twake-websocket)
+=======
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
+>>>>>>> cc212a65 (fixup! fixup! chore: migrated the websocket management to twake-websocket)
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -955,8 +1070,18 @@ describe('WebSocketGate', () => {
     it('should trigger reconnection when ping detects dead connection (via socket close)', async () => {
       const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
       let onCloseCallback: ((event: CloseEvent) => void) | undefined
+<<<<<<< HEAD
+<<<<<<< HEAD
       ;(establishWebSocketConnection as jest.Mock).mockImplementation(
         (_url, _api, callbacks) => {
+=======
+      ;(createWebSocketConnection as jest.Mock).mockImplementation(
+        ({ callbacks }) => {
+>>>>>>> bab1b086 (fixup! chore: migrated the websocket management to twake-websocket)
+=======
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
+>>>>>>> cc212a65 (fixup! fixup! chore: migrated the websocket management to twake-websocket)
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -998,8 +1123,18 @@ describe('WebSocketGate', () => {
 
     it('should stop ping monitoring when socket closes normally', async () => {
       let onCloseCallback: ((event: CloseEvent) => void) | undefined
+<<<<<<< HEAD
+<<<<<<< HEAD
       ;(establishWebSocketConnection as jest.Mock).mockImplementation(
         (_url, _api, callbacks) => {
+=======
+      ;(createWebSocketConnection as jest.Mock).mockImplementation(
+        ({ callbacks }) => {
+>>>>>>> bab1b086 (fixup! chore: migrated the websocket management to twake-websocket)
+=======
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
+>>>>>>> cc212a65 (fixup! fixup! chore: migrated the websocket management to twake-websocket)
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
