@@ -1,5 +1,5 @@
 import { setSelectedCalendars } from '@common/utils/storage/setSelectedCalendars'
-import { createWebSocketConnection } from '@common/websocket/connection/createConnection'
+import { createWebSocketConnection } from '@linagora/twake-websocket'
 import { registerToCalendars } from '@common/websocket/operations/registerToCalendars'
 import { unregisterToCalendars } from '@common/websocket/operations/unregisterToCalendars'
 import { WebSocketGate } from '@common/websocket/WebSocketGate'
@@ -8,14 +8,25 @@ import { act, cleanup, render, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { I18nContext } from 'twake-i18n'
 
-jest.mock('@common/websocket/connection/createConnection')
 jest.mock('@common/websocket/operations/registerToCalendars')
 jest.mock('@common/websocket/operations/unregisterToCalendars')
+jest.mock('@common/websocket/api/fetchWebSocketTicket', () => ({
+  fetchWebSocketTicket: jest.fn(() =>
+    Promise.resolve({
+      value: 'test-ticket-123',
+      clientAddress: '127.0.0.1',
+      generatedOn: '2025-01-12T10:00:00Z',
+      validUntil: '2025-01-12T11:00:00Z',
+      username: 'testuser'
+    })
+  )
+}))
 jest.mock('@linagora/twake-websocket', () => {
   const actual = jest.requireActual('@linagora/twake-websocket')
   return {
     __esModule: true,
     ...actual,
+    createWebSocketConnection: jest.fn(),
     setupWebSocketPing: jest.fn(() => ({
       stop: jest.fn(),
       sendPing: jest.fn()
@@ -78,6 +89,7 @@ describe('WebSocketGate', () => {
     store = createMockStore()
     mockSocket = createMockSocket()
     localStorage.clear()
+    ;(window as any).WEBSOCKET_URL = 'ws://localhost/ws'
   })
 
   afterEach(() => {
@@ -143,9 +155,12 @@ describe('WebSocketGate', () => {
       await waitFor(() => {
         expect(createWebSocketConnection).toHaveBeenCalledWith(
           expect.objectContaining({
-            onMessage: expect.any(Function),
-            onClose: expect.any(Function),
-            onError: expect.any(Function)
+            url: expect.any(String),
+            callbacks: expect.objectContaining({
+              onMessage: expect.any(Function),
+              onClose: expect.any(Function),
+              onError: expect.any(Function)
+            })
           })
         )
       })
@@ -154,7 +169,7 @@ describe('WebSocketGate', () => {
     it('should handle socket close via callback', async () => {
       let onCloseCallback: Function | undefined
       ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        callbacks => {
+        ({ callbacks }) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -230,7 +245,7 @@ describe('WebSocketGate', () => {
       const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
       let onCloseCallback: Function | undefined
       ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        callbacks => {
+        ({ callbacks }) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -270,7 +285,7 @@ describe('WebSocketGate', () => {
       jest.useFakeTimers()
       let onCloseCallback: Function | undefined
       ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        callbacks => {
+        ({ callbacks }) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -301,7 +316,7 @@ describe('WebSocketGate', () => {
       jest.useFakeTimers()
       let onCloseCallback: Function | undefined
       ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        callbacks => {
+        ({ callbacks }) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -331,7 +346,7 @@ describe('WebSocketGate', () => {
       const consoleLog = jest.spyOn(console, 'info').mockImplementation()
       let onCloseCallback: Function | undefined
       ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        callbacks => {
+        ({ callbacks }) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -372,7 +387,7 @@ describe('WebSocketGate', () => {
       jest.useFakeTimers()
       let onCloseCallback: Function | undefined
       ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        callbacks => {
+        ({ callbacks }) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -407,7 +422,7 @@ describe('WebSocketGate', () => {
       jest.useFakeTimers()
       let onCloseCallback: Function | undefined
       ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        callbacks => {
+        ({ callbacks }) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -445,7 +460,7 @@ describe('WebSocketGate', () => {
       )
       let onCloseCallback: Function | undefined
       ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        callbacks => {
+        ({ callbacks }) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -493,7 +508,7 @@ describe('WebSocketGate', () => {
     it('should trigger immediate reconnection when browser goes online', async () => {
       let onCloseCallback: Function | undefined
       ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        callbacks => {
+        ({ callbacks }) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -525,7 +540,7 @@ describe('WebSocketGate', () => {
       jest.useFakeTimers()
       let onCloseCallback: Function | undefined
       ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        callbacks => {
+        ({ callbacks }) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -579,7 +594,7 @@ describe('WebSocketGate', () => {
       const consoleLog = jest.spyOn(console, 'info').mockImplementation()
       let onCloseCallback: Function | undefined
       ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        callbacks => {
+        ({ callbacks }) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -955,7 +970,7 @@ describe('WebSocketGate', () => {
       const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
       let onCloseCallback: ((event: CloseEvent) => void) | undefined
       ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        callbacks => {
+        ({ callbacks }) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -998,7 +1013,7 @@ describe('WebSocketGate', () => {
     it('should stop ping monitoring when socket closes normally', async () => {
       let onCloseCallback: ((event: CloseEvent) => void) | undefined
       ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        callbacks => {
+        ({ callbacks }) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
