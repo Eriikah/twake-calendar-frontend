@@ -1,6 +1,6 @@
 import { useAppSelector } from '@common/app/hooks'
 import Intents from 'cozy-interapp'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useI18n } from 'twake-i18n'
 import { TdriveFile } from '../types'
 import { exchangeToken, fetchIntentJSON } from '../TdriveDao'
@@ -51,22 +51,47 @@ function convertIntentResultToFiles(result: unknown): TdriveFile[] {
   return single ? [single] : []
 }
 
+interface PickerCancellation {
+  cancelled: boolean
+  whenCancelled: Promise<void>
+  cancel: () => void
+}
+
+function createPickerCancellation(): PickerCancellation {
+  let resolveCancelled!: () => void
+  const cancellation: PickerCancellation = {
+    cancelled: false,
+    whenCancelled: new Promise<void>(resolve => {
+      resolveCancelled = resolve
+    }),
+    cancel: () => {
+      cancellation.cancelled = true
+      resolveCancelled()
+    }
+  }
+  return cancellation
+}
+
 interface StartTdrivePickerOptions {
   tdriveBaseUrl: string
   idToken: string
   containerRef: React.RefObject<HTMLDivElement | null>
   readyCallbackRef: React.MutableRefObject<(() => void) | null>
-  cancellationRef: { cancelled: boolean }
-  intentRef: React.MutableRefObject<{ stop?: () => void } | null>
+  cancellationRef: PickerCancellation
+  intentRef: React.MutableRefObject<StartedCozyIntent | null>
   t: (key: string) => string
 }
 
-interface CozyIntent {
+// cozy-interapp attaches stop() to the promise returned by start(), not to
+// the intent returned by create(): stop() destroys the intent iframe.
+type StartedCozyIntent = Promise<unknown> & { stop: () => void }
+
+// The intent returned by create() is the intent creation request promise.
+type CozyIntent = Promise<unknown> & {
   start: (
     element: HTMLElement,
     options: { onReady?: () => void; onReadyToUse?: () => void }
-  ) => Promise<unknown>
-  stop?: () => void
+  ) => StartedCozyIntent
 }
 
 async function startTdrivePicker({
@@ -77,14 +102,11 @@ async function startTdrivePicker({
   cancellationRef,
   intentRef,
   t
-}: StartTdrivePickerOptions): Promise<{
-  files: TdriveFile[]
-  intent: { stop?: () => void }
-}> {
+}: StartTdrivePickerOptions): Promise<TdriveFile[]> {
   const tokenResponse = await exchangeToken(tdriveBaseUrl, idToken)
 
   if (cancellationRef.cancelled) {
-    return { files: [], intent: {} }
+    return []
   }
 
   const intents = new Intents({
@@ -107,13 +129,11 @@ async function startTdrivePicker({
     ['GET']
   ) as CozyIntent
 
-  intentRef.current = intent
-
   if (!containerRef.current) {
     throw new Error('Picker container is not mounted')
   }
 
-  const result = await intent.start(containerRef.current, {
+  const startedIntent = intent.start(containerRef.current, {
     onReady: () => {
       console.info('Tdrive picker iframe loaded')
     },
@@ -121,13 +141,29 @@ async function startTdrivePicker({
       readyCallbackRef.current?.()
     }
   })
+  intentRef.current = startedIntent
+
+  // stop() is a no-op until the intent creation request completes: stop again
+  // once it has, in case the picker got closed meanwhile.
+  // A failed creation request is reported by start(): nothing to stop then.
+  intent
+    .then(() => {
+      if (cancellationRef.cancelled) startedIntent.stop()
+      return
+    })
+    .catch(() => undefined)
+
+  // A stopped intent never settles: let cancellation end the wait.
+  const result = await Promise.race([
+    startedIntent,
+    cancellationRef.whenCancelled
+  ])
 
   if (cancellationRef.cancelled) {
-    return { files: [], intent }
+    return []
   }
 
-  const files = convertIntentResultToFiles(result)
-  return { files, intent }
+  return convertIntentResultToFiles(result)
 }
 
 export function useTdrivePicker({
@@ -141,9 +177,9 @@ export function useTdrivePicker({
   const idToken = useAppSelector(state => state.user.tokens?.id_token)
 
   const containerRef = useRef<HTMLDivElement>(null)
-  const intentRef = useRef<{ stop?: () => void } | null>(null)
+  const intentRef = useRef<StartedCozyIntent | null>(null)
   const readyCallbackRef = useRef<(() => void) | null>(null)
-  const activeCancellationRef = useRef<{ cancelled: boolean } | null>(null)
+  const activeCancellationRef = useRef<PickerCancellation | null>(null)
 
   const onReadyToUse = useCallback((callback: () => void) => {
     readyCallbackRef.current = callback
@@ -165,13 +201,13 @@ export function useTdrivePicker({
       return
     }
 
-    const cancellationRef = { cancelled: false }
+    const cancellationRef = createPickerCancellation()
     activeCancellationRef.current = cancellationRef
 
     setIsOpen(true)
 
     try {
-      const { files } = await startTdrivePicker({
+      const files = await startTdrivePicker({
         tdriveBaseUrl: tdriveBaseUrl as string,
         idToken: idToken as string,
         containerRef,
@@ -200,17 +236,21 @@ export function useTdrivePicker({
   }, [isOpen, tdriveBaseUrl, idToken, onFilesSelected, t])
 
   const closePicker = useCallback(() => {
-    if (activeCancellationRef.current) {
-      activeCancellationRef.current.cancelled = true
-      activeCancellationRef.current = null
-    }
-    if (typeof intentRef.current?.stop === 'function') {
-      intentRef.current.stop()
-    }
+    activeCancellationRef.current?.cancel()
+    activeCancellationRef.current = null
+    intentRef.current?.stop()
     intentRef.current = null
     readyCallbackRef.current = null
     setIsOpen(false)
   }, [])
+
+  useEffect(
+    () => () => {
+      activeCancellationRef.current?.cancel()
+      intentRef.current?.stop()
+    },
+    []
+  )
 
   return {
     isOpen,
