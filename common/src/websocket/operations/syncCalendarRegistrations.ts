@@ -1,4 +1,4 @@
-import { WebSocketWithCleanup } from '@common/websocket/connection'
+import { WebSocketWithCleanup } from '@linagora/twake-websocket'
 import { registerToCalendars } from './registerToCalendars'
 import { unregisterToCalendars } from './unregisterToCalendars'
 

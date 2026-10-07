@@ -5,21 +5,22 @@ import { Calendar } from '@common/types/CalendarTypes'
 import { useSelectedCalendars } from '@common/utils/storage/useSelectedCalendars'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useI18n } from 'twake-i18n'
-import type { WebSocketWithCleanup } from '@linagora/twake-websocket'
 import { DebouncedFunc } from 'lodash'
 import {
   closeWebSocketConnection,
+  establishWebSocketConnection,
   setupWebSocketPing,
   type PingCleanup,
+  type WebSocketWithCleanup,
   useWebSocketReconnect,
   registerWebSocketState,
   setWebSocketConnecting
 } from '@linagora/twake-websocket'
-import { establishWebSocketConnection } from '@common/websocket/connection/lifecycle/establishWebSocketConnection'
 import { parseImportResults, type ImportResult } from './messaging'
 import { updateCalendars } from './messaging/updateCalendars'
 import { syncCalendarRegistrations } from './operations'
 import { WebSocketStatusSnackbar } from './WebSocketStatusSnackbar'
+import { api } from '@common/utils/apiUtils'
 
 export function WebSocketGate(): JSX.Element | null {
   const socketRef = useRef<WebSocketWithCleanup | null>(null)
@@ -243,6 +244,8 @@ export function WebSocketGate(): JSX.Element | null {
 
       try {
         await establishWebSocketConnection(
+          window.WEBSOCKET_URL ?? window.CALENDAR_BASE_URL,
+          api,
           callBacks,
           socketRef,
           setIsSocketOpen,

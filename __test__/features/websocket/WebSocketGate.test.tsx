@@ -1,5 +1,5 @@
 import { setSelectedCalendars } from '@common/utils/storage/setSelectedCalendars'
-import { createWebSocketConnection } from '@linagora/twake-websocket'
+import { establishWebSocketConnection } from '@linagora/twake-websocket'
 import { registerToCalendars } from '@common/websocket/operations/registerToCalendars'
 import { unregisterToCalendars } from '@common/websocket/operations/unregisterToCalendars'
 import { WebSocketGate } from '@common/websocket/WebSocketGate'
@@ -10,27 +10,16 @@ import { I18nContext } from 'twake-i18n'
 
 jest.mock('@common/websocket/operations/registerToCalendars')
 jest.mock('@common/websocket/operations/unregisterToCalendars')
-jest.mock('@common/websocket/api/fetchWebSocketTicket', () => ({
-  fetchWebSocketTicket: jest.fn(() =>
-    Promise.resolve({
-      value: 'test-ticket-123',
-      clientAddress: '127.0.0.1',
-      generatedOn: '2025-01-12T10:00:00Z',
-      validUntil: '2025-01-12T11:00:00Z',
-      username: 'testuser'
-    })
-  )
-}))
 jest.mock('@linagora/twake-websocket', () => {
   const actual = jest.requireActual('@linagora/twake-websocket')
   return {
     __esModule: true,
     ...actual,
-    createWebSocketConnection: jest.fn(),
     setupWebSocketPing: jest.fn(() => ({
       stop: jest.fn(),
       sendPing: jest.fn()
-    }))
+    })),
+    establishWebSocketConnection: jest.fn()
   }
 })
 
@@ -85,6 +74,18 @@ describe('WebSocketGate', () => {
     onmessage: null
   })
 
+  const mockConnection = (
+    socket: any = mockSocket,
+    onCapture?: (callbacks: any) => void
+  ) =>
+    (establishWebSocketConnection as jest.Mock).mockImplementation(
+      async (_url, _api, callbacks, socketRef, setIsSocketOpen) => {
+        onCapture?.(callbacks)
+        socketRef.current = socket
+        setIsSocketOpen(socket.readyState === WebSocket.OPEN)
+      }
+    )
+
   beforeEach(() => {
     store = createMockStore()
     mockSocket = createMockSocket()
@@ -115,26 +116,24 @@ describe('WebSocketGate', () => {
 
       render(<TestWrapper store={unauthStore} />)
 
-      expect(createWebSocketConnection).not.toHaveBeenCalled()
+      expect(establishWebSocketConnection).not.toHaveBeenCalled()
     })
 
     it('should create connection when user is authenticated', async () => {
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
-
+      mockConnection()
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+        expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       })
     })
 
     it('should close existing socket when user logs out', async () => {
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
-
+      mockConnection()
       const { rerender } = render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalled()
+        expect(establishWebSocketConnection).toHaveBeenCalled()
       })
 
       const unauthStore = createMockStore(null, null)
@@ -148,28 +147,29 @@ describe('WebSocketGate', () => {
 
   describe('Socket Connection Management', () => {
     it('should create connection with callbacks', async () => {
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
-
+      mockConnection()
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledWith(
+        expect(establishWebSocketConnection).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.anything(),
           expect.objectContaining({
-            url: expect.any(String),
-            callbacks: expect.objectContaining({
-              onMessage: expect.any(Function),
-              onClose: expect.any(Function),
-              onError: expect.any(Function)
-            })
-          })
+            onMessage: expect.any(Function),
+            onClose: expect.any(Function),
+            onError: expect.any(Function)
+          }),
+          expect.anything(),
+          expect.any(Function),
+          expect.anything()
         )
       })
     })
 
     it('should handle socket close via callback', async () => {
       let onCloseCallback: Function | undefined
-      ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        ({ callbacks }) => {
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -178,7 +178,7 @@ describe('WebSocketGate', () => {
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalled()
+        expect(establishWebSocketConnection).toHaveBeenCalled()
       })
 
       // Simulate close event
@@ -197,30 +197,29 @@ describe('WebSocketGate', () => {
     })
 
     it('should handle connection errors gracefully', async () => {
-      const consoleError = jest.spyOn(console, 'error').mockImplementation()
-      ;(createWebSocketConnection as jest.Mock).mockRejectedValue(
+      const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
+      ;(establishWebSocketConnection as jest.Mock).mockRejectedValue(
         new Error('Connection failed')
       )
 
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(consoleError).toHaveBeenCalledWith(
-          'Failed to create WebSocket connection:',
+        expect(consoleWarn).toHaveBeenCalledWith(
+          expect.stringContaining('WebSocket establishment failed'),
           expect.any(Error)
         )
       })
 
-      consoleError.mockRestore()
+      consoleWarn.mockRestore()
     })
 
     it('should close socket on component unmount', async () => {
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
-
+      mockConnection()
       const { unmount } = render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalled()
+        expect(establishWebSocketConnection).toHaveBeenCalled()
       })
 
       unmount()
@@ -244,8 +243,8 @@ describe('WebSocketGate', () => {
       jest.useFakeTimers()
       const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
       let onCloseCallback: Function | undefined
-      ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        ({ callbacks }) => {
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -254,7 +253,7 @@ describe('WebSocketGate', () => {
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+        expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       })
 
       // Simulate unexpected close
@@ -274,7 +273,7 @@ describe('WebSocketGate', () => {
       })
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledTimes(2)
+        expect(establishWebSocketConnection).toHaveBeenCalledTimes(2)
       })
 
       consoleWarn.mockRestore()
@@ -284,8 +283,8 @@ describe('WebSocketGate', () => {
     it('should NOT reconnect on normal close (code 1000)', async () => {
       jest.useFakeTimers()
       let onCloseCallback: Function | undefined
-      ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        ({ callbacks }) => {
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -294,7 +293,7 @@ describe('WebSocketGate', () => {
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+        expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       })
 
       // Simulate normal close
@@ -308,15 +307,15 @@ describe('WebSocketGate', () => {
       })
 
       // Should NOT reconnect
-      expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+      expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       jest.useRealTimers()
     })
 
     it('should NOT reconnect on going away (code 1001)', async () => {
       jest.useFakeTimers()
       let onCloseCallback: Function | undefined
-      ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        ({ callbacks }) => {
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -325,7 +324,7 @@ describe('WebSocketGate', () => {
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+        expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       })
 
       // Simulate going away
@@ -337,7 +336,7 @@ describe('WebSocketGate', () => {
         jest.advanceTimersByTime(5000)
       })
 
-      expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+      expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       jest.useRealTimers()
     })
 
@@ -345,8 +344,8 @@ describe('WebSocketGate', () => {
       jest.useFakeTimers()
       const consoleLog = jest.spyOn(console, 'info').mockImplementation()
       let onCloseCallback: Function | undefined
-      ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        ({ callbacks }) => {
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -355,7 +354,7 @@ describe('WebSocketGate', () => {
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+        expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       })
 
       // First failure
@@ -386,8 +385,8 @@ describe('WebSocketGate', () => {
     it('should not reconnect if authentication is lost during reconnection timeout', async () => {
       jest.useFakeTimers()
       let onCloseCallback: Function | undefined
-      ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        ({ callbacks }) => {
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -396,7 +395,7 @@ describe('WebSocketGate', () => {
       const { rerender } = render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+        expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       })
 
       // Trigger reconnection
@@ -414,15 +413,15 @@ describe('WebSocketGate', () => {
       })
 
       // Should NOT reconnect (still only 1 connection)
-      expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+      expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       jest.useRealTimers()
     })
 
     it('should clear reconnection timeout on component unmount', async () => {
       jest.useFakeTimers()
       let onCloseCallback: Function | undefined
-      ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        ({ callbacks }) => {
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -431,7 +430,7 @@ describe('WebSocketGate', () => {
       const { unmount } = render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+        expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       })
 
       // Trigger reconnection
@@ -448,7 +447,7 @@ describe('WebSocketGate', () => {
       })
 
       // Should NOT reconnect after unmount
-      expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+      expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       jest.useRealTimers()
     })
 
@@ -459,12 +458,9 @@ describe('WebSocketGate', () => {
         JSON.stringify(['cal1', 'cal2'])
       )
       let onCloseCallback: Function | undefined
-      ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        ({ callbacks }) => {
-          onCloseCallback = callbacks.onClose
-          return Promise.resolve(mockSocket)
-        }
-      )
+      mockConnection(mockSocket, callbacks => {
+        onCloseCallback = callbacks.onClose
+      })
 
       render(<TestWrapper store={store} />)
 
@@ -507,8 +503,8 @@ describe('WebSocketGate', () => {
     })
     it('should trigger immediate reconnection when browser goes online', async () => {
       let onCloseCallback: Function | undefined
-      ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        ({ callbacks }) => {
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -517,7 +513,7 @@ describe('WebSocketGate', () => {
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+        expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       })
 
       // Close connection
@@ -532,15 +528,15 @@ describe('WebSocketGate', () => {
 
       // Should trigger immediate reconnection (no delay)
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledTimes(2)
+        expect(establishWebSocketConnection).toHaveBeenCalledTimes(2)
       })
     })
 
     it('should pause reconnection attempts when browser goes offline', async () => {
       jest.useFakeTimers()
       let onCloseCallback: Function | undefined
-      ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        ({ callbacks }) => {
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -549,7 +545,7 @@ describe('WebSocketGate', () => {
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+        expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       })
 
       // Close connection
@@ -567,17 +563,16 @@ describe('WebSocketGate', () => {
         jest.advanceTimersByTime(10000)
       })
 
-      expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+      expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       jest.useRealTimers()
     })
 
     it('should not reconnect when online event fires if already connected', async () => {
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
-
+      mockConnection()
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+        expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       })
 
       // Trigger online event while connected
@@ -586,15 +581,15 @@ describe('WebSocketGate', () => {
       })
 
       // Should NOT trigger new connection
-      expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+      expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
     })
 
     it('should reset attempt counter when online event fires', async () => {
       jest.useFakeTimers()
       const consoleLog = jest.spyOn(console, 'info').mockImplementation()
       let onCloseCallback: Function | undefined
-      ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        ({ callbacks }) => {
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -603,7 +598,7 @@ describe('WebSocketGate', () => {
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+        expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       })
 
       // Multiple failed attempts
@@ -645,14 +640,14 @@ describe('WebSocketGate', () => {
       )
 
       const connectingSocket = createMockSocket(WebSocket.CONNECTING)
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(
+      ;(establishWebSocketConnection as jest.Mock).mockResolvedValue(
         connectingSocket
       )
 
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalled()
+        expect(establishWebSocketConnection).toHaveBeenCalled()
       })
 
       expect(registerToCalendars).not.toHaveBeenCalled()
@@ -663,8 +658,7 @@ describe('WebSocketGate', () => {
         'selectedCalendars',
         JSON.stringify(['cal1', 'cal2'])
       )
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
-
+      mockConnection()
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
@@ -702,8 +696,7 @@ describe('WebSocketGate', () => {
         'selectedCalendars',
         JSON.stringify(['owner1/cal1', 'sharee1/own'])
       )
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
-
+      mockConnection()
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
@@ -716,8 +709,7 @@ describe('WebSocketGate', () => {
 
     it('should register only new calendars when calendar list changes', async () => {
       localStorage.setItem('selectedCalendars', JSON.stringify(['cal1']))
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
-
+      mockConnection()
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
@@ -745,8 +737,7 @@ describe('WebSocketGate', () => {
         'selectedCalendars',
         JSON.stringify(['cal1', 'cal2', 'cal3'])
       )
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
-
+      mockConnection()
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
@@ -772,8 +763,7 @@ describe('WebSocketGate', () => {
         'selectedCalendars',
         JSON.stringify(['cal1', 'cal2'])
       )
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
-
+      mockConnection()
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
@@ -799,7 +789,7 @@ describe('WebSocketGate', () => {
     it('should handle registration errors and not update previous calendar list', async () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation()
       localStorage.setItem('selectedCalendars', JSON.stringify(['cal1']))
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
+      mockConnection()
       ;(registerToCalendars as jest.Mock).mockImplementation(() => {
         throw new Error('Registration failed')
       })
@@ -837,12 +827,11 @@ describe('WebSocketGate', () => {
 
     it('should not attempt registration when no calendars are selected', async () => {
       localStorage.setItem('selectedCalendars', JSON.stringify([]))
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
-
+      mockConnection()
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalled()
+        expect(establishWebSocketConnection).toHaveBeenCalled()
       })
 
       expect(registerToCalendars).not.toHaveBeenCalled()
@@ -853,8 +842,7 @@ describe('WebSocketGate', () => {
   describe('Edge Cases', () => {
     it('should handle rapid calendar changes correctly', async () => {
       localStorage.setItem('selectedCalendars', JSON.stringify(['cal1']))
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
-
+      mockConnection()
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
@@ -874,8 +862,7 @@ describe('WebSocketGate', () => {
 
     it('should handle socket closed during calendar update', async () => {
       localStorage.setItem('selectedCalendars', JSON.stringify(['cal1']))
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
-
+      mockConnection()
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
@@ -902,8 +889,7 @@ describe('WebSocketGate', () => {
         'selectedCalendars',
         JSON.stringify(['cal1', 'cal2'])
       )
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
-
+      mockConnection()
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
@@ -932,12 +918,12 @@ describe('WebSocketGate', () => {
     it('should handle socket that becomes open after initial connection', async () => {
       const closedSocket = createMockSocket(WebSocket.CONNECTING)
       localStorage.setItem('selectedCalendars', JSON.stringify(['cal1']))
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(closedSocket)
+      mockConnection(closedSocket)
 
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalled()
+        expect(establishWebSocketConnection).toHaveBeenCalled()
       })
 
       // Socket is not open yet, should not register
@@ -969,8 +955,8 @@ describe('WebSocketGate', () => {
     it('should trigger reconnection when ping detects dead connection (via socket close)', async () => {
       const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
       let onCloseCallback: ((event: CloseEvent) => void) | undefined
-      ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        ({ callbacks }) => {
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -979,9 +965,9 @@ describe('WebSocketGate', () => {
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+        expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       })
-      ;(createWebSocketConnection as jest.Mock).mockClear()
+      ;(establishWebSocketConnection as jest.Mock).mockClear()
 
       // In the real implementation, when ping detects dead connection,
       // it calls socket.close() which triggers the onClose callback
@@ -1004,7 +990,7 @@ describe('WebSocketGate', () => {
 
       // Should reconnect
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+        expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
       })
 
       consoleWarn.mockRestore()
@@ -1012,8 +998,8 @@ describe('WebSocketGate', () => {
 
     it('should stop ping monitoring when socket closes normally', async () => {
       let onCloseCallback: ((event: CloseEvent) => void) | undefined
-      ;(createWebSocketConnection as jest.Mock).mockImplementation(
-        ({ callbacks }) => {
+      ;(establishWebSocketConnection as jest.Mock).mockImplementation(
+        (_url, _api, callbacks) => {
           onCloseCallback = callbacks.onClose
           return Promise.resolve(mockSocket)
         }
@@ -1022,7 +1008,7 @@ describe('WebSocketGate', () => {
       render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalled()
+        expect(establishWebSocketConnection).toHaveBeenCalled()
       })
 
       // Normal close (code 1000) - like logout or page navigation
@@ -1037,16 +1023,15 @@ describe('WebSocketGate', () => {
         jest.advanceTimersByTime(5000)
       })
 
-      expect(createWebSocketConnection).toHaveBeenCalledTimes(1)
+      expect(establishWebSocketConnection).toHaveBeenCalledTimes(1)
     })
 
     it('should cleanup ping monitoring on component unmount', async () => {
-      ;(createWebSocketConnection as jest.Mock).mockResolvedValue(mockSocket)
-
+      mockConnection()
       const { unmount } = render(<TestWrapper store={store} />)
 
       await waitFor(() => {
-        expect(createWebSocketConnection).toHaveBeenCalled()
+        expect(establishWebSocketConnection).toHaveBeenCalled()
       })
 
       // Unmount should cleanup
