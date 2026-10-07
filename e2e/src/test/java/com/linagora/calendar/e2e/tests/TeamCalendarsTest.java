@@ -10,10 +10,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.linagora.calendar.e2e.TwakeCalendarE2ETest;
+import com.linagora.calendar.e2e.backend.CalendarProbe;
 import com.linagora.calendar.e2e.backend.E2EUser;
 import com.linagora.calendar.e2e.backend.E2EUserFactory;
 import com.linagora.calendar.e2e.backend.TeamCalendarProbe;
 import com.linagora.calendar.e2e.backend.TeamCalendarProbe.Right;
+import com.linagora.calendar.e2e.docker.E2EClock;
 import com.linagora.calendar.e2e.docker.E2ESessions;
 import com.linagora.calendar.e2e.pages.CalendarPage;
 import com.linagora.calendar.e2e.pages.EventFormModal;
@@ -287,6 +289,82 @@ class TeamCalendarsTest extends TwakeCalendarE2ETest {
             .isAttached(new LocatorAssertions.IsAttachedOptions().setTimeout(PROPAGATION_MS));
         // the preview counts the participants but only names them once expanded
         assertThat(calendar.openEvent(title).showMore().text()).contains(guest.email());
+    }
+
+    @Test
+    @DisplayName("TEAM-19 A team event inviting another member shows as its organizer answered")
+    void aTeamEventInvitingAMemberShowsAsItsOrganizerAnswered(Page page, E2EUser user, E2EUserFactory users,
+                                                              E2ESessions sessions, TeamCalendarProbe teams,
+                                                              CalendarProbe probe) {
+        CalendarPage calendar = LoginPage.loginAs(page, user);
+        String name = unique("Attending team");
+        String id = aTeamFor(teams, user, Right.READ_WRITE, name);
+        E2EUser mate = users.newUser("mate");
+        sessions.pageFor(mate);
+        teams.grant(id, mate, Right.READ_WRITE);
+        awaitTeamVisible(page, name);
+
+        String title = unique("Team event with a member");
+        // the invited member is listed before the organizer: picking the first member who
+        // attends would show the pending answer of the invited member
+        putTeamEventInviting(probe, user, id, title, mate.email());
+        calendar.reload();
+        showTeam(calendar, name);
+
+        assertShowsAsItsOrganizerAccepted(page, calendar, title);
+    }
+
+    @Test
+    @DisplayName("TEAM-20 A team event inviting an external participant shows as its organizer answered")
+    void aTeamEventInvitingAnOutsiderShowsAsItsOrganizerAnswered(Page page, E2EUser user,
+                                                                 TeamCalendarProbe teams, CalendarProbe probe) {
+        CalendarPage calendar = LoginPage.loginAs(page, user);
+        String name = unique("Team inviting outside");
+        String id = aTeamFor(teams, user, Right.READ_WRITE, name);
+        awaitTeamVisible(page, name);
+
+        String title = unique("Team event with an outsider");
+        putTeamEventInviting(probe, user, id, title, "outsider1@external.test");
+        calendar.reload();
+        showTeam(calendar, name);
+
+        assertShowsAsItsOrganizerAccepted(page, calendar, title);
+    }
+
+    /** The invitee is listed first, still pending, before the organizer who accepted. */
+    private static void putTeamEventInviting(CalendarProbe probe, E2EUser organizer, String teamId,
+                                             String title, String inviteeEmail) {
+        String uid = UUID.randomUUID().toString();
+        String day = E2EClock.today().toString().replace("-", "");
+        probe.putEventIn(organizer, teamId, uid, """
+            BEGIN:VCALENDAR
+            VERSION:2.0
+            PRODID:-//linagora//twake-calendar-e2e//EN
+            BEGIN:VEVENT
+            UID:%s
+            DTSTAMP:%sT090000Z
+            DTSTART:%sT090000Z
+            DTEND:%sT100000Z
+            SUMMARY:%s
+            ORGANIZER:mailto:%s
+            ATTENDEE;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;ROLE=REQ-PARTICIPANT:mailto:%s
+            ATTENDEE;PARTSTAT=ACCEPTED;ROLE=CHAIR:mailto:%s
+            END:VEVENT
+            END:VCALENDAR
+            """.formatted(uid, day, day, day, title, organizer.email(), inviteeEmail, organizer.email())
+            .replace("\n", "\r\n"));
+    }
+
+    private static void assertShowsAsItsOrganizerAccepted(Page page, CalendarPage calendar, String title) {
+        Locator card = calendar.eventCard(title).first();
+        PlaywrightAssertions.assertThat(card)
+            .isAttached(new LocatorAssertions.IsAttachedOptions().setTimeout(PROPAGATION_MS));
+        // the organizer accepted: the pending answer of the invitee is not the one of the team
+        PlaywrightAssertions.assertThat(card.locator("[data-testid=HelpOutlineOutlinedIcon]"))
+            .hasCount(0);
+        PlaywrightAssertions.assertThat(page.locator(".fc-event.needs-action-event")
+                .filter(new Locator.FilterOptions().setHasText(title)))
+            .hasCount(0);
     }
 
     @Test
