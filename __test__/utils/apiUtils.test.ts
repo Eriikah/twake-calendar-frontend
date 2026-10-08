@@ -1,7 +1,8 @@
-jest.mock(
-  '@common/websocket/connection/lifecycle/assertWebSocketAlive',
-  () => ({ assertWebSocketAlive: jest.fn() })
-)
+jest.mock('@linagora/twake-websocket', () => ({
+  __esModule: true,
+  ...jest.requireActual('@linagora/twake-websocket'),
+  assertWebSocketAlive: jest.fn()
+}))
 
 describe('api client authorization', () => {
   const sent: Request[] = []

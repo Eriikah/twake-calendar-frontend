@@ -5,23 +5,22 @@ import { Calendar } from '@common/types/CalendarTypes'
 import { useSelectedCalendars } from '@common/utils/storage/useSelectedCalendars'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useI18n } from 'twake-i18n'
-import type { WebSocketWithCleanup } from './connection'
 import { DebouncedFunc } from 'lodash'
-import { closeWebSocketConnection } from './connection/lifecycle/closeWebSocketConnection'
-import { establishWebSocketConnection } from './connection/lifecycle/establishWebSocketConnection'
 import {
+  closeWebSocketConnection,
+  establishWebSocketConnection,
   setupWebSocketPing,
-  type PingCleanup
-} from './connection/lifecycle/pingWebSocket'
-import { useWebSocketReconnect } from './connection/lifecycle/useWebSocketReconnect'
-import {
+  type PingCleanup,
+  type WebSocketWithCleanup,
+  useWebSocketReconnect,
   registerWebSocketState,
   setWebSocketConnecting
-} from './connection/webSocketState'
+} from '@linagora/twake-websocket'
 import { parseImportResults, type ImportResult } from './messaging'
 import { updateCalendars } from './messaging/updateCalendars'
 import { syncCalendarRegistrations } from './operations'
 import { WebSocketStatusSnackbar } from './WebSocketStatusSnackbar'
+import { api } from '@common/utils/apiUtils'
 
 export function WebSocketGate(): JSX.Element | null {
   const socketRef = useRef<WebSocketWithCleanup | null>(null)
@@ -245,6 +244,8 @@ export function WebSocketGate(): JSX.Element | null {
 
       try {
         await establishWebSocketConnection(
+          window.WEBSOCKET_URL ?? window.CALENDAR_BASE_URL,
+          api,
           callBacks,
           socketRef,
           setIsSocketOpen,

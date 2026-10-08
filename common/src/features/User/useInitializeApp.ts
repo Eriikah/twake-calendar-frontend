@@ -4,8 +4,8 @@ import {
   getOpenPaasUserData,
   setUserError
 } from '@common/features/User/UserSlice'
-import { getRetryDelay } from '@common/utils/getRetryDelay'
 import { getAccessToken, startLogin } from '@linagora/twake-oidc'
+import { getRetryDelay } from '@linagora/twake-websocket'
 import { useEffect, useRef } from 'react'
 import { push } from 'redux-first-history'
 import { getCalendarsList } from '../Calendars/CalendarSlice'

@@ -1,7 +1,6 @@
-import { assertWebSocketAlive } from '@common/websocket/connection/lifecycle/assertWebSocketAlive'
 import { addAuthorization, redirectOnUnauthorized } from '@linagora/twake-oidc'
 import ky, { type KyInstance, type KyRequest } from 'ky'
-import { getRetryDelay } from './getRetryDelay'
+import { assertWebSocketAlive, getRetryDelay } from '@linagora/twake-websocket'
 
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
