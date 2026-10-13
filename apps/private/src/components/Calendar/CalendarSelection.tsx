@@ -221,6 +221,14 @@ const CalendarAccordion: React.FC<{
   )
 }
 
+// Row actions are revealed on hover; touch screens cannot hover and keyboard
+// users focus them, so they stay visible there.
+const rowActionsSx = {
+  '& .MoreBtn': { opacity: 0 },
+  '&:hover, &:focus-within': { '& .MoreBtn': { opacity: 1 } },
+  '@media (hover: none)': { '& .MoreBtn': { opacity: 1 } }
+}
+
 const getBookingLinkUrl = (publicId: string): URL => {
   if (!window.PUBLIC_PAGE_BASE) {
     throw new Error('No public base page setup')
@@ -235,6 +243,57 @@ const getBookingLinkIcon = (active: boolean, iconColor: string): ReactNode => {
     <EventIcon sx={sx} fontSize="small" />
   ) : (
     <WebAssetOffOutlinedIcon sx={sx} fontSize="small" />
+  )
+}
+
+const BookingLinkLabel: React.FC<{ name: string }> = ({ name }) => {
+  const theme = useTheme()
+  return (
+    <Tooltip title={name} enterDelay={500} placement="bottom-start">
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}
+      >
+        <span
+          style={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            fontSize: '0.875rem',
+            color: alpha(theme.palette.grey[900], 0.9)
+          }}
+        >
+          {name}
+        </span>
+      </div>
+    </Tooltip>
+  )
+}
+
+const BookingLinkRowActions: React.FC<{
+  onCopy: () => void
+  onMenuOpen: (event: React.MouseEvent<HTMLButtonElement>) => void
+}> = ({ onCopy, onMenuOpen }) => {
+  const { t } = useI18n()
+  return (
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <Tooltip title={t('tooltip.copyBookingLink')}>
+        <IconButton className="MoreBtn" onClick={onCopy} size="small">
+          <LinkIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+      <IconButton
+        className="MoreBtn"
+        size="small"
+        aria-label={t('common.moreOptions')}
+        onClick={onMenuOpen}
+      >
+        <MoreHorizIcon fontSize="small" />
+      </IconButton>
+    </div>
   )
 }
 
@@ -284,11 +343,8 @@ const BookingLinkChip: React.FC<{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          '& .MoreBtn': { opacity: 0 },
-          '&:hover': {
-            backgroundColor: '#F3F3F6',
-            '& .MoreBtn': { opacity: 1 }
-          }
+          ...rowActionsSx,
+          '&:hover': { backgroundColor: '#F3F3F6' }
         }}
       >
         <div
@@ -305,47 +361,17 @@ const BookingLinkChip: React.FC<{
             {getBookingLinkIcon(link.active, iconColor)}
           </div>
 
-          <Tooltip title={linkName} enterDelay={500} placement="bottom-start">
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden'
-              }}
-            >
-              <span
-                style={{
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  fontSize: '0.875rem',
-                  color: alpha(theme.palette.grey[900], 0.9)
-                }}
-              >
-                {linkName}
-              </span>
-            </div>
-          </Tooltip>
+          <BookingLinkLabel name={linkName} />
         </div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Tooltip title={t('tooltip.copyBookingLink')}>
-            <IconButton
-              className="MoreBtn"
-              onClick={() =>
-                handleCopyLink(
-                  getBookingLinkUrl(link.publicId),
-                  setCopySnackbarOpen
-                )
-              }
-              size="small"
-            >
-              <LinkIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <IconButton className="MoreBtn" size="small" onClick={handleMenuOpen}>
-            <MoreHorizIcon fontSize="small" />
-          </IconButton>
-        </div>
+        <BookingLinkRowActions
+          onCopy={() =>
+            handleCopyLink(
+              getBookingLinkUrl(link.publicId),
+              setCopySnackbarOpen
+            )
+          }
+          onMenuOpen={handleMenuOpen}
+        />
       </ListItem>
       <BookingLinkSelectorMenu
         anchorEl={menuAnchorEl}
@@ -796,11 +822,8 @@ const CalendarSelector: React.FC<{
           alignItems: 'center',
           justifyContent: 'space-between',
           transition: 'background-color 0.2s ease',
-          '& .MoreBtn': { opacity: 0 },
-          '&:hover': {
-            backgroundColor: '#F3F3F6',
-            '& .MoreBtn': { opacity: 1 }
-          }
+          ...rowActionsSx,
+          '&:hover': { backgroundColor: '#F3F3F6' }
         }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
@@ -854,7 +877,11 @@ const CalendarSelector: React.FC<{
           </label>
         </Tooltip>
         {!isMobile && (
-          <IconButton className="MoreBtn" onClick={handleClick}>
+          <IconButton
+            className="MoreBtn"
+            aria-label={t('common.moreOptions')}
+            onClick={handleClick}
+          >
             <MoreHorizIcon />
           </IconButton>
         )}
