@@ -16,7 +16,7 @@ import { useI18n } from 'twake-i18n'
 import { useTempSearch } from './hooks/useTempSearch'
 import { AttendeeOptionsList } from '@common/components/Attendees/AttendeeOptionsList'
 import { MobileTempSearchInput } from './MobileTempSearchInput'
-import { SearchState } from './utils/tempSearchUtil'
+import { hasFoundNothing, SearchState } from './utils/tempSearchUtil'
 
 interface TempSearchDialogProps {
   tempUsers: User[]
@@ -54,11 +54,12 @@ export default function TempSearchDialog({
   const { handleUserChange } = useTempSearch({ setTempUsers, tempUsers })
 
   const handleSearchChange = useCallback(
-    ({ query, options, loading }: SearchState): void => {
+    ({ query, options, loading, hasSearched }: SearchState): void => {
       setSearchState(prev => ({
         query: query ?? prev.query,
         options: options ?? prev.options,
-        loading: loading ?? prev.loading
+        loading: loading ?? prev.loading,
+        hasSearched: hasSearched ?? prev.hasSearched
       }))
     },
     []
@@ -114,6 +115,11 @@ export default function TempSearchDialog({
             handleChange({} as React.SyntheticEvent, [...tempUsers, user])
           }
           selectedUsers={tempUsers}
+          noResultsText={
+            hasFoundNothing(searchState)
+              ? t('peopleSearch.noResults')
+              : undefined
+          }
         />
       </DialogContent>
 

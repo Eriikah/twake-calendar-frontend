@@ -15,6 +15,7 @@ import { useI18n } from 'twake-i18n'
 import { AttendeeOptionsList } from '@common/components/Attendees/AttendeeOptionsList'
 import { SplittedSearchInput } from './SplittedSearchInput'
 import type { SearchCalendarsDialogProps, SearchState } from './index.types'
+import { hasFoundNothing } from '@common/components/Calendar/utils/tempSearchUtil'
 
 export const SearchCalendarsDialog: React.FC<SearchCalendarsDialogProps> = ({
   objectTypes,
@@ -42,11 +43,12 @@ export const SearchCalendarsDialog: React.FC<SearchCalendarsDialogProps> = ({
   }, [open])
 
   const handleSearchChange = useCallback(
-    ({ query, options, loading }: SearchState): void => {
+    ({ query, options, loading, hasSearched }: SearchState): void => {
       setSearchState(prev => ({
         query: query ?? prev.query,
         options: options ?? prev.options,
-        loading: loading ?? prev.loading
+        loading: loading ?? prev.loading,
+        hasSearched: hasSearched ?? prev.hasSearched
       }))
     },
     []
@@ -116,6 +118,11 @@ export const SearchCalendarsDialog: React.FC<SearchCalendarsDialogProps> = ({
             ])
           }
           selectedUsers={selectedUsers}
+          noResultsText={
+            hasFoundNothing(searchState)
+              ? t('peopleSearch.noResults')
+              : undefined
+          }
         />
       </DialogContent>
 
