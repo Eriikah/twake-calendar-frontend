@@ -9,12 +9,12 @@ import { VCalComponent } from '@common/features/Calendars/types/CalendarData'
 import {
   Box,
   Button,
-  Dialog,
   DialogContent,
   IconButton,
   Link,
   Typography
 } from '@linagora/twake-mui'
+import { Dialog } from '@common/ds/Dialog/Dialog'
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined'
 import CloseIcon from '@mui/icons-material/Close'
 import LanguageOutlinedIcon from '@mui/icons-material/LanguageOutlined'
