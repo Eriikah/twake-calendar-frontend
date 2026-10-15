@@ -14,6 +14,7 @@ import { useI18n } from 'twake-i18n'
 import dayjs, { Dayjs } from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
+import updateLocale from 'dayjs/plugin/updateLocale'
 import 'dayjs/locale/en'
 import 'dayjs/locale/fr'
 import 'dayjs/locale/es'
@@ -25,6 +26,8 @@ import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
+dayjs.extend(updateLocale)
+dayjs.updateLocale('en', { weekStart: 1 })
 
 /**
  * Dayjs registers its locales under their base language code ('de', 'fr'),
