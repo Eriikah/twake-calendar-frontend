@@ -23,10 +23,12 @@ export function formatEnd({
     // All-day dates are floating YYYY-MM-DD values parsed as UTC midnight
     const inclusiveEndDate = new Date(endDate)
     inclusiveEndDate.setUTCDate(inclusiveEndDate.getUTCDate() - 1)
-    const sameDay =
-      formatDateInTimezone(startDate, 'UTC') ===
-      formatDateInTimezone(inclusiveEndDate, 'UTC')
-    return sameDay
+    // YYYY-MM-DD strings compare chronologically. An end on or before the
+    // start (DTEND <= DTSTART, accepted by the server) shows the start only.
+    const noLaterDay =
+      formatDateInTimezone(inclusiveEndDate, 'UTC') <=
+      formatDateInTimezone(startDate, 'UTC')
+    return noLaterDay
       ? null
       : inclusiveEndDate.toLocaleDateString(t('locale'), {
           year: 'numeric',
@@ -35,6 +37,9 @@ export function formatEnd({
           timeZone: 'UTC'
         })
   } else {
+    if (endDate < startDate) {
+      return null
+    }
     const sameDay = formatDatePart(startDate) === formatDatePart(endDate)
     if (sameDay) {
       return endDate.toLocaleTimeString(t('locale'), {
