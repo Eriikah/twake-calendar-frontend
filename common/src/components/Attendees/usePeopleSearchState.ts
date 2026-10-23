@@ -183,7 +183,8 @@ const useHandleKeyDown = (
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (enableEmailAutocompleteAndCommit && event.key === ' ') {
         const trimmed = query.trim()
-        if (!trimmed) {
+        // Not an email yet: the space belongs to the search (e.g. a full name)
+        if (!trimmed || !EmailAddress.parse(trimmed)) {
           return
         }
         event.preventDefault()

@@ -623,6 +623,19 @@ describe('PeopleSearch', () => {
       expect(input).toHaveValue('')
     })
 
+    it('keeps the space in the query when it is not an email', async () => {
+      const { onChange } = setup([], { enableEmailAutocompleteAndCommit: true })
+
+      const input = screen.getByRole('combobox')
+      await userEvent.type(input, 'Jean Dupont')
+
+      expect(input).toHaveValue('Jean Dupont')
+      expect(onChange).not.toHaveBeenCalled()
+      expect(
+        screen.queryByText('peopleSearch.invalidEmail')
+      ).not.toBeInTheDocument()
+    })
+
     it('does not add an email differing only by case when space is pressed', async () => {
       const existing: User = {
         email: 'bob@open-paas.org',
