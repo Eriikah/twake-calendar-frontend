@@ -30,7 +30,7 @@ const teamCalendar = (id: string): Calendar => ({
   delegated: true
 })
 
-const found = (calId: string) => ({
+const found = (calId: string, extraProps: unknown[][] = []) => ({
   _embedded: {
     'dav:item': [
       {
@@ -47,7 +47,8 @@ const found = (calId: string) => ({
                 ['uid', {}, 'text', 'event1'],
                 ['summary', {}, 'text', 'Deep embed'],
                 ['dtstart', {}, 'date-time', '2025-07-02T10:00:00Z'],
-                ['dtend', {}, 'date-time', '2025-07-02T11:00:00Z']
+                ['dtend', {}, 'date-time', '2025-07-02T11:00:00Z'],
+                ...extraProps
               ],
               []
             ]
@@ -146,6 +147,29 @@ describe('getEventByUid on a team calendar', () => {
       'TRANSLATION:error.cannotLoadEvent'
     )
   })
+
+  // iCalendar enumerated values are case-insensitive (RFC 5545)
+  it.each(['CANCELLED', 'cancelled'])(
+    'reports a %s event as canceled, without storing it',
+    async status => {
+      fetchEventByUid.mockResolvedValue(
+        found(PERSONAL_CAL_ID, [['status', {}, 'text', status]])
+      )
+      const store = storeFactory()
+
+      const result = await store.dispatch(
+        getEventByUid({ userId: 'alice', uid: 'event1' })
+      )
+
+      expect(result.meta.requestStatus).toBe('rejected')
+      expect(store.getState().calendars.error).toBe(
+        'TRANSLATION:error.eventCanceled'
+      )
+      expect(store.getState().calendars.list[PERSONAL_CAL_ID].events).toEqual(
+        {}
+      )
+    }
+  )
 
   it('only asks the home of the embedded calendar', async () => {
     fetchEventByUid.mockResolvedValue(found(TEAM_CAL_ID))
