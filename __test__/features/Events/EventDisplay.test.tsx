@@ -6,11 +6,21 @@ import {
   stringToColor
 } from '@common/components/Event/utils/eventUtils'
 import EventPreviewModal from '@common/components/EventPreview'
+import {
+  EventDeletionSnackbar,
+  UNDO_DELETION_DURATION
+} from '@common/components/Event/EventDeletionSnackbar'
 import * as eventThunks from '@common/features/Calendars/CalendarSlice'
 import * as EventDao from '@common/features/Events/EventDao'
 import { AccessRight, DelegationAccess } from '@common/types/CalendarTypes'
 import { VCalComponent } from '@common/features/Calendars/types/CalendarData'
-import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
+import {
+  act,
+  cleanup,
+  fireEvent,
+  screen,
+  waitFor
+} from '@testing-library/react'
 import { renderWithProviders } from '../../utils/Renderwithproviders'
 import { userAttendee } from '@common/features/User/models/attendee'
 
@@ -281,36 +291,155 @@ describe('Event Preview Display', () => {
       screen.queryByLabelText('eventPreview.deleteEvent')
     ).toBeInTheDocument()
   })
-  it('calls delete when Delete clicked', async () => {
-    renderWithProviders(
-      <EventPreviewModal
-        open={true}
-        onClose={mockOnClose}
-        calId="667037022b752d0026472254/cal1"
-        eventId="event1"
-      />,
-      preloadedState
-    )
-    const spy = jest
-      .spyOn(eventThunks, 'deleteEvent')
-      .mockImplementation(payload => {
+  describe('deletion with undo', () => {
+    beforeEach(() => jest.useFakeTimers())
+    afterEach(() => {
+      jest.useRealTimers()
+      jest.restoreAllMocks()
+    })
+
+    const spyOnDeleteEvent = () =>
+      jest.spyOn(eventThunks, 'deleteEvent').mockImplementation(payload => {
         return () => Promise.resolve(payload) as any
       })
-    fireEvent.click(screen.getByLabelText('eventPreview.deleteEvent'))
 
-    await waitFor(() => {
-      expect(spy).toHaveBeenCalled()
+    const renderAndDelete = (eventId: string) => {
+      const view = renderWithProviders(
+        <>
+          <EventPreviewModal
+            open={true}
+            onClose={mockOnClose}
+            calId="667037022b752d0026472254/cal1"
+            eventId={eventId}
+          />
+          <EventDeletionSnackbar />
+        </>,
+        preloadedState
+      )
+      fireEvent.click(screen.getByLabelText('eventPreview.deleteEvent'))
+      return view
+    }
+
+    it('hides the event and only deletes it once the snackbar is gone', async () => {
+      const spy = spyOnDeleteEvent()
+      const { store } = renderAndDelete('event1')
+
+      expect(mockOnClose).toHaveBeenCalledWith({}, 'backdropClick')
+      expect(store.getState().calendars.pendingDeletions).toHaveLength(1)
+      expect(spy).not.toHaveBeenCalled()
+
+      act(() => {
+        jest.advanceTimersByTime(UNDO_DELETION_DURATION)
+      })
+
+      await waitFor(() => expect(spy).toHaveBeenCalled())
+      expect(spy.mock.calls[0][0]).toEqual({
+        calId: '667037022b752d0026472254/cal1',
+        eventId: 'event1'
+      })
+      await waitFor(() =>
+        expect(store.getState().calendars.pendingDeletions).toHaveLength(0)
+      )
+      expect(
+        store.getState().calendars.list['667037022b752d0026472254/cal1'].events
+          .event1
+      ).toBeUndefined()
     })
 
-    const receivedPayload = spy.mock.calls[0][0]
+    it('tells the organiser that guests will receive a cancellation', () => {
+      spyOnDeleteEvent()
+      renderAndDelete('event1')
 
-    expect(receivedPayload).toEqual({
-      calId: '667037022b752d0026472254/cal1',
-      eventId: 'event1'
+      expect(
+        screen.getByText('event.deletedGuestsNotified')
+      ).toBeInTheDocument()
     })
 
-    expect(mockOnClose).toHaveBeenCalledWith({}, 'backdropClick')
+    it('just says the event is deleted when nobody else is invited', () => {
+      spyOnDeleteEvent()
+      renderAndDelete('event2')
+
+      expect(screen.getByText('event.deleted')).toBeInTheDocument()
+    })
+
+    it('sends nothing and shows the event again on undo', async () => {
+      const spy = spyOnDeleteEvent()
+      const { store } = renderAndDelete('event2')
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'actions.undo', hidden: true })
+      )
+      act(() => {
+        jest.advanceTimersByTime(UNDO_DELETION_DURATION)
+      })
+
+      expect(store.getState().calendars.pendingDeletions).toHaveLength(0)
+      expect(spy).not.toHaveBeenCalled()
+      expect(
+        store.getState().calendars.list['667037022b752d0026472254/cal1'].events
+          .event2
+      ).toBeDefined()
+    })
+
+    it('deletes the first event for good when a second one is deleted', async () => {
+      const spy = spyOnDeleteEvent()
+      const { store, rerender } = renderAndDelete('event1')
+
+      rerender(
+        <>
+          <EventPreviewModal
+            open={true}
+            onClose={mockOnClose}
+            calId="667037022b752d0026472254/cal1"
+            eventId="event2"
+          />
+          <EventDeletionSnackbar />
+        </>
+      )
+      fireEvent.click(screen.getByLabelText('eventPreview.deleteEvent'))
+
+      await waitFor(() => expect(spy).toHaveBeenCalledTimes(1))
+      expect(spy.mock.calls[0][0]).toMatchObject({ eventId: 'event1' })
+      await waitFor(() =>
+        expect(store.getState().calendars.pendingDeletions).toEqual([
+          expect.objectContaining({ committing: false })
+        ])
+      )
+      expect(screen.getByText('event.deleted')).toBeInTheDocument()
+    })
+
+    it('sends the pending deletion when the page is hidden', async () => {
+      const spy = spyOnDeleteEvent()
+      renderAndDelete('event2')
+
+      act(() => {
+        window.dispatchEvent(new Event('pagehide'))
+      })
+
+      await waitFor(() => expect(spy).toHaveBeenCalled())
+    })
+
+    it('brings the event back when the deletion fails', async () => {
+      jest.spyOn(EventDao, 'deleteEvent').mockRejectedValue(new Error('500'))
+      const { store } = renderAndDelete('event2')
+
+      act(() => {
+        jest.advanceTimersByTime(UNDO_DELETION_DURATION)
+      })
+
+      await waitFor(() =>
+        expect(store.getState().calendars.error).toBe(
+          'TRANSLATION:error.deleteEventFailed'
+        )
+      )
+      expect(store.getState().calendars.pendingDeletions).toHaveLength(0)
+      expect(
+        store.getState().calendars.list['667037022b752d0026472254/cal1'].events
+          .event2
+      ).toBeDefined()
+    })
   })
+
   it('renders RSVP buttons when user is an attendee', () => {
     const rsvpStateIsOrga = {
       ...preloadedState,

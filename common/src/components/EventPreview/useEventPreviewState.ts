@@ -1,20 +1,17 @@
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { AppDispatch } from '@common/app/store'
-import { handleDelete } from '@common/components/Event/eventHandlers/eventHandlers'
-import {
-  deleteEvent,
-  setCalendarError
-} from '@common/features/Calendars/CalendarSlice'
+import { setCalendarError } from '@common/features/Calendars/CalendarSlice'
 import { createEventContext } from '@common/features/Events/createEventContext'
+import { scheduleEventDeletion } from '@common/features/Events/eventDeletion'
 import { canWriteToTeamCalendar } from '@common/features/Calendars/utils/calendarPermissions'
 import { moveEventBetweenCalendars } from '@common/features/Events/updateEventHelpers/moveEventBetweenCalendars'
 import { ToUserData } from '@common/features/User/type/OpenPaasUserData'
 import { userData, userOrganiser } from '@common/features/User/userDataTypes'
 import { Calendar } from '@common/types/CalendarTypes'
 import { CalendarEvent, ContextualizedEvent } from '@common/types/EventsTypes'
-import { assertThunkSuccess } from '@common/utils/assertThunkSuccess'
 import { getEffectiveEmail } from '@common/utils/getEffectiveEmail'
 import { isEventOrganiser } from '@common/utils/isEventOrganiser'
+import { normalizeIdentity } from '@common/utils/normalizeIdentity'
 import { browserDefaultTimeZone } from '@common/utils/timezone'
 import { useMemo, useState } from 'react'
 import { useEventUpdateModalReopen } from './useEventUpdateModalReopen'
@@ -274,33 +271,30 @@ export function useEventPreviewState(
     }
   }
 
+  // the snackbar offering to undo it shows up once the deletion is pending
+  const deleteWithUndo = (scope: 'solo' | 'all'): void => {
+    onClose({}, 'backdropClick')
+    const organizer = normalizeIdentity(event.organizer?.cal_address ?? '')
+    const guestsNotified =
+      isOrganizer &&
+      (event.attendee ?? []).some(
+        attendee =>
+          attendee.cutype !== 'RESOURCE' &&
+          normalizeIdentity(attendee.cal_address) !== organizer
+      )
+    dispatch(scheduleEventDeletion({ calId, event, scope, guestsNotified }))
+  }
+
   const handleDeleteClick = async (): Promise<void> => {
     if (isRecurring) {
       setAfterChoiceFunc(
         () =>
           (type?: 'solo' | 'all'): void =>
-            void handleDelete(
-              isRecurring,
-              type,
-              onClose,
-              dispatch,
-              calendar,
-              event,
-              calId,
-              eventId
-            )
+            deleteWithUndo(type === 'solo' ? 'solo' : 'all')
       )
       setOpenEditModePopup('delete')
     } else {
-      onClose({}, 'backdropClick')
-      try {
-        const result = await dispatch(
-          deleteEvent({ calId, eventId, eventURL: event.URL })
-        )
-        await assertThunkSuccess(result)
-      } catch (error) {
-        console.error('Failed to delete event:', error)
-      }
+      deleteWithUndo('all')
     }
   }
 

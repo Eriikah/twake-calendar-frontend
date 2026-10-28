@@ -1,11 +1,12 @@
 import type { AlertColor } from '@linagora/twake-mui'
-import { Alert, Snackbar } from '@linagora/twake-mui'
+import { Alert, Button, Snackbar } from '@linagora/twake-mui'
 
 export function SnackbarAlert({
   open,
   setOpen,
   message,
   severity = 'success',
+  action,
   autoHideDuration = 2000,
   sx
 }: {
@@ -13,6 +14,7 @@ export function SnackbarAlert({
   setOpen: (o: boolean) => void
   message: string
   severity?: AlertColor
+  action?: { label: string; onClick: () => void }
   autoHideDuration?: number
   sx?: object
 }): JSX.Element {
@@ -20,13 +22,28 @@ export function SnackbarAlert({
     <Snackbar
       open={open}
       autoHideDuration={autoHideDuration}
-      onClose={() => setOpen(false)}
+      // a click elsewhere in the app must not take the action away
+      onClose={(_, reason) => {
+        if (!(action && reason === 'clickaway')) setOpen(false)
+      }}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
     >
       <Alert
         severity={severity}
         onClose={() => setOpen(false)}
         sx={{ width: '100%', ...sx }}
+        action={
+          action && (
+            <Button
+              variant="text"
+              color="inherit"
+              size="small"
+              onClick={action.onClick}
+            >
+              {action.label}
+            </Button>
+          )
+        }
       >
         {message}
       </Alert>

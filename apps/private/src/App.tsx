@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { history, store } from '@common/app/store'
 import { Error as ErrorPage } from '@common/components/Error/Error'
 import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
+import { EventDeletionSnackbar } from '@common/components/Event/EventDeletionSnackbar'
 import { DebugModeToggle } from '@common/components/Debug/DebugModeToggle'
 import { TwakeBarHeader } from '@common/components/TwakeBarHeader/TwakeBarHeader'
 import { ErrorBoundary } from 'react-error-boundary'
@@ -195,6 +196,7 @@ export default function App(): JSX.Element {
               </Router>
             </SpaceOverlayProvider>
             <ErrorSnackbar error={error} type="user" />
+            <EventDeletionSnackbar />
             <DebugModeToggle />
           </Suspense>
           {appLoading && <Loading />}
