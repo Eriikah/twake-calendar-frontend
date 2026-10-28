@@ -1,7 +1,14 @@
 import { EventErrorHandler } from '@common/components/Error/EventErrorHandler'
 import { Calendar } from '@common/types/CalendarTypes'
 import { EventContentArg } from '@fullcalendar/core'
-import { Theme, getContrastRatio, alpha } from '@linagora/twake-mui'
+import {
+  Theme,
+  alpha,
+  decomposeColor,
+  getContrastRatio,
+  getLuminance,
+  lighten
+} from '@linagora/twake-mui'
 import { getAccessiblePair } from '@common/utils/getAccessiblePair'
 import CancelIcon from '@mui/icons-material/Cancel'
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined'
@@ -11,6 +18,7 @@ import React, { useLayoutEffect, useState } from 'react'
 import { EVENT_DURATION } from './EventChip'
 
 const COMPACT_WIDTH_THRESHOLD = 100
+const MIN_UI_CONTRAST = 3
 
 export interface EventChipProps {
   arg: EventContentArg
@@ -30,11 +38,55 @@ export function getEventDuration(event: EventContentArg['event']): number {
     'minutes'
   )
 }
-export function getBestColor(colors: { light: string; dark: string }): string {
-  const contrastToDark = getContrastRatio(colors?.dark, '#fff')
-  const contrastToLight = getContrastRatio(colors?.light, '#fff')
-  return contrastToDark > contrastToLight ? colors?.dark : colors?.light
+export function getBestColor(
+  colors: { light: string; dark: string },
+  background = '#fff'
+): string {
+  if (!colors?.light || !colors?.dark) return colors?.light ?? colors?.dark
+  try {
+    const best = pickBestColor(colors, background)
+    return getLuminance(background) < 0.5
+      ? lightenToContrast(best, background)
+      : best
+  } catch {
+    return colors.light
+  }
 }
+
+function pickBestColor(
+  colors: { light: string; dark: string },
+  background: string
+): string {
+  // getAccessiblePair falls back to white or black when it finds no tinted
+  // pair: keep the calendar's hue rather than a colorless variant
+  if (isColorless(colors.dark) !== isColorless(colors.light)) {
+    return isColorless(colors.dark) ? colors.light : colors.dark
+  }
+  const contrastToDark = getContrastRatio(colors.dark, background)
+  const contrastToLight = getContrastRatio(colors.light, background)
+  return contrastToDark > contrastToLight ? colors.dark : colors.light
+}
+
+// On a dark background, lighten the color until it reaches the 3:1 contrast
+// that WCAG asks of UI components, keeping its hue
+function lightenToContrast(color: string, background: string): string {
+  let lightened = color
+  for (
+    let coefficient = 0.1;
+    getContrastRatio(lightened, background) < MIN_UI_CONTRAST &&
+    coefficient < 1;
+    coefficient += 0.1
+  ) {
+    lightened = lighten(color, coefficient)
+  }
+  return lightened
+}
+
+function isColorless(color: string): boolean {
+  const [r, g, b] = decomposeColor(color).values
+  return Math.max(r, g, b) - Math.min(r, g, b) < 16
+}
+
 export function getEventTimes(
   event: EventContentArg['event'],
   timeZone: string
