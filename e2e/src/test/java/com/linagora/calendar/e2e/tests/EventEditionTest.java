@@ -404,7 +404,7 @@ class EventEditionTest extends TwakeCalendarE2ETest {
 
         DeletionSnackbar snackbar = calendar.openEvent(title).startDeletion();
 
-        assertThat(snackbar.message()).contains("Event deleted");
+        assertThat(snackbar.message()).contains("Event", title, "deleted");
         PlaywrightAssertions.assertThat(calendar.eventCard(title)).hasCount(0);
 
         snackbar.undo();
@@ -430,7 +430,7 @@ class EventEditionTest extends TwakeCalendarE2ETest {
 
         DeletionSnackbar snackbar = calendar.openEvent(title).startDeletion();
 
-        assertThat(snackbar.message()).contains("Guests will receive a cancellation");
+        assertThat(snackbar.message()).contains(title, "Guests will receive a cancellation");
 
         snackbar.undo();
         page.waitForTimeout(DeletionSnackbar.UNDO_WINDOW_MS + 3_000);

@@ -1,5 +1,6 @@
 import { setupStore } from '@common/app/store'
 import * as calendarSlice from '@common/features/Calendars/CalendarSlice'
+import * as EventDao from '@common/features/Events/EventDao'
 import {
   commitEventDeletion,
   resumeUnsentDeletions,
@@ -23,8 +24,11 @@ const calendarWithOccurrence = {
   events: { [occurrence.uid]: occurrence }
 }
 
-const makeStore = (withCalendar = true) =>
+const storageKey = 'pendingEventDeletions:user1'
+
+const makeStore = (withCalendar = true, userId = 'user1') =>
   setupStore({
+    user: { userData: { openpaasId: userId } },
     calendars: {
       list: withCalendar ? { [calId]: calendarWithOccurrence } : {},
       templist: {},
@@ -79,7 +83,7 @@ describe('event deletion', () => {
     expect(deleteOccurrence.mock.calls[0][0]).toMatchObject({
       event: { uid: occurrence.uid }
     })
-    expect(localStorage.getItem('pendingEventDeletions')).toBeNull()
+    expect(localStorage.getItem(storageKey)).toBeNull()
   })
 
   it('leaves the deletions of the current session to their undo', async () => {
@@ -93,5 +97,55 @@ describe('event deletion', () => {
 
     expect(deleteOccurrence).not.toHaveBeenCalled()
     expect(store.getState().calendars.pendingDeletions).toHaveLength(1)
+  })
+
+  it('keeps a deletion saved until the server answers it', async () => {
+    let answer: () => void = () => {}
+    jest.spyOn(calendarSlice, 'deleteEventInstance').mockImplementation(
+      payload => () =>
+        new Promise(resolve => {
+          answer = () =>
+            resolve({ type: 'deleteEventInstance/fulfilled', payload })
+        }) as never
+    )
+    const store = makeStore()
+    const id = store.dispatch(
+      scheduleEventDeletion({ calId, event: occurrence, scope: 'solo' })
+    )
+
+    const commit = store.dispatch(commitEventDeletion(id))
+    // a reload now would cut the request short: it is sent again at start
+    expect(JSON.parse(localStorage.getItem(storageKey) ?? '[]')).toHaveLength(1)
+
+    answer()
+    await commit
+    expect(localStorage.getItem(storageKey)).toBeNull()
+  })
+
+  it('never sends the deletions another user left unsent', async () => {
+    const deleteOccurrence = spyOnThunk('deleteEventInstance')
+    makeStore(true, 'user1').dispatch(
+      scheduleEventDeletion({ calId, event: occurrence, scope: 'solo' })
+    )
+
+    await makeStore(true, 'user2').dispatch(resumeUnsentDeletions())
+
+    expect(deleteOccurrence).not.toHaveBeenCalled()
+    expect(localStorage.getItem(storageKey)).not.toBeNull()
+  })
+
+  it('takes an event already gone from the server as deleted', async () => {
+    jest
+      .spyOn(EventDao, 'deleteEvent')
+      .mockRejectedValue({ response: { status: 404 } })
+    const store = makeStore()
+    const id = store.dispatch(
+      scheduleEventDeletion({ calId, event: occurrence, scope: 'all' })
+    )
+
+    await store.dispatch(commitEventDeletion(id))
+
+    expect(store.getState().calendars.error).toBeNull()
+    expect(store.getState().calendars.list[calId].events).toEqual({})
   })
 })

@@ -366,7 +366,7 @@ describe('Event Preview Display', () => {
       renderAndDelete('event1')
 
       expect(
-        screen.getByText('event.deletedGuestsNotified')
+        screen.getByText('event.deletedGuestsNotified(title=Test Event)')
       ).toBeInTheDocument()
     })
 
@@ -374,7 +374,34 @@ describe('Event Preview Display', () => {
       spyOnDeleteEvent()
       renderAndDelete('event2')
 
-      expect(screen.getByText('event.deleted')).toBeInTheDocument()
+      expect(
+        screen.getByText('event.deleted(title=Test Event)')
+      ).toBeInTheDocument()
+    })
+
+    it('names an event without a title as untitled', () => {
+      spyOnDeleteEvent()
+      const cal = preloadedState.calendars.list['667037022b752d0026472254/cal1']
+      renderAndDelete('event2', {
+        ...preloadedState,
+        calendars: {
+          ...preloadedState.calendars,
+          list: {
+            ...preloadedState.calendars.list,
+            [cal.id]: {
+              ...cal,
+              events: {
+                ...cal.events,
+                event2: { ...cal.events.event2, title: '' }
+              }
+            }
+          }
+        }
+      })
+
+      expect(
+        screen.getByText('event.deleted(title=event.untitled)')
+      ).toBeInTheDocument()
     })
 
     it('sends nothing and shows the event again on undo', async () => {
@@ -432,7 +459,11 @@ describe('Event Preview Display', () => {
       renderAndDelete('event2')
 
       expect(
-        JSON.parse(localStorage.getItem('pendingEventDeletions') ?? '[]')
+        JSON.parse(
+          localStorage.getItem(
+            'pendingEventDeletions:667037022b752d0026472254'
+          ) ?? '[]'
+        )
       ).toEqual([
         expect.objectContaining({
           event: expect.objectContaining({ uid: 'event2' })
@@ -458,6 +489,9 @@ describe('Event Preview Display', () => {
         store.getState().calendars.list['667037022b752d0026472254/cal1'].events
           .event2
       ).toBeDefined()
+      expect(
+        localStorage.getItem('pendingEventDeletions:667037022b752d0026472254')
+      ).toBeNull()
     })
   })
 

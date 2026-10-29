@@ -16,8 +16,6 @@ export const UNDO_DURATION = 3000
 // A further action carries out the oldest one at once
 export const MAX_PENDING_ACTIONS = 3
 
-const TICK = 100
-
 export interface UndoableAction {
   message: string
   // Carries the action out, once the time to undo it is over
@@ -73,7 +71,7 @@ export function UndoableActionsProvider({
 
   // Leaving the app carries out what is still pending
   useEffect(
-    () => () => pendingRef.current.forEach(a => settle(a.id, false)),
+    () => (): void => pendingRef.current.forEach(a => settle(a.id, false)),
     [settle]
   )
 
@@ -118,22 +116,22 @@ function PendingActionAlert({
   onUndo: () => void
 }): JSX.Element {
   const { t } = useI18n()
-  const [elapsed, setElapsed] = useState(0)
   // The countdown waits while the user points at or tabs into the alert
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
   const paused = hovered || focused
+  const remaining = useRef(UNDO_DURATION)
 
+  // settling twice does nothing: a new onTimeout may restart this freely
   useEffect(() => {
     if (paused) return
-    const timer = setInterval(() => setElapsed(e => e + TICK), TICK)
-    return () => clearInterval(timer)
-  }, [paused])
-
-  // settling twice does nothing: a new onTimeout may rerun this freely
-  useEffect(() => {
-    if (elapsed >= UNDO_DURATION) onTimeout()
-  }, [elapsed, onTimeout])
+    const startedAt = Date.now()
+    const timer = setTimeout(onTimeout, remaining.current)
+    return (): void => {
+      clearTimeout(timer)
+      remaining.current -= Date.now() - startedAt
+    }
+  }, [paused, onTimeout])
 
   return (
     <Box
@@ -145,7 +143,6 @@ function PendingActionAlert({
       <ActionAlert
         message={message}
         action={{ label: t('actions.undo'), onClick: onUndo }}
-        progress={Math.max(0, 100 - (elapsed / UNDO_DURATION) * 100)}
       />
     </Box>
   )

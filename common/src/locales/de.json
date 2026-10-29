@@ -271,8 +271,8 @@
       "invalidTimeFormat": "Ungültiges Zeitformat",
       "invalidRepeatInterval": "Geben Sie eine ganze Zahl zwischen 1 und %{max} ein"
     },
-    "deleted": "Termin gelöscht",
-    "deletedGuestsNotified": "Termin gelöscht. Die Teilnehmenden erhalten eine Absage."
+    "deleted": "Termin „%{title}“ gelöscht",
+    "deletedGuestsNotified": "Termin „%{title}“ gelöscht. Die Teilnehmenden erhalten eine Absage."
   },
   "peopleSearch": {
     "label": "Geben Sie einen Namen oder eine E-Mail-Adresse ein",

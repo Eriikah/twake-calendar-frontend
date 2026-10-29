@@ -38,26 +38,34 @@ const findDeletion = (
 ): PendingDeletion | undefined =>
   getState().calendars.pendingDeletions?.find(d => d.id === id)
 
+// One key per user: a deletion left unsent is only ever sent by its author
+const storageKey = (getState: () => RootState): string | undefined => {
+  const userId = getState().user?.userData?.openpaasId
+  return userId ? `${STORAGE_KEY}:${userId}` : undefined
+}
+
 /**
- * The page may be reloaded or closed while a deletion waits for its undo:
- * nothing can be sent then, so the deletions still to send are kept here and
- * sent at the next start of the app.
+ * The page may be reloaded or closed while a deletion waits for its undo or
+ * for the server: the request is then lost, so every deletion the server has
+ * not answered yet is kept here and sent again at the next start of the app.
  */
 function saveUnsentDeletions(getState: () => RootState): void {
-  const unsent = (getState().calendars.pendingDeletions ?? []).filter(
-    d => !d.committing
-  )
+  const key = storageKey(getState)
+  if (!key) return
+  const unsent = getState().calendars.pendingDeletions ?? []
   try {
-    if (unsent.length) localStorage.setItem(STORAGE_KEY, JSON.stringify(unsent))
-    else localStorage.removeItem(STORAGE_KEY)
+    if (unsent.length) localStorage.setItem(key, JSON.stringify(unsent))
+    else localStorage.removeItem(key)
   } catch (error) {
     console.error('Failed to save the pending deletions:', error)
   }
 }
 
-function readSavedDeletions(): PendingDeletion[] {
+function readSavedDeletions(getState: () => RootState): PendingDeletion[] {
+  const key = storageKey(getState)
+  if (!key) return []
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
+    const saved: unknown = JSON.parse(localStorage.getItem(key) ?? '[]')
     return Array.isArray(saved) ? (saved as PendingDeletion[]) : []
   } catch {
     return []
@@ -144,9 +152,10 @@ export const commitEventDeletion =
         )
     }
     dispatch(removePendingDeletion(id))
+    saveUnsentDeletions(getState)
   }
 
-// Sends the deletions a reload or a closed tab left unsent. The ones of the
+// Sends again the deletions a reload or a closed tab cut short. The ones of the
 // current session wait for their undo as usual.
 export const resumeUnsentDeletions =
   (): Thunk<Promise<void>> => async (dispatch, getState) => {
@@ -154,7 +163,7 @@ export const resumeUnsentDeletions =
       (getState().calendars.pendingDeletions ?? []).map(d => d.id)
     )
     await Promise.all(
-      readSavedDeletions()
+      readSavedDeletions(getState)
         .filter(deletion => !known.has(deletion.id))
         .map(deletion => {
           dispatch(addPendingDeletion({ ...deletion, committing: false }))

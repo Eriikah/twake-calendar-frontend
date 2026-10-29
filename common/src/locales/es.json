@@ -271,8 +271,8 @@
       "invalidTimeFormat": "Formato de hora no válido",
       "invalidRepeatInterval": "Introduzca un número entero entre 1 y %{max}"
     },
-    "deleted": "Evento eliminado",
-    "deletedGuestsNotified": "Evento eliminado. Los participantes recibirán una cancelación."
+    "deleted": "Evento «%{title}» eliminado",
+    "deletedGuestsNotified": "Evento «%{title}» eliminado. Los participantes recibirán una cancelación."
   },
   "peopleSearch": {
     "label": "Empiece a escribir un nombre o un correo electrónico",

@@ -54,19 +54,13 @@ const initialState: CalendarState = {
   templist: {},
   pending: true,
   error: null as string | null,
-  isMobileSearchOpen: false
+  isMobileSearchOpen: false,
+  pendingDeletions: [] as PendingDeletion[]
 }
 
 const CalendarSlice = createAppSlice({
   name: 'calendars',
-  initialState: {
-    list: {} as Record<string, Calendar>,
-    templist: {} as Record<string, Calendar>,
-    pending: true,
-    error: null as string | null,
-    isMobileSearchOpen: false,
-    pendingDeletions: [] as PendingDeletion[]
-  } as CalendarState,
+  initialState,
   reducers: create => ({
     // Regular reducers
     createCalendar: createCalendarReducer(create),

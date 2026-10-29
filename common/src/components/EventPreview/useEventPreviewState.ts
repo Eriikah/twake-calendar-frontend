@@ -74,7 +74,7 @@ interface UseEventPreviewStateReturn {
   handleEditClick: () => void
   handleEditInOrganizerCalendar: () => void
   handleSettingsEditClick: () => void
-  handleDeleteClick: () => Promise<void>
+  handleDeleteClick: () => void
   handleDuplicateClick: () => void
   calendarid: string
   handleCalendarMove: (calendarid: string) => void
@@ -292,14 +292,15 @@ export function useEventPreviewState(
     const deletionId = dispatch(scheduleEventDeletion({ calId, event, scope }))
     scheduleUndoableAction({
       message: t(
-        guestsNotified ? 'event.deletedGuestsNotified' : 'event.deleted'
+        guestsNotified ? 'event.deletedGuestsNotified' : 'event.deleted',
+        { title: event.title || t('event.untitled') }
       ),
       commit: () => dispatch(commitEventDeletion(deletionId)),
       undo: () => dispatch(undoEventDeletion(deletionId))
     })
   }
 
-  const handleDeleteClick = async (): Promise<void> => {
+  const handleDeleteClick = (): void => {
     if (isRecurring) {
       setAfterChoiceFunc(
         () =>

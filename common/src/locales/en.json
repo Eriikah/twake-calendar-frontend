@@ -271,8 +271,8 @@
       "invalidTimeFormat": "Invalid time format",
       "invalidRepeatInterval": "Enter a whole number between 1 and %{max}"
     },
-    "deleted": "Event deleted",
-    "deletedGuestsNotified": "Event deleted. Guests will receive a cancellation."
+    "deleted": "Event “%{title}” deleted",
+    "deletedGuestsNotified": "Event “%{title}” deleted. Guests will receive a cancellation."
   },
   "peopleSearch": {
     "label": "Start typing a name or email",
