@@ -4,7 +4,11 @@ import {
   VObjectValue
 } from '@common/features/Calendars/types/CalendarData'
 import { VcalendarProperties } from '@common/features/Calendars/types/VcalendarProperties'
-import { makeTimezone, parseCalendarEvent } from '@common/features/Events/utils'
+import {
+  knownZone,
+  makeTimezone,
+  parseCalendarEvent
+} from '@common/features/Events/utils'
 import { Calendar } from '@common/types/CalendarTypes'
 import { CalendarEvent } from '@common/types/EventsTypes'
 import { TIMEZONES } from '@common/utils/timezone-data'
@@ -12,6 +16,12 @@ import moment from 'moment-timezone'
 import { incrementSequenceNumber } from './makeSeriesJCal'
 import { filterComponents } from './parseFetchedEvent'
 import { getTzidParam, sameRecurrence } from './recurrenceInstant'
+
+// sameRecurrence only compares instants in zones moment knows: resolve a
+// Windows TZID to its IANA zone, keep an unresolvable one as-is
+function ianaTzid(tzid: string | undefined): string | undefined {
+  return tzid && knownZone(tzid, tzid)
+}
 
 export function makeDeleteEventInstanceJCal(
   vevents: VCalComponent[],
@@ -53,7 +63,10 @@ export function makeDeleteEventInstanceJCal(
 
   let exdateProperty = exdateValue as VObjectValue
   if (useTzidForm) {
-    const zoned = moment.tz(exdateValue, dtstartTzid)
+    const zoned = moment.tz(
+      exdateValue,
+      knownZone(dtstartTzid, seriesEvent.timezone || 'UTC')
+    )
     exdateProperty = zoned.format('YYYY-MM-DDTHH:mm:ss')
   }
 
@@ -61,10 +74,13 @@ export function makeDeleteEventInstanceJCal(
     if (prop[0].toLowerCase() !== 'exdate' || !prop[3]) {
       return false
     }
-    const existingTzid = getTzidParam(prop[1])
+    const existingTzid = ianaTzid(getTzidParam(prop[1]))
     return sameRecurrence(
       { value: prop[3], tzid: existingTzid },
-      { value: exdateProperty, tzid: useTzidForm ? dtstartTzid : undefined },
+      {
+        value: exdateProperty,
+        tzid: useTzidForm ? ianaTzid(dtstartTzid) : undefined
+      },
       seriesEvent.timezone
     )
   })
@@ -86,7 +102,7 @@ export function makeDeleteEventInstanceJCal(
       ([k]) => k.toLowerCase() === 'recurrence-id'
     )
     if (!recurrenceIdProp) return true // Keep master
-    const overrideTzid = getTzidParam(recurrenceIdProp[1])
+    const overrideTzid = ianaTzid(getTzidParam(recurrenceIdProp[1]))
     return !sameRecurrence(
       { value: recurrenceIdProp[3], tzid: overrideTzid },
       { value: exdateValue },
