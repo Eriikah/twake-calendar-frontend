@@ -5,13 +5,16 @@ import {
   deleteEventInstance,
   markPendingDeletionCommitting,
   removeEvent,
-  removePendingDeletion
+  removePendingDeletion,
+  setCalendarError
 } from '@common/features/Calendars/CalendarSlice'
 import { PendingDeletion } from '@common/features/Calendars/types/PendingDeletion'
 import { CalendarEvent } from '@common/types/EventsTypes'
 import { isRejected } from '@reduxjs/toolkit'
 
 type Thunk<T> = (dispatch: AppDispatch, getState: () => RootState) => T
+
+const STORAGE_KEY = 'pendingEventDeletions'
 
 let nextDeletionId = 0
 
@@ -29,6 +32,38 @@ export function isHiddenByPendingDeletion(
   )
 }
 
+const findDeletion = (
+  getState: () => RootState,
+  id: string
+): PendingDeletion | undefined =>
+  getState().calendars.pendingDeletions?.find(d => d.id === id)
+
+/**
+ * The page may be reloaded or closed while a deletion waits for its undo:
+ * nothing can be sent then, so the deletions still to send are kept here and
+ * sent at the next start of the app.
+ */
+function saveUnsentDeletions(getState: () => RootState): void {
+  const unsent = (getState().calendars.pendingDeletions ?? []).filter(
+    d => !d.committing
+  )
+  try {
+    if (unsent.length) localStorage.setItem(STORAGE_KEY, JSON.stringify(unsent))
+    else localStorage.removeItem(STORAGE_KEY)
+  } catch (error) {
+    console.error('Failed to save the pending deletions:', error)
+  }
+}
+
+function readSavedDeletions(): PendingDeletion[] {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
+    return Array.isArray(saved) ? (saved as PendingDeletion[]) : []
+  } catch {
+    return []
+  }
+}
+
 /**
  * Hides the event from the grid without telling the server yet, so that an
  * undo sends nothing: guests never get a cancellation followed by a new
@@ -38,39 +73,34 @@ export const scheduleEventDeletion =
   ({
     calId,
     event,
-    scope,
-    guestsNotified
+    scope
   }: {
     calId: string
     event: CalendarEvent
     scope: 'solo' | 'all'
-    guestsNotified: boolean
   }): Thunk<string> =>
-  dispatch => {
-    // one deletion may be undone at a time: the previous one goes for good
-    void dispatch(commitPendingDeletions())
-    const id = `deletion-${++nextDeletionId}`
+  (dispatch, getState) => {
+    const id = `deletion-${Date.now()}-${++nextDeletionId}`
     dispatch(
       addPendingDeletion({
         id,
         calId,
         event: { ...event, calId },
         scope,
-        guestsNotified,
         committing: false
       })
     )
+    saveUnsentDeletions(getState)
     return id
   }
 
 export const undoEventDeletion =
   (id: string): Thunk<void> =>
   (dispatch, getState) => {
-    const deletion = getState().calendars.pendingDeletions?.find(
-      d => d.id === id
-    )
+    const deletion = findDeletion(getState, id)
     if (!deletion || deletion.committing) return
     dispatch(removePendingDeletion(id))
+    saveUnsentDeletions(getState)
   }
 
 /**
@@ -80,22 +110,32 @@ export const undoEventDeletion =
 export const commitEventDeletion =
   (id: string): Thunk<Promise<void>> =>
   async (dispatch, getState) => {
-    const deletion = getState().calendars.pendingDeletions?.find(
-      d => d.id === id
-    )
+    const deletion = findDeletion(getState, id)
     if (!deletion || deletion.committing) return
     dispatch(markPendingDeletionCommitting(id))
+    saveUnsentDeletions(getState)
 
     const { calId, event, scope } = deletion
-    const calendar = getState().calendars.list[calId]
-    const result =
-      scope === 'solo' && calendar
-        ? await dispatch(deleteEventInstance({ cal: calendar, event }))
-        : await dispatch(
-            deleteEvent({ calId, eventId: event.uid, eventURL: event.URL })
-          )
+    let succeeded = false
+    if (scope === 'solo') {
+      const calendar = getState().calendars.list[calId]
+      // never fall back on deleting the URL: the whole series shares it
+      if (calendar) {
+        const result = await dispatch(
+          deleteEventInstance({ cal: calendar, event })
+        )
+        succeeded = !isRejected(result)
+      } else {
+        dispatch(setCalendarError('TRANSLATION:error.deleteEventFailed'))
+      }
+    } else {
+      const result = await dispatch(
+        deleteEvent({ calId, eventId: event.uid, eventURL: event.URL })
+      )
+      succeeded = !isRejected(result)
+    }
 
-    if (!isRejected(result)) {
+    if (succeeded) {
       // drop the occurrences now: the refresh that follows comes later
       Object.values(getState().calendars.list[calId]?.events ?? {})
         .filter(e => isHiddenByPendingDeletion(e, [deletion]))
@@ -106,11 +146,19 @@ export const commitEventDeletion =
     dispatch(removePendingDeletion(id))
   }
 
-export const commitPendingDeletions =
+// Sends the deletions a reload or a closed tab left unsent. The ones of the
+// current session wait for their undo as usual.
+export const resumeUnsentDeletions =
   (): Thunk<Promise<void>> => async (dispatch, getState) => {
+    const known = new Set(
+      (getState().calendars.pendingDeletions ?? []).map(d => d.id)
+    )
     await Promise.all(
-      (getState().calendars.pendingDeletions ?? [])
-        .filter(d => !d.committing)
-        .map(d => dispatch(commitEventDeletion(d.id)))
+      readSavedDeletions()
+        .filter(deletion => !known.has(deletion.id))
+        .map(deletion => {
+          dispatch(addPendingDeletion({ ...deletion, committing: false }))
+          return dispatch(commitEventDeletion(deletion.id))
+        })
     )
   }

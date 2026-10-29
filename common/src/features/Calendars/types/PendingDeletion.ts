@@ -8,7 +8,5 @@ export interface PendingDeletion {
   event: CalendarEvent
   // "solo" removes one occurrence of a series, "all" the whole event
   scope: 'solo' | 'all'
-  // the server will send the guests a cancellation
-  guestsNotified: boolean
   committing: boolean
 }

@@ -1,8 +1,13 @@
 import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { AppDispatch } from '@common/app/store'
 import { setCalendarError } from '@common/features/Calendars/CalendarSlice'
+import { useUndoableAction } from '@common/components/UndoableActions/UndoableActionsProvider'
 import { createEventContext } from '@common/features/Events/createEventContext'
-import { scheduleEventDeletion } from '@common/features/Events/eventDeletion'
+import {
+  commitEventDeletion,
+  scheduleEventDeletion,
+  undoEventDeletion
+} from '@common/features/Events/eventDeletion'
 import { canWriteToTeamCalendar } from '@common/features/Calendars/utils/calendarPermissions'
 import { moveEventBetweenCalendars } from '@common/features/Events/updateEventHelpers/moveEventBetweenCalendars'
 import { ToUserData } from '@common/features/User/type/OpenPaasUserData'
@@ -14,6 +19,7 @@ import { isEventOrganiser } from '@common/utils/isEventOrganiser'
 import { normalizeIdentity } from '@common/utils/normalizeIdentity'
 import { browserDefaultTimeZone } from '@common/utils/timezone'
 import { useMemo, useState } from 'react'
+import { useI18n } from 'twake-i18n'
 import { useEventUpdateModalReopen } from './useEventUpdateModalReopen'
 
 const isMaskedClassification = (classification?: string): boolean =>
@@ -84,6 +90,8 @@ export function useEventPreviewState(
   onClose: (event: unknown, reason: 'backdropClick' | 'escapeKeyDown') => void
 ): UseEventPreviewStateReturn {
   const dispatch = useAppDispatch()
+  const { t } = useI18n()
+  const scheduleUndoableAction = useUndoableAction()
   const calendars = useAppSelector(state => state.calendars) as {
     list: Record<string, Calendar>
     templist: Record<string, Calendar>
@@ -271,7 +279,6 @@ export function useEventPreviewState(
     }
   }
 
-  // the snackbar offering to undo it shows up once the deletion is pending
   const deleteWithUndo = (scope: 'solo' | 'all'): void => {
     onClose({}, 'backdropClick')
     const organizer = normalizeIdentity(event.organizer?.cal_address ?? '')
@@ -282,7 +289,14 @@ export function useEventPreviewState(
           attendee.cutype !== 'RESOURCE' &&
           normalizeIdentity(attendee.cal_address) !== organizer
       )
-    dispatch(scheduleEventDeletion({ calId, event, scope, guestsNotified }))
+    const deletionId = dispatch(scheduleEventDeletion({ calId, event, scope }))
+    scheduleUndoableAction({
+      message: t(
+        guestsNotified ? 'event.deletedGuestsNotified' : 'event.deleted'
+      ),
+      commit: () => dispatch(commitEventDeletion(deletionId)),
+      undo: () => dispatch(undoEventDeletion(deletionId))
+    })
   }
 
   const handleDeleteClick = async (): Promise<void> => {

@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from '@common/app/hooks'
 import { history, store } from '@common/app/store'
 import { Error as ErrorPage } from '@common/components/Error/Error'
 import { ErrorSnackbar } from '@common/components/Error/ErrorSnackbar'
-import { EventDeletionSnackbar } from '@common/components/Event/EventDeletionSnackbar'
+import { UndoableActionsProvider } from '@common/components/UndoableActions/UndoableActionsProvider'
 import { DebugModeToggle } from '@common/components/Debug/DebugModeToggle'
 import { TwakeBarHeader } from '@common/components/TwakeBarHeader/TwakeBarHeader'
 import { ErrorBoundary } from 'react-error-boundary'
@@ -176,27 +176,28 @@ export default function App(): JSX.Element {
           <Suspense fallback={<Loading />}>
             <WebSocketGate />
             <SpaceOverlayProvider overlay={spaceOverlay}>
-              <Router history={history}>
-                <Routes>
-                  <Route path="/" element={<HandleLogin />} />
-                  <Route path="/calendar" element={<CalendarLayout />} />
-                  <Route
-                    path={EMBED_CALENDAR_ROUTE}
-                    element={<EmbeddedCalendar />}
-                  />
-                  <Route
-                    path={EMBED_EVENT_ROUTE}
-                    element={<EmbeddedCalendar />}
-                  />
-                  <Route path="/events/:uid" element={<EventDeepLink />} />
-                  <Route path="/newEvent" element={<NewEventDeepLink />} />
-                  <Route path="/callback" element={<CallbackResume />} />
-                  <Route path="/error" element={<ErrorPage />} />
-                </Routes>
-              </Router>
+              <UndoableActionsProvider>
+                <Router history={history}>
+                  <Routes>
+                    <Route path="/" element={<HandleLogin />} />
+                    <Route path="/calendar" element={<CalendarLayout />} />
+                    <Route
+                      path={EMBED_CALENDAR_ROUTE}
+                      element={<EmbeddedCalendar />}
+                    />
+                    <Route
+                      path={EMBED_EVENT_ROUTE}
+                      element={<EmbeddedCalendar />}
+                    />
+                    <Route path="/events/:uid" element={<EventDeepLink />} />
+                    <Route path="/newEvent" element={<NewEventDeepLink />} />
+                    <Route path="/callback" element={<CallbackResume />} />
+                    <Route path="/error" element={<ErrorPage />} />
+                  </Routes>
+                </Router>
+              </UndoableActionsProvider>
             </SpaceOverlayProvider>
             <ErrorSnackbar error={error} type="user" />
-            <EventDeletionSnackbar />
             <DebugModeToggle />
           </Suspense>
           {appLoading && <Loading />}

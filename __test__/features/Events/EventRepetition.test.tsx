@@ -4,10 +4,7 @@ import {
   EventHandlersProps
 } from '@common/components/Calendar/handlers/eventHandlers'
 import { EditModeDialog } from '@common/components/Event/EditModeDialog'
-import {
-  EventDeletionSnackbar,
-  UNDO_DELETION_DURATION
-} from '@common/components/Event/EventDeletionSnackbar'
+import { UNDO_DURATION } from '@common/components/UndoableActions/UndoableActionsProvider'
 import EventPreviewModal from '@common/components/EventPreview'
 import * as eventThunks from '@common/features/Calendars/CalendarSlice'
 import { VcalendarProperties } from '@common/features/Calendars/types/VcalendarProperties'
@@ -365,15 +362,12 @@ describe('EventPreviewModal - Recurring Event Interactions', () => {
       })
     await act(async () =>
       renderWithProviders(
-        <>
-          <EventPreviewModal
-            open={true}
-            onClose={mockOnClose}
-            calId="667037022b752d0026472254/cal1"
-            eventId="single-event"
-          />
-          <EventDeletionSnackbar />
-        </>,
+        <EventPreviewModal
+          open={true}
+          onClose={mockOnClose}
+          calId="667037022b752d0026472254/cal1"
+          eventId="single-event"
+        />,
         nonRecurringState
       )
     )
@@ -382,7 +376,7 @@ describe('EventPreviewModal - Recurring Event Interactions', () => {
 
     // the deletion is only sent once its undo snackbar is gone
     act(() => {
-      jest.advanceTimersByTime(UNDO_DELETION_DURATION)
+      jest.advanceTimersByTime(UNDO_DURATION)
     })
 
     await waitFor(() => {
@@ -415,15 +409,12 @@ describe('Delete Recurring Event Instance', () => {
 
     await act(async () =>
       renderWithProviders(
-        <>
-          <EventPreviewModal
-            open={true}
-            onClose={mockOnClose}
-            calId="667037022b752d0026472254/cal1"
-            eventId="recurring-base/20250315T100000"
-          />
-          <EventDeletionSnackbar />
-        </>,
+        <EventPreviewModal
+          open={true}
+          onClose={mockOnClose}
+          calId="667037022b752d0026472254/cal1"
+          eventId="recurring-base/20250315T100000"
+        />,
         basePreloadedState
       )
     )
@@ -441,7 +432,7 @@ describe('Delete Recurring Event Instance', () => {
 
     // the deletion is only sent once its undo snackbar is gone
     act(() => {
-      jest.advanceTimersByTime(UNDO_DELETION_DURATION)
+      jest.advanceTimersByTime(UNDO_DURATION)
     })
 
     await waitFor(() => {
@@ -479,15 +470,12 @@ describe('Delete Recurring Event Instance', () => {
 
     await act(async () =>
       renderWithProviders(
-        <>
-          <EventPreviewModal
-            open={true}
-            onClose={mockOnClose}
-            calId="667037022b752d0026472254/cal1"
-            eventId="recurring-base/20250315T100000"
-          />
-          <EventDeletionSnackbar />
-        </>,
+        <EventPreviewModal
+          open={true}
+          onClose={mockOnClose}
+          calId="667037022b752d0026472254/cal1"
+          eventId="recurring-base/20250315T100000"
+        />,
         basePreloadedState
       )
     )
@@ -505,7 +493,7 @@ describe('Delete Recurring Event Instance', () => {
 
     // the deletion is only sent once its undo snackbar is gone
     act(() => {
-      jest.advanceTimersByTime(UNDO_DELETION_DURATION)
+      jest.advanceTimersByTime(UNDO_DURATION)
     })
 
     await waitFor(() => {
